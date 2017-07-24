@@ -1,0 +1,22 @@
+@(userForm: Form[controllers.auth.UserData.Values], request: Request[AnyContent])
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Sign Up</title>
+    </head>
+    <body>
+
+        <h1>Sign Up</h1>
+
+        <form action="@controllers.auth.routes.AuthController.createLogin" method="POST">
+            <input type="text" name="@controllers.auth.UserData.NAME" value="" />
+            <p />
+            <input type="password" name="@controllers.auth.UserData.PASSWORD" value="" />
+            <p />
+            <input type="submit" name="submit" value="Submit" />
+            @views.html.helper.CSRF.formField(request)
+        </form>
+
+    </body>
+</html>

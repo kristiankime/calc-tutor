@@ -1,0 +1,22 @@
+@(users: Seq[models.auth.NamePassLogin])
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Sign In</title>
+    </head>
+    <body>
+        <table>
+            <tr> <th> id </th> <th> userName </th> <th> password </th>  <th> linkedId </th> </tr>
+            @for(user <- users){
+            <tr>
+                <td> @user.id </td>
+                <td> @user.userName </td>
+                <td> @user.password </td>
+                <td> @user.linkedId </td>
+            </tr>
+            }
+        </table>
+
+    </body>
+</html>

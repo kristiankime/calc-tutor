@@ -1,0 +1,47 @@
+# Ignore Play! working directory #
+
+
+/lib
+
+/bin
+/db
+/logs
+/modules
+/project/project
+/project/target
+/target
+/tmp
+/test-result
+/server.pid
+*.eml
+/dist/
+/.cache
+
+# IDE Files
+/.project
+/.settings
+
+/.eclipse
+/.idea
+/.idea_modules
+/.classpath
+
+/RUNNING_PID
+
+
+
+/.history
+/dist
+/*.iml
+/out
+/.target
+.DS_Store
+
+# pg temp files
+/pgdumps
+
+# Environment Setting Scripts that contain sensitive data
+/local_environment_variables_use_postgres.sh
+/local_environment_variables_secure_social.sh
+/heroku_environment_variables.sh
+
