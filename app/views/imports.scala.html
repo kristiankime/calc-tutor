@@ -1,0 +1,54 @@
+@()
+  <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main-flex.css")" />
+  <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/purebuild/skin.css")" />
+  <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/pure/0.5.0/pure-min.css")" />
+  <link rel="stylesheet" href="@routes.Assets.versioned("fonts/icomoon/style.css")" type="text/css" />
+  <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/modal/modal.css")" type="text/css" />
+
+  <script src="@routes.Assets.versioned("javascripts/jquery/jquery-3.2.1.min.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/underscore/underscore-min.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/moment.min.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/mathjs/math.js")" type="text/javascript"></script>
+  <script> math.import({ln: math.log}); </script> <!-- add ln as a function to math-js -->
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-onload.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-mathjax.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-mathjs.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-poly-zone.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-localize.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-percent.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-opentip.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-math-js-jax.js")" type="text/javascript"></script> <!-- this must be loaded after the other artclod scripts-->
+  <script src="@routes.Assets.versioned("javascripts/calctutor/calctutor-mathjs.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-trim-polyfill.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/artclod/artclod-replaceAll-polyfill.js")" type="text/javascript"></script>
+
+    <!-- Function Graphing Library -->
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/jsxgraph/0.99.3/jsxgraphcore.js" type="text/javascript"></script>
+  @* <!-- MathJax including Content MathML extension -->
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+  MathML: {
+  extensions: ["content-mathml.js"]
+  }
+  });
+  </script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML" type="text/javascript"> </script> *@
+  <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"> </script>
+  <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/mathjax/mathjax-override.css")" /> <!-- override some odd mathjax css defaults -->
+    <!-- opentip related files placed together -->
+  <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/opentip/opentip.css")" type="text/css" />
+  <script src="@routes.Assets.versioned("javascripts/opentip/opentip-jquery.min.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/opentip/opentip-styles.js")" type="text/javascript"></script>
+
+    <!-- Kendo and Knockout--> @*http://docs.telerik.com/kendo-ui/intro/installation/cdn-service http://docs.telerik.com/kendo-ui/api/javascript/ui/progressbar*@
+  <link rel="stylesheet" href="@routes.Assets.versioned("javascripts/kendo/kendo.common.min.css")" />
+  <link rel="stylesheet" href="@routes.Assets.versioned("javascripts/kendo/kendo.rtl.min.css")" />
+  <link rel="stylesheet" href="@routes.Assets.versioned("javascripts/kendo/kendo.default.min.css")" />
+  <link rel="stylesheet" href="@routes.Assets.versioned("javascripts/kendo/kendo.dataviz.min.css")" />
+  <link rel="stylesheet" href="@routes.Assets.versioned("javascripts/kendo/kendo.dataviz.default.min.css")" />
+  <link rel="stylesheet" href="@routes.Assets.versioned("javascripts/kendo/kendo.mobile.all.min.css")" />
+  <script src="@routes.Assets.versioned("javascripts/kendo/kendo.all.min.js")" type="text/javascript"></script>
+
+  <script src="@routes.Assets.versioned("javascripts/knockout/knockout-3.4.2.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/knockout/knockout.mapping-2.4.1.min.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.versioned("javascripts/knockout-kendo/knockout-kendo.min.js")" type="text/javascript"></script>

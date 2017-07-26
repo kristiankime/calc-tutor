@@ -3,7 +3,7 @@ organization := "com.artclod"
 
 version := "0.0.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
 scalaVersion := "2.11.11"
 
@@ -34,14 +34,10 @@ libraryDependencies += "commons-io" % "commons-io"      % "2.5"
 libraryDependencies += "com.typesafe.play" %% "play-slick"            % "2.1.0"   withSources() withJavadoc()
 libraryDependencies += "com.typesafe.play" %% "play-slick-evolutions" % "2.1.0"   withSources() withJavadoc()
 libraryDependencies += "com.h2database"    %  "h2"                    % "1.4.195" withSources() withJavadoc()
-//libraryDependencies += "postgresql"        %  "postgresql"            % "9.1-901-1.jdbc4" withSources() withJavadoc()
-libraryDependencies += "org.postgresql"      %  "postgresql"            % "9.4-1201-jdbc41" withSources() withJavadoc()
+libraryDependencies += "org.postgresql"    %  "postgresql"            % "9.4-1201-jdbc41" withSources() withJavadoc()
 libraryDependencies += "org.springframework.security" % "spring-security-crypto" % "4.2.2.RELEASE" withSources() withJavadoc() // for Password Encryption
 // === End play slick / db  includes ===
 
 
-// Adds additional packages into Twirl
-//TwirlKeys.templateImports += "com.artclod.controllers._"
-
-// Adds additional packages into conf/routes
-// play.sbt.routes.RoutesKeys.routesImport += "com.artclod.binders._"
+includeFilter in (Assets, LessKeys.less) := "*.less"
+excludeFilter in (Assets, LessKeys.less) := "_*.less"
