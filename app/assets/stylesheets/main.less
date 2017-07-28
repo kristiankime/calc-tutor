@@ -1,0 +1,68 @@
+@import "flexbox/flexbox.less";
+@import "utils/css-transforms";
+
+@white: #FFFFFF;
+@light: #B0E4F7; // #0086C2;
+@medium: #3E95CD;
+@dark: #17699D;
+
+@student-points-color: yellow;
+@teacher-points-color: orange;
+
+.primary-content {
+  padding: 1em 1em 1em 1em;
+}
+
+.secondary-content {
+  padding: .5em .5em .5em .5em;
+}
+
+.secondary-content-bordered {
+  border-radius: 2em;
+  padding: .5em .5em .5em .5em;
+  border-style: solid;
+  border-color: @medium;
+  border-width: medium;
+}
+
+// GENERAL STYLING =====================
+.warning {
+  color: red;
+}
+
+.pure-skin-calctutor ul.pure-list {
+  list-style-type: circle;
+  list-style: none;
+}
+
+.pure-skin-calctutor ul.pure-list li { padding: .1em 0em; }
+
+.extra-border {
+  margin: 1.5em;
+}
+
+// GRID LAYOUTS =====================
+
+
+// --- Just a box pages ----
+.boxed-container-outer-background {
+  background-color : @medium
+}
+
+.boxed-container-inner {
+  background-color : @white
+}
+
+.boxed-container {
+  grid-template-columns: auto 300px auto;
+  grid-template-rows: auto 500px auto;
+  grid-template-areas:
+  ". . ."
+  ".  content ."
+  ". . .";
+}
+
+.boxed-container-item-content {
+  grid-area: content;
+}
+

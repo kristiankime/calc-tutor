@@ -60,7 +60,11 @@ Naming conventions: http://smacss.com/
 Based on: http://necolas.github.io/normalize.css/
 Skin Builder: http://yui.github.io/skinbuilder/index.html?opt=calctutor,045FE7,FFFFFF,1,1,10,1.5&h=0,-30,60&n=0,-30,75&l=0,-30,80&b=0,-30,90&mode=pure
 
+### CSS-Grid
 https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 
 https://css-tricks.com/snippets/css/complete-guide-grid/
 https://gridbyexample.com/examples/
+
+### Security Headers
+https://www.playframework.com/documentation/2.5.x/SecurityHeaders

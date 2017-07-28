@@ -1,15 +1,6 @@
 @()
 
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>Sign In</title>
-    </head>
-    <body>
-
-        <h1>Sign In</h1>
-        <a href="@controllers.auth.routes.AuthController.formClient"> form </a> <br>
-        <a href="@controllers.auth.routes.AuthController.googleClient"> google </a>
-
-    </body>
-</html>
+@boxedContent("Sign In Choice") {
+    <a href="@controllers.auth.routes.AuthController.formClient"> form </a> <br>
+    <a href="@controllers.auth.routes.AuthController.googleClient"> google </a>
+}

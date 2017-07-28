@@ -1,0 +1,23 @@
+@(title: String)(content: Html)
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>@title</title>
+
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")" />
+
+        @imports()
+    </head>
+    <body class="main pure-skin-calctutor boxed-container-outer-background">
+
+
+        <section class="boxed-container-item-content boxed-container-inner">
+        @content
+        </section>
+
+    </body>
+</html>
