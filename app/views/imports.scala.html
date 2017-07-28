@@ -1,10 +1,12 @@
 @()
+  <!-- Stylesheets -->
   <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")" />
   <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/purebuild/pure-skin.css")" />
   <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/pure/1.0.0/pure-min.css")" />
   <link rel="stylesheet" href="@routes.Assets.versioned("fonts/icomoon/style.css")" type="text/css" />
   <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/modal/modal.css")" type="text/css" />
 
+  <!-- General JS helpers -->
   <script src="@routes.Assets.versioned("javascripts/jquery/jquery-3.2.1.min.js")" type="text/javascript"></script>
   <script src="@routes.Assets.versioned("javascripts/underscore/underscore-min.js")" type="text/javascript"></script>
   <script src="@routes.Assets.versioned("javascripts/moment.min.js")" type="text/javascript"></script>
@@ -13,6 +15,7 @@
   <script src="@routes.Assets.versioned("javascripts/mathjs/math.js")" type="text/javascript"></script>
   <script> math.import({ln: math.log}); </script> <!-- add ln as a function to math-js -->
 
+  <!-- Custom scripts -->
   <script src="@routes.Assets.versioned("javascripts/artclod/artclod-onload.js")" type="text/javascript"></script>
   <script src="@routes.Assets.versioned("javascripts/artclod/artclod-mathjax.js")" type="text/javascript"></script>
   <script src="@routes.Assets.versioned("javascripts/artclod/artclod-mathjs.js")" type="text/javascript"></script>
@@ -39,7 +42,7 @@
 
   <!-- MathJax including Content MathML extension and CSS fix-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-  @* <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/mathjax/mathjax-override.css")" /> <!-- override some odd mathjax css defaults --> *@
+  <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/mathjax/mathjax-override.css")" /> <!-- override some odd mathjax css defaults -->
 
 
 
