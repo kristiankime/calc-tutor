@@ -26,6 +26,10 @@
 }
 
 // GENERAL STYLING =====================
+.height-100 { //https://stackoverflow.com/questions/7357818/100-screen-height-css
+  height: 100%;
+}
+
 .warning {
   color: red;
 }
@@ -45,24 +49,33 @@
 
 
 // --- Just a box pages ----
-.boxed-container-outer-background {
+.boxed-grid-class {
   background-color : @medium
 }
 
-.boxed-container-inner {
-  background-color : @white
+.boxed-content-class {
+  background-color : @white;
+  border-radius: 25px;
+  padding: 25px 25px 25px 25px
 }
 
-.boxed-container {
-  grid-template-columns: auto 300px auto;
-  grid-template-rows: auto 500px auto;
+#boxed-grid-id {
+//  grid-template-columns: auto 300px auto;
+//  grid-template-rows: auto 500px auto;
+  display: grid;
+  //grid-template-columns: 1fr 1fr 1fr;
+  //grid-template-rows: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 250px 1fr;
+  grid-template-rows: 1fr 400px 1fr;
+
   grid-template-areas:
   ". . ."
   ".  content ."
   ". . .";
 }
 
-.boxed-container-item-content {
+#boxed-content-id {
   grid-area: content;
 }
+
 

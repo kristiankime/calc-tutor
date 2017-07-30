@@ -1,7 +1,7 @@
 @(title: String)(content: Html)
 <!DOCTYPE html>
 
-<html>
+<html class="height-100">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,12 +12,11 @@
 
         @imports()
     </head>
-    <body class="main pure-skin-calctutor boxed-container-outer-background">
-
-
-        <section class="boxed-container-item-content boxed-container-inner">
-        @content
-        </section>
-
+    <body class="height-100">
+        <div id="boxed-grid-id" class="boxed-grid-class height-100">
+            <section id="boxed-content-id" class="boxed-content-class">
+            @content
+            </section>
+        </div>
     </body>
 </html>
