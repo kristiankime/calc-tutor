@@ -1,6 +1,6 @@
 @()
 
 @boxedContent("Sign In Choice") {
-    <a href="@controllers.auth.routes.AuthController.formClient"> form </a> <br>
-    <a href="@controllers.auth.routes.AuthController.googleClient"> google </a>
+    <a href="@controllers.auth.routes.AuthController.formClient"> Login with User Name and Password </a> <br>
+    <a href="@controllers.auth.routes.AuthController.googleClient"> <img src="@routes.Assets.versioned("images/login/btn_google_light_normal_ios.svg")">Sign in with Google </a>
 }
