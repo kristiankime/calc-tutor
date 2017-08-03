@@ -13,7 +13,7 @@ import org.pac4j.play.scala._
 import org.pac4j.core.credentials.Credentials
 import javax.inject.Inject
 
-import dao.auth.LoginDAO
+import dao.auth.NamePassDAO
 import play.libs.concurrent.HttpExecutionContext
 import org.pac4j.core.config.Config
 import org.pac4j.core.context.Pac4jConstants
@@ -34,7 +34,7 @@ import scala.concurrent.ExecutionContext
  * This controller handles actions specifically related to Authentication and Authorization
  */
 @Singleton
-class AuthController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, val dbProfileService: DbProfileService, val loginDAO: LoginDAO, override val ec: HttpExecutionContext)(implicit val executionContext: ExecutionContext) extends Controller with Security[CommonProfile] {
+class AuthController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, val dbProfileService: DbProfileService, val loginDAO: NamePassDAO, override val ec: HttpExecutionContext)(implicit val executionContext: ExecutionContext) extends Controller with Security[CommonProfile] {
 
   def signIn = Action { implicit request =>
     Ok(views.html.auth.signIn.render())

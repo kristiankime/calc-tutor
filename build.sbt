@@ -32,13 +32,13 @@ libraryDependencies += "commons-io" % "commons-io"      % "2.5"
 
 // === Start play slick / db  includes === https://www.playframework.com/documentation/2.5.x/PlaySlick
 //libraryDependencies += evolutions // Not needed since we have play-slick-evolutions https://www.playframework.com/documentation/2.5.x/Evolutions
-libraryDependencies += "com.typesafe.play" %% "play-slick"            % "2.1.0"   withSources() withJavadoc()
-libraryDependencies += "com.typesafe.play" %% "play-slick-evolutions" % "2.1.0"   withSources() withJavadoc()
-libraryDependencies += "com.h2database"    %  "h2"                    % "1.4.195" withSources() withJavadoc()
-libraryDependencies += "org.postgresql"    %  "postgresql"            % "9.4-1201-jdbc41" withSources() withJavadoc()
-libraryDependencies += "org.springframework.security" % "spring-security-crypto" % "4.2.2.RELEASE" withSources() withJavadoc() // for Password Encryption
+libraryDependencies += "com.typesafe.play"            %% "play-slick"             % "2.0.0"           withSources() withJavadoc()
+libraryDependencies += "com.typesafe.play"            %% "play-slick-evolutions"  % "2.0.0"           withSources() withJavadoc()
+libraryDependencies += "com.h2database"               %  "h2"                     % "1.4.195"         withSources() withJavadoc()
+libraryDependencies += "org.postgresql"               %  "postgresql"             % "9.4-1201-jdbc41" withSources() withJavadoc()
+libraryDependencies += "org.springframework.security" %  "spring-security-crypto" % "4.2.2.RELEASE"   withSources() withJavadoc() // for Password Encryption
 // === End play slick / db  includes ===
 
-
+// === Less Filters ====
 includeFilter in (Assets, LessKeys.less) := "*.less"
 excludeFilter in (Assets, LessKeys.less) := "_*.less"
