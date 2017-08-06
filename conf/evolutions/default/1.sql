@@ -1,8 +1,8 @@
-# Loing/Users schema for pac4j http://www.pac4j.org/2.0.x/docs/authenticators/sql.html
+# Login/Users schema for pac4j http://www.pac4j.org/2.0.x/docs/authenticators/sql.html
 
 # --- !Ups
 
-CREATE TABLE logins
+CREATE TABLE name_pass_login
 (
     id VARCHAR PRIMARY KEY NOT NULL,
     user_name VARCHAR NOT NULL,
@@ -11,9 +11,9 @@ CREATE TABLE logins
     serializedprofile VARCHAR
 );
 
-CREATE INDEX logins_idx_user_name ON logins (user_name);
-CREATE INDEX logins_idx_linked_id ON logins (linkedid);
+CREATE INDEX logins_idx_user_name ON name_pass_login (user_name);
+CREATE INDEX logins_idx_linked_id ON name_pass_login (linkedid);
 
 # --- !Downs
 
-DROP TABLE User;
+DROP TABLE name_pass_login;

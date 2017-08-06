@@ -30,15 +30,27 @@ libraryDependencies += "org.pac4j"  % "pac4j-sql"       % "2.0.0"               
 libraryDependencies += "commons-io" % "commons-io"      % "2.5"
 // === End Pac4j includes ===
 
-// === Start play slick / db  includes === https://www.playframework.com/documentation/2.5.x/PlaySlick
+// === Start play slick / db includes === https://www.playframework.com/documentation/2.5.x/PlaySlick
 //libraryDependencies += evolutions // Not needed since we have play-slick-evolutions https://www.playframework.com/documentation/2.5.x/Evolutions
 libraryDependencies += "com.typesafe.play"            %% "play-slick"             % "2.0.0"           withSources() withJavadoc()
 libraryDependencies += "com.typesafe.play"            %% "play-slick-evolutions"  % "2.0.0"           withSources() withJavadoc()
 libraryDependencies += "com.h2database"               %  "h2"                     % "1.4.195"         withSources() withJavadoc()
 libraryDependencies += "org.postgresql"               %  "postgresql"             % "9.4-1201-jdbc41" withSources() withJavadoc()
 libraryDependencies += "org.springframework.security" %  "spring-security-crypto" % "4.2.2.RELEASE"   withSources() withJavadoc() // for Password Encryption
-// === End play slick / db  includes ===
+// === End play slick / db includes ===
+
+// === Start Support libraries
+libraryDependencies += "org.planet42" %% "laika-core"          % "0.6.0" withSources() withJavadoc() // Markdown lib
+// === End Support libraries
+
+// === Start Mail libraries
+// TODO https://github.com/playframework/play-mailer
+// === End Mail libraries
+
 
 // === Less Filters ====
 includeFilter in (Assets, LessKeys.less) := "*.less"
 excludeFilter in (Assets, LessKeys.less) := "_*.less"
+
+//
+routesImport += "dao.binders._"

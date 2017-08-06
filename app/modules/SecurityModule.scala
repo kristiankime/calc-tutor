@@ -30,16 +30,15 @@ import org.pac4j.sql.profile.service.DbProfileService
   * Figuring out how to "inject" (really provide) the Database the rest of the system was using into this module https://groups.google.com/forum/#!topic/play-framework/Odr0dPxJn8I
   */
 class SecurityModule(environment: Environment, configuration: Configuration) extends AbstractModule {
-  val dbName = "default"
+  val dbName = "default" // This should match the configuration strings below
+  val dbUrl = configuration.getString("slick.dbs.default.db.url").get
+  val dbUser = configuration.getString("slick.dbs.default.db.user").get
+  val dbPassword = configuration.getString("slick.dbs.default.db.password").get
 
   val baseUrl = configuration.getString("baseUrl").get
 
   val googleClientId = configuration.getString("googleClientId").get
   val googleSecret = configuration.getString("googleSecret").get
-
-  val dbUrl = configuration.getString("slick.dbs.default.db.url").get
-  val dbUser = configuration.getString("slick.dbs.default.db.user").get
-  val dbPassword = configuration.getString("slick.dbs.default.db.password").get
 
   // https://groups.google.com/forum/#!topic/play-framework/Odr0dPxJn8I
   // We need the Database to set up the DbProfileService
@@ -48,7 +47,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     val dbProfileService = new DbProfileService(dataSource)
 
     // http://www.pac4j.org/2.0.x/docs/authenticators/sql.html
-    dbProfileService.setUsersTable("logins")
+    dbProfileService.setUsersTable("name_pass_login")
     dbProfileService.setIdAttribute("id")
     dbProfileService.setUsernameAttribute("user_name")
     dbProfileService.setPasswordAttribute("password")

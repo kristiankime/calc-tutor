@@ -28,7 +28,7 @@ class NamePassDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def byId(id : String): Future[Option[NamePassLogin]] = db.run(Logins.filter(_.id === id).result.headOption)
 
-  class LoginTable(tag: Tag) extends Table[NamePassLogin](tag, "logins") {
+  class LoginTable(tag: Tag) extends Table[NamePassLogin](tag, "name_pass_login") {
     def id = column[String]("id", O.PrimaryKey)
     def userName = column[String]("user_name")
     def password = column[String]("password")

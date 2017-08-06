@@ -29,7 +29,7 @@ class UserDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(
 
   def byId(id : String): Future[Option[User]] = db.run(Users.filter(_.id === id).result.headOption)
 
-  class UserTable(tag: Tag) extends Table[User](tag, "users") {
+  class UserTable(tag: Tag) extends Table[User](tag, "app_user") {
     def id = column[String]("id", O.PrimaryKey)
     def name = column[String]("name")
     def email = column[Option[String]]("email")
