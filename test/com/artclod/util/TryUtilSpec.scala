@@ -9,7 +9,6 @@ import org.scalatest.junit.JUnitRunner
 
 import scala.util.{Failure, Success, Try}
 
-@RunWith(classOf[JUnitRunner])
 class TryUtilSpec extends PlaySpec {
 
 	"retryOnFail" should {

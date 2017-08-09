@@ -11,8 +11,6 @@ import com.artclod.mathml.scalar._
 import com.artclod.mathml.scalar.concept.Trigonometry
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class ApplyCscSpec extends PlaySpec {
 
 	"eval" should {

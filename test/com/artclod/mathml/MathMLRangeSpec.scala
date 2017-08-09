@@ -10,8 +10,6 @@ import org.junit.runner.RunWith
 import com.artclod.mathml.scalar._
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class MathMLRangeSpec extends PlaySpec {
 
 	"percentInRange" should {

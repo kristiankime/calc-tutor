@@ -8,7 +8,6 @@ import org.junit.runner.RunWith
 import com.artclod.mathml.{TextToHtmlGraph => m}
 import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class TextToHtmlGraphSpec extends PlaySpec {
 
   "objTry" should {

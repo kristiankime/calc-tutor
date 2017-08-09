@@ -11,8 +11,6 @@ import com.artclod.mathml.scalar._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class ApplyPlusSpec extends PlaySpec {
 
 	"eval" should {

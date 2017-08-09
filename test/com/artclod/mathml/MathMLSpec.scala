@@ -13,8 +13,6 @@ import com.artclod.mathml.scalar.apply.trig._
 import com.artclod.mathml.Match._
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class MathMLSpec extends PlaySpec {
 
 	"apply" should {

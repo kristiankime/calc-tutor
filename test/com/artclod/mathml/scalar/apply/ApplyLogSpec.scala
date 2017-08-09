@@ -14,8 +14,6 @@ import org.scalatest.junit.JUnitRunner
 
 import math.E
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class ApplyLogSpec extends PlaySpec {
 
 	"eval" should {

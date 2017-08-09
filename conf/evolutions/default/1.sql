@@ -4,16 +4,16 @@
 
 CREATE TABLE name_pass_login
 (
-    id VARCHAR PRIMARY KEY NOT NULL,
+    id VARCHAR NOT NULL PRIMARY KEY,
     user_name VARCHAR NOT NULL,
     password VARCHAR NOT NULL,
     linkedid VARCHAR,
     serializedprofile VARCHAR
 );
 
-CREATE INDEX logins_idx_user_name ON name_pass_login (user_name);
-CREATE INDEX logins_idx_linked_id ON name_pass_login (linkedid);
+CREATE INDEX name_pass_login_idx__user_name ON name_pass_login (user_name);
+CREATE INDEX name_pass_login_idx__linked_id ON name_pass_login (linkedid);
 
 # --- !Downs
 
-DROP TABLE name_pass_login;
+DROP TABLE name_pass_login CASCADE;

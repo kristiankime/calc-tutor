@@ -7,14 +7,14 @@ import com.google.common.annotations.VisibleForTesting
 import models._
 import models.game.GameResponseStatus
 import org.joda.time.{DateTime, DateTimeZone, Duration}
+import play.api.db.slick.HasDatabaseConfigProvider
 import play.twirl.api.Html
 import slick.driver.JdbcProfile
 
-trait ColumnTypeMappings {
+trait ColumnTypeMappings extends HasDatabaseConfigProvider[JdbcProfile] {
 
-  val profile: JdbcProfile
+  val profile: JdbcProfile = dbConfig.driver
   import profile.api._
-
 
   // ==========================
   // Access

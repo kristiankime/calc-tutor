@@ -14,8 +14,6 @@ import com.artclod.mathml.scalar.apply.{ApplyLog => log}
 import com.artclod.mathml.Match._
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class MathMLCheckEqPolynomialsSpec extends PlaySpec {
 
 	"Checking equality between symbolic differentiation and manual derivative for these polynomials" should {

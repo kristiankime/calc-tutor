@@ -10,8 +10,6 @@ import com.artclod.mathml._
 import com.artclod.mathml.scalar._
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class ApplyCosSpec extends PlaySpec {
 
 	"eval" should {

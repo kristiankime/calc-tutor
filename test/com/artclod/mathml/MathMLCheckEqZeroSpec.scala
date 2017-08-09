@@ -10,8 +10,6 @@ import com.artclod.mathml.scalar.apply.{ApplyLn => ln, ApplyLog => log}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class MathMLCheckEqZeroSpec extends PlaySpec {
 
 	"Checking equality when functions evaluate to zero " should {

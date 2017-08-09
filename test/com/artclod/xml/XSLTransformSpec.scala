@@ -6,9 +6,7 @@ import play.api.test.Helpers._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
 // with thanks to http://www.ictforu.com/index.php/Core-Java/java-xslt.html
-@RunWith(classOf[JUnitRunner])
 class XSLTransformSpec extends PlaySpec {
 
 	"apply" should {

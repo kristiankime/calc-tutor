@@ -9,7 +9,6 @@ import org.junit.runner._
 import org.scalatest.junit.JUnitRunner
 import scala.util.Success
 
-@RunWith(classOf[JUnitRunner])
 class LaikaParserSpec extends PlaySpec {
 
   "apply(String)" should {

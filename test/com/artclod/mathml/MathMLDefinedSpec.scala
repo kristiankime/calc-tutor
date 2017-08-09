@@ -7,7 +7,6 @@ import com.artclod.mathml.scalar._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class MathMLDefinedSpec extends PlaySpec {
 
   "isDefinedAt" should {

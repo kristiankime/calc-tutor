@@ -13,8 +13,6 @@ import com.artclod.mathml.scalar.apply.{ApplyLn => ln, ApplyLog => log}
 import com.artclod.mathml.Match._
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class MathMLCheckEq10BFinalReviewSpec extends PlaySpec {
 
 	"Checking answers for math10b final review " should {

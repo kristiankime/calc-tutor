@@ -9,7 +9,6 @@ import play.api.test.Helpers._
 import scala.math.{Pi => π}
 import scala.util.Success
 
-@RunWith(classOf[JUnitRunner])
 class DoubleParseSpec extends PlaySpec {
 
   "DoubleParse.apply(String)" should {

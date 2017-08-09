@@ -6,8 +6,6 @@ import play.api.test.Helpers._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class PlayPackageSpec extends PlaySpec {
 
 //  import com.artclod.play.collapse

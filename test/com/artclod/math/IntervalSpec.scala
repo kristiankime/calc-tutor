@@ -9,7 +9,6 @@ import play.api.test.Helpers._
 
 import scala.math.{Pi => π}
 
-@RunWith(classOf[JUnitRunner])
 class IntervalSpec extends PlaySpec {
 
   "Range.apply(String)" should {

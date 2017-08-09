@@ -9,7 +9,6 @@ import play.api.test._
 import com.artclod.math.TrigonometryFix._
 import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class TrigonometryFixSpec extends PlaySpec {
 
   "cos0" should {

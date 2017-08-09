@@ -6,7 +6,6 @@ import play.api.test.Helpers._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class PackageSpec extends PlaySpec {
 
   "listGroupBy" should {

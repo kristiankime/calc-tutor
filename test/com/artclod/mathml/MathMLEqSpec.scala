@@ -14,9 +14,6 @@ import com.artclod.mathml.Match._
 import com.artclod.mathml.scalar.apply.{ApplyLn => ln, ApplyLog => log, ApplyRoot => rt}
 import org.scalatest.junit.JUnitRunner
 
-
-// LATER try out http://rlegendi.github.io/specs2-runner/ and remove RunWith
-@RunWith(classOf[JUnitRunner])
 class MathMLEqSpec extends PlaySpec {
 
 	"checkEq" should {

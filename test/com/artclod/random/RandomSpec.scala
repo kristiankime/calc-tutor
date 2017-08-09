@@ -7,7 +7,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import scala.util.Random
 
-@RunWith(classOf[JUnitRunner])
 class RandomSpec extends PlaySpec {
 
   "pickNFrom" should {

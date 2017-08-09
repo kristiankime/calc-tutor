@@ -24,6 +24,10 @@ case class QuestionId(v: Long) {
   override def toString = "Qn"+v
 }
 
+case class SectionId(v: Long) {
+  override def toString = "Qn"+v
+}
+
 case class AnswerId(v: Long) {
   override def toString = "An"+v
 }
