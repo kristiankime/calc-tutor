@@ -1,7 +1,7 @@
 package modules
 
 import com.google.inject.AbstractModule
-import controllers.auth.{CustomAuthorizer, DemoHttpActionAdapter, RoleAdminAuthGenerator}
+import controllers.auth.{AccessAuthorizer, DemoHttpActionAdapter, RoleAdminAuthGenerator}
 import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer
 import org.pac4j.core.client.Clients
 import org.pac4j.core.client.unauthenticated.RedirectUnauthenticatedClient
@@ -74,9 +74,9 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     val indirectBasicAuthClient = new IndirectBasicAuthClient(new AuthenticateInTestModeAuthenticator(configuration.getBoolean("testAuth").get ))
 
     val clients = new Clients(baseUrl + "/callback", formClient, oidcClient, redirectUnauthenticatedClient, indirectBasicAuthClient)
+
     val config = new Config(clients)
-    config.addAuthorizer("admin", new RequireAnyRoleAuthorizer[Nothing]("ROLE_ADMIN"))
-    config.addAuthorizer("custom", new CustomAuthorizer)
+    config.addAuthorizer("Access", new AccessAuthorizer)
     config.setHttpActionAdapter(new DemoHttpActionAdapter())
     config
   }
