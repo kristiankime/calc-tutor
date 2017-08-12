@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 import dao.ColumnTypeMappings
 import dao.user.UserDAO
-import models.{Access, CourseId, OrganizationId, UserId}
+import models._
 import models.organization.{Course, User2Course}
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -31,6 +31,8 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   def insert(course: Course): Future[Unit] = db.run(Courses += course).map { _ => () }
 
   def byId(id : CourseId): Future[Option[Course]] = db.run(Courses.filter(_.id === id).result.headOption)
+
+  def access(userId: UserId, courseId : CourseId): Future[Access] = Future(Edit)  // TODO
 
   class CourseTable(tag: Tag) extends Table[Course](tag, "course") {
     def id = column[CourseId]("id", O.PrimaryKey)

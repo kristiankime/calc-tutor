@@ -3,7 +3,7 @@ package dao.organization
 import javax.inject.Inject
 
 import dao.ColumnTypeMappings
-import models.OrganizationId
+import models.{Access, Edit, OrganizationId, UserId}
 import models.organization.Organization
 import models.user.User
 import org.joda.time.DateTime
@@ -34,6 +34,8 @@ class OrganizationDAO @Inject()(protected val dbConfigProvider: DatabaseConfigPr
   )
 
   def byId(id : OrganizationId): Future[Option[Organization]] = db.run(Organizations.filter(_.id === id).result.headOption)
+
+  def access(userId: UserId, organizationId : OrganizationId): Future[Access] = Future(Edit)  // TODO
 
   class OrganizationTable(tag: Tag) extends Table[Organization](tag, "organization") {
     def id = column[OrganizationId]("id", O.PrimaryKey)

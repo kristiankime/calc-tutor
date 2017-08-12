@@ -2,10 +2,12 @@ package dao.user
 
 import javax.inject.Inject
 
+import com.artclod.slick.JodaUTC
 import dao.ColumnTypeMappings
 import models.UserId
 import models.user.User
 import org.joda.time.DateTime
+import org.pac4j.core.profile.CommonProfile
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.lifted
 
@@ -32,6 +34,14 @@ class UserDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(
   )
 
   def byId(id : UserId): Future[Option[User]] = db.run(Users.filter(_.id === id).result.headOption)
+
+  def ensureByLoginId(p: CommonProfile): Future[User] =
+      db.run(Users.filter(_.loginId === p.getId).result.headOption).flatMap { optionUser =>
+        optionUser match {
+            case Some(user) => Future(user)
+            case None => insert(User(loginId = p.getId, name = p.getUsername, email = Option(p.getEmail), lastAccess = JodaUTC.now))
+          }
+      }
 
   class UserTable(tag: Tag) extends Table[User](tag, "app_user") {
     def id = column[UserId]("id", O.PrimaryKey, O.AutoInc)
