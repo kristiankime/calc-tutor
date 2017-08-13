@@ -29,8 +29,6 @@ class AccessAuthorizer(userDAO: UserDAO, organizationDAO: OrganizationDAO, cours
   def isProfileAuthorized(context: WebContext, profile: CommonProfile): Boolean = {
     val itemIdStr  = context.getRequestHeader(AccessAuthorizer.ITEM_ID)
     val requiredLevelStr = context.getRequestHeader(AccessAuthorizer.ACCESS_LEVEL)
-    Logger.error("context.getRequestHeader    "    + itemIdStr)
-    Logger.error("context.getRequestHeader    "    + requiredLevelStr)
 
     if(itemIdStr != null && requiredLevelStr != null) {
       val itemId = AccessibleId.fromStr(itemIdStr)

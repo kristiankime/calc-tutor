@@ -1,5 +1,8 @@
 package models
 
+import models.AccessibleId.organizationPrefix
+import models.AccessibleId.coursePrefix
+
 sealed trait AccessibleId {
   val v: Long
 }
@@ -9,11 +12,11 @@ case class UserId(v: Long) {
 }
 
 case class OrganizationId(v: Long) extends AccessibleId {
-  override def toString = "Or"+v
+  override def toString = organizationPrefix+v
 }
 
 case class CourseId(v: Long) extends AccessibleId {
-  override def toString = "Co"+v
+  override def toString = coursePrefix+v
 }
 
 case class GameId(v: Long) {
@@ -29,7 +32,7 @@ case class QuestionId(v: Long) {
 }
 
 case class SectionId(v: Long) {
-  override def toString = "Qn"+v
+  override def toString = "Sn"+v
 }
 
 case class AnswerId(v: Long) {
@@ -41,9 +44,11 @@ case class AlertId(v: Long) {
 }
 
 object AccessibleId {
+  val organizationPrefix = "Or"
+  val coursePrefix = "Co"
 
-  val organizationIdReg = "Or([0-9]*)".r
-  val courseIdReg = "Co([0-9]*)".r
+  val organizationIdReg = (organizationPrefix + "([0-9]*)").r
+  val courseIdReg = (coursePrefix + "([0-9]*)").r
 
   def fromStr(string: String) : AccessibleId = string match {
     case organizationIdReg(v) => OrganizationId(v.toLong)
