@@ -1,0 +1,17 @@
+@(form: Form[_])
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Error entering a form</title>
+    </head>
+    <body>
+  		<h1>Error(s) occurred when entering a form:</h1>
+        <ul>
+        @for(error <- form.errors) {
+            <li>@error.key -> @error.message</li>
+        }
+        </ul>
+    </body>
+</html>

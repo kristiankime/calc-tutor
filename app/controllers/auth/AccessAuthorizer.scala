@@ -35,7 +35,7 @@ class AccessAuthorizer(userDAO: UserDAO, organizationDAO: OrganizationDAO, cours
       val requireLevel = Access.fromNum(requiredLevelStr.toShort)
 
       val allowAccessFuture = userDAO.ensureByLoginId(profile).flatMap(user => authorized(user.id, itemId, requireLevel))
-      Await.result(allowAccessFuture, scala.concurrent.duration.Duration(Application.appTimeoutNum, Application.appTimeoutUnit))
+      Await.result(allowAccessFuture, Application.appTimeout)
     } else {
       true
     }

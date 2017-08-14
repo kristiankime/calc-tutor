@@ -1,0 +1,64 @@
+@(goTo: Option[String], error: Option[String], request: Request[AnyContent])
+
+@import helper._
+@import controllers.auth.ConsentForm
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Consent Form for the CalcTutor</title>
+    </head>
+    <body>
+
+    <h1>Consent Form for the CalcTutor</h1>
+
+    @for(errTxt <- error){<h4>@errTxt</h4>}
+
+    <h4>This website has two main goals:</h4>
+    <ul>
+        <li>to help you to practice Calculus skills (differentiation and integration)</li>
+        <li>to study how people learn Calculus skills</li>
+    </ul>
+
+    <p>Since this website has a research component, we need to explain how the study works and get your informed consent.</p>
+
+    <p>At the end of this page is a checkbox you can click that indicates you consent to participate in this study. Clicking on it will take you directly to the tool. Moreover, the browser will store a cookie so you won’t have to see this consent form the next time you connect to CalcTutor.</p>
+
+    <h4>What is the purpose of the study?</h4>
+    <p>The goal of this study is to explore the pedagogical effectiveness of a game-based model of teaching in which groups of students write quizzes for each other and are evaluated on both the quality of their answers and the quality of the questions they generate. We expect to find that students will find this game-based approach engaging and that they will deepen their understanding of the content by engaging in metacognition about content and that by giving feedback about the quality of their questions, this method will encourage them to become better at formulating good questions for their peers.</p>
+
+    <h4>Will participation involve any risks?</h4>
+    <p>Our research has received approval by the Institutional Review Board of Brandeis University and the risks of participating are minimal. To participate, you will need to pick a user name and password and provide an email address (so we can reset your password if you forget it).  No other identifying information will be collected.</p>
+
+    Participation in this study is entirely voluntary and you are free to withdraw from the study at any time.<br/>
+    <h4>What will I have to do?</h4>
+    <p>All you have to do is use the website as a regular student/user (take quizzes, join and/or create groups, write quizzes for your friends, etc.).  We would appreciate it if you also fill out occasional surveys to provide us with your feedback on the website, but you can use the website without filling out the surveys.</p>
+
+    <h4>What data will be collected?</h4>
+    <p>The website records every quiz question you create and every attempt you make to answer quiz questions. This data is used to improve the user interface and to study how people learn Calculus.</p>
+
+    <h4>Who should I contact if I have questions?</h4>
+    <p>If you have any questions about the study, please contact either Tim Hickey in the Computer Science department,
+        Brandeis University (<a href="mailto:tjhickey@@brandeis.edu" subject="CalcTutor">tjhickey@@brandeis.edu</a>) or
+        Rebecca Torrey in the Math department, Brandeis University (<a href="mailto:rtorrey@@brandeis.edu" subject="CalcTutor">rtorrey@@brandeis.edu</a>).</p>
+
+    <p>If you have questions about your rights as a research subject please contact the Brandeis Institutional Review Board at <a href="mailto:rtorrey@@brandeis.edu" subject="CalcTutor">irb@@brandeis.edu</a> or 781-736-8133.</p>
+
+    <h4>How do I get started?</h4>
+    <p>If you would like to use this website and take part in the study, please click the button below to indicate your consent. This will take you directly to the CalcTutor.</p>
+
+    <ul>
+        <li>I have read the notes written above and understand what the study involves</li>
+        <li>I understand that if I decide that I no longer wish to take part in this project, I can withdraw immediately</li>
+        <li>I consent to the use of the information I provide for the purposes of this research study</li>
+        <li>I understand that such information will be treated as strictly confidential</li>
+    </ul>
+
+    @form(action = controllers.auth.routes.ConsentController.consentSubmit(goTo)) {
+        @*  The hidden input is here because false checkboxes do not send values in forms, see https://groups.google.com/forum/?fromgroups=#!topic/play-framework/HygQuYF3a8E *@
+        <input type="checkbox" name="@ConsentForm.agree" value="true" /> <input type="hidden" name="@ConsentForm.agree" value="false" /> I agree to take part in this study <input type="submit" value="Submit">
+        @views.html.helper.CSRF.formField(request)
+    }
+    </body>
+</html>

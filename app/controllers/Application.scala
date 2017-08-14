@@ -5,8 +5,9 @@ import java.util.concurrent.TimeUnit
 object Application {
   val version = Version(0, 0, 0)
 
-  val appTimeoutNum = 30
+  val appTimeoutNum = 300 // TODO change for production
   val appTimeoutUnit = TimeUnit.SECONDS
+  val appTimeout = scala.concurrent.duration.Duration(Application.appTimeoutNum, Application.appTimeoutUnit)
 }
 
 object Version {

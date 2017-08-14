@@ -58,14 +58,14 @@ class AuthController @Inject()(val config: Config, val playSessionStore: PlaySes
       }
     )
 
-    Ok(views.html.index.render())
+//    Ok(views.html.index.render())
   }
 
-  def viewLoginDb = Action.async { implicit request =>
-    loginDAO.all().map { logins =>
-      Ok(views.html.auth.viewDB.render(logins))
-    }
-  }
+//  def viewLoginDb = Action.async { implicit request =>
+//    loginDAO.all().map { logins =>
+//      Ok(views.html.auth.viewDB.render(logins))
+//    }
+//  }
 
   def formClient = Secure("FormClient") { profiles =>
     Action { implicit request =>

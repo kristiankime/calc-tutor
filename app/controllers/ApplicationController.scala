@@ -15,17 +15,20 @@ import javax.inject._
 import javax.inject._
 
 import _root_.controllers.support.AddAccess
+import _root_.controllers.support.Consented
+import dao.user.UserDAO
 import models.{Non, OrganizationId}
 import org.pac4j.play.PlayWebContext
 
+
 @Singleton
-class ApplicationController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext) extends Controller with Security[CommonProfile]  {
+class ApplicationController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO) extends Controller with Security[CommonProfile]  {
 
   def index = Action { implicit request =>
     Ok(views.html.index())
   }
 
-  def secure = AddAccess(OrganizationId(0), Non) { Secure("RedirectUnauthenticatedClient", "Access") { profiles =>
+  def secure = AddAccess(OrganizationId(0), Non) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) {
     Action { request =>
       val webContext = new PlayWebContext(request, playSessionStore)
       val profileManager = new ProfileManager[CommonProfile](webContext)
@@ -33,6 +36,6 @@ class ApplicationController @Inject()(val config: Config, val playSessionStore: 
 
       Ok(views.html.secure())
     }
-  } }
+  } } }
 
 }

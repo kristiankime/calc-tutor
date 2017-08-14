@@ -45,7 +45,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
   // https://groups.google.com/forum/#!topic/play-framework/Odr0dPxJn8I
   // We need the Database to set up the DbProfileService
   @Provides def dbProfileService(databases: play.api.db.DBApi) : DbProfileService = {
-    val dataSource = databases.database("default").dataSource
+    val dataSource = databases.database(dbName).dataSource
     val dbProfileService = new DbProfileService(dataSource)
 
     // http://www.pac4j.org/2.0.x/docs/authenticators/sql.html
@@ -67,7 +67,6 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     oidcConfiguration.addCustomParam("prompt", "consent")
     val oidcClient = new OidcClient[OidcProfile](oidcConfiguration)
     oidcClient.addAuthorizationGenerator(new RoleAdminAuthGenerator)
-    //    oidcClient.setAuthenticator(dbProfileService) // TODO how to store google logins in db for access
 
     // Redirect if Unauthenticated
     val redirectUnauthenticatedClient = new RedirectUnauthenticatedClient("/auth/signIn")

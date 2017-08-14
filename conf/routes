@@ -11,9 +11,15 @@ GET     /auth/signIn                controllers.auth.AuthController.signIn
 GET     /auth/signUp                controllers.auth.AuthController.signUp
 GET     /auth/form                  controllers.auth.AuthController.formClient
 GET     /auth/google                controllers.auth.AuthController.googleClient
-GET     /auth/viewdb                controllers.auth.AuthController.viewLoginDb
+#GET     /auth/viewdb                controllers.auth.AuthController.viewLoginDb
 POST    /auth/createLogin           controllers.auth.AuthController.createLogin
+# Consent Form
+GET         /consent                controllers.auth.ConsentController.consent(goTo: Option[String], errorInfo: Option[String])
+POST        /consentPost            controllers.auth.ConsentController.consentSubmit(goTo: Option[String])
+GET         /noconsent              controllers.auth.ConsentController.noConsent
+POST        /revokeconsent          controllers.auth.ConsentController.revokeConsent
 # ===== End auth routes ======
+
 
 # ===== Start play-pac4j routes ======
 GET     /callback                   @org.pac4j.play.CallbackController.callback()
