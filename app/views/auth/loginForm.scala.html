@@ -3,10 +3,8 @@
 
 @boxedContent("Sign in Username and Password") {
     <form action="@formClient.getCallbackUrl" method="POST">
-        <input type="text" name="username" value="" />
-        <p />
-        <input type="password" name="password" value="" />
-        <p />
+        Name <input type="text" name="username" value="" /> <p />
+        Password <input type="password" name="password" value="" /> <p />
         <input type="submit" name="submit" value="Submit" />
         @views.html.helper.CSRF.formField(request)
     </form>

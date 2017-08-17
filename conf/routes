@@ -3,8 +3,8 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET     /                           controllers.ApplicationController.index
-GET     /secure                     controllers.ApplicationController.secure
+GET     /                           controllers.HomeController.index
+GET     /secure                     controllers.HomeController.secure
 
 # ===== Start auth routes ======
 GET     /auth/signIn                controllers.auth.AuthController.signIn

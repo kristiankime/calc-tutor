@@ -46,6 +46,22 @@
 }
 
 
+// MAIN LAYOUT =====================
+.main {
+  .flex-display;
+  .flex-direction(column);
+  min-height: 100vh; // Page is always at least the size of view, this ensure the footer is at the bottom of the screen
+}
+
+.content {
+  // Flex item
+  .flex-grow(1);
+  .flex-shrink(0);
+  // Flex Layout
+  .flex-display;
+  .flex-direction(column);
+}
+
 // HEADER & FOOTER LAYOUTS ===================
 .header {
   // Flex item
@@ -96,7 +112,7 @@
   display: grid;
   //grid-template-columns: 1fr 1fr 1fr;
   //grid-template-rows: 1fr 1fr 1fr;
-  grid-template-columns: 1fr 250px 1fr;
+  grid-template-columns: 1fr 350px 1fr;
   grid-template-rows: 1fr 400px 1fr;
 
   grid-template-areas:

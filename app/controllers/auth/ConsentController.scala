@@ -92,7 +92,7 @@ class ConsentController @Inject()(val config: Config, val playSessionStore: Play
                 }
                 case (_, false, _) => Redirect(controllers.auth.routes.ConsentController.noConsent())
                 case (_, true, Some(path)) => Redirect(path)
-                case (_, true, None) => Redirect(controllers.routes.ApplicationController.index())
+                case (_, true, None) => Redirect(controllers.routes.HomeController.index())
               }
             }
           })

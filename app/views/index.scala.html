@@ -1,7 +1,12 @@
 @()
 
-@main("Index") {
-  <h1>Index</h1>
-  <a href="@controllers.auth.routes.AuthController.signIn">Sign In</a><br>
-  <a href="@controllers.auth.routes.AuthController.signUp">Sign Up</a>
+@boxedContent("Index") {
+  <h1>Welcome to the Calc Tutor</h1>
+
+  <h4>Please Log in with one of the following:</h4>
+  <a href="@controllers.auth.routes.AuthController.formClient"> <img src="@routes.Assets.versioned("images/login/navy-login-48.png")"> Name and Password </a> <br>
+  <a href="@controllers.auth.routes.AuthController.googleClient"> <img src="@routes.Assets.versioned("images/login/btn_google_light_normal_ios.svg")"> Google </a> <br>
+
+  <h4>Or if you don't have an account:</h4>
+  <a href="@controllers.auth.routes.AuthController.signUp">Sign Up</a><br>
 }

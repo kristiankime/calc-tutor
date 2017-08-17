@@ -1,0 +1,43 @@
+@(title: String, headers: Html*)(content: Html)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>@title</title>
+
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
+
+        @imports()
+    </head>
+    <body class="main pure-skin-calctutor">
+
+        <header class="header">
+            <div class="header-links">
+                <a href="@routes.HomeController.index" class="pure-button">Home</a>
+                @for(header <- headers) {
+                    @header
+                }
+            </div>
+            <div class="header-info">
+                @*<a href="@routes.HomeController.userInfo" class="pure-button">@user.nameView</a>*@
+                @*<a href="@routes.HomeController.friends" class="pure-button">Friends@if(models.user.Friends.pendingInvitesFor.nonEmpty){ @tag.icon("icon-heart6")}</a>*@
+                <a href="@org.pac4j.play.routes.LogoutController.logout" class="pure-button">logout</a>
+            </div>
+        </header>
+
+        <section class="content">
+            @content
+        </section>
+
+        <footer class="footer">
+            <div>
+                This site is in Beta. If you have any feedback please <a href="mailto:edutech.brandeis@@gmail.com?subject=CalcTutor">email us</a>.
+                Version: @controllers.Application.version.toString
+            </div>
+        </footer>
+    </body>
+</html>
