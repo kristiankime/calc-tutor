@@ -43,7 +43,7 @@ class UserDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(
       db.run(Users.filter(_.loginId === p.getId).result.headOption).flatMap { optionUser =>
         optionUser match {
             case Some(user) => Future(user)
-            case None => insert(User(loginId = p.getId, name = p.getUsername, email = Option(p.getEmail), lastAccess = JodaUTC.now))
+            case None => insert(User(loginId = p.getId, name = Option(p.getUsername).getOrElse("Player"), email = Option(p.getEmail), lastAccess = JodaUTC.now))
           }
       }
 

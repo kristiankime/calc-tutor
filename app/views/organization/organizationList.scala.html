@@ -1,0 +1,19 @@
+@(organizations: Seq[models.organization.Organization])
+
+@mainContent("List of Organizations") {
+
+    <h1> Welcome to the list of Organizations available on the CalcTutor </h1>
+
+    <h5> Here is the list of organizations </h5>
+    Click on a organization for more info (or to join a course in that organization if you have the code)<p>
+
+    <section>
+    @if(organizations.isEmpty) {
+        There are currently no organizations
+    } else {
+        <ul class="pure-list">
+            @for(organization <- organizations) {<li> @tag.organizationLink(organization)</li>}
+        </ul>
+    }
+    </section>
+}

@@ -1,7 +1,7 @@
 package dao.auth
 
 import javax.inject.Inject
-
+import javax.inject.Singleton
 import models.auth.NamePassLogin
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.lifted
@@ -13,7 +13,7 @@ import slick.driver.JdbcProfile
 //import slick.jdbc.JdbcProfile // Use this after upgrading slick
 // ====
 
-
+@Singleton
 class NamePassDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   // ====
   //  import profile.api._ // Use this after upgrading slick

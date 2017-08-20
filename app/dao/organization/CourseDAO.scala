@@ -1,6 +1,7 @@
 package dao.organization
 
 import javax.inject.Inject
+import javax.inject.Singleton
 
 import dao.ColumnTypeMappings
 import dao.user.UserDAO
@@ -17,6 +18,7 @@ import slick.driver.JdbcProfile
 //import slick.jdbc.JdbcProfile // Use this after upgrading slick
 // ====
 
+@Singleton
 class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val organizationDAO: OrganizationDAO, protected val userDAO: UserDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
@@ -35,7 +37,7 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   def access(userId: UserId, courseId : CourseId): Future[Access] = Future(Edit)  // TODO
 
   class CourseTable(tag: Tag) extends Table[Course](tag, "course") {
-    def id = column[CourseId]("id", O.PrimaryKey)
+    def id = column[CourseId]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name")
     def organizationId = column[OrganizationId]("organization_id")
     def ownerId = column[UserId]("owner_id")

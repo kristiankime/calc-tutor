@@ -69,13 +69,13 @@ class AuthController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   def formClient = Secure("FormClient") { profiles =>
     Action { implicit request =>
-      Redirect(controllers.routes.HomeController.secure)
+      Redirect(controllers.routes.HomeController.home)
     }
   }
 
   def googleClient = Secure("OidcClient") { profiles =>
     Action { implicit request =>
-      Redirect(controllers.routes.HomeController.secure)
+      Redirect(controllers.routes.HomeController.home)
     }
   }
     

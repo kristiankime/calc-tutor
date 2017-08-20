@@ -88,7 +88,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
 
     // callback
     val callbackController = new CallbackController()
-    callbackController.setDefaultUrl("/secure")
+    callbackController.setDefaultUrl("/home")
     callbackController.setMultiProfile(true)
     bind(classOf[CallbackController]).toInstance(callbackController)
 

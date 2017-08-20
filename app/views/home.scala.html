@@ -1,0 +1,32 @@
+@(courses: List[models.organization.Course])
+
+@import com.artclod.play.s
+
+@mainContent("Home") {
+  <h1>Welcome to the Calculus Tutor server</h1>
+
+  <section>
+    <h2>General Information</h2>
+    This site is a experiment using new software and theories about education to improve how people learn. You must be enrolled in a course to make use of the system.
+    If you are already enrolled please select a course from the list below.<P>
+    If you have been given a code to join a course navigate to it by selecting the appropriate organization below.<P>
+    We plan on opening up the system later but it is currently invite only, and there is no way to request access to courses inside the system.
+  </section>
+
+  <section>
+    <h2>Courses</h2>
+    @if(courses.isEmpty) {
+      You are not currently associated with any courses.
+    } else {
+      You are currently associated with the following course@s(courses):
+      <ul class="pure-list">
+      @for(course <- courses) {<li> @* @tag.courseAccessLink(course) *@ </li>}
+      </ul>
+    }
+  </section>
+
+  <section>
+    <h2>Organizations</h2>
+    If you have a code you can navigate to the course by picking the correct organization in the list <a href="@controllers.organization.routes.OrganizationController.list" class="pure-button">here</a>
+  </section>
+}

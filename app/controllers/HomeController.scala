@@ -21,14 +21,8 @@ class HomeController @Inject()(val config: Config, val playSessionStore: PlaySes
     Ok(views.html.index())
   }
 
-  def secure = RequireAccess(Non, to=OrganizationId(0)) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) {
-    Action { request =>
-      val webContext = new PlayWebContext(request, playSessionStore)
-      val profileManager = new ProfileManager[CommonProfile](webContext)
-      val profile = profileManager.get(true)
-
-      Ok(views.html.secure())
-    }
-  } } }
+  def home = RequireAccess(Non, to=OrganizationId(0)) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { Action { request =>
+      Ok(views.html.home(List()))
+  } } } }
 
 }

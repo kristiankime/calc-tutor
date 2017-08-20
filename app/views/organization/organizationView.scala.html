@@ -1,0 +1,17 @@
+@(organization: models.organization.Organization, courses: List[models.organization.Course])
+
+@import com.artclod.play._
+@import views.html.tag._
+
+@mainContent(organization.name) {
+    <h2>Welcome to the information page for the organization: @organization.name</h2>
+
+    <h3>The following course@s(courses) @are(courses) available:</h3>
+
+    @if(courses.isEmpty) {
+    There are currently no available courses
+    } else {
+    <ul class="pure-list">
+         @for(course <- courses){<li> @* @courseAccessLink(course) *@ </li>}
+    </ul>}
+}

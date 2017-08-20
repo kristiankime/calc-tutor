@@ -1,12 +1,11 @@
 package controllers.support
 
 import play.api.mvc._
-import controllers.{Application, routes}
-import controllers.auth.AccessAuthorizer
+import controllers.{Application}
 import dao.user.UserDAO
-import models.{Access, AccessibleId}
 import org.pac4j.core.profile.CommonProfile
 import play.api.mvc.Results.Redirect
+
 import scala.concurrent.{Await, Future}
 
 case class Consented[A](commonProfiles: List[CommonProfile], userDAO: UserDAO)(action: Action[A]) extends Action[A] {
