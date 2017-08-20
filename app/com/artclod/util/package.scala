@@ -98,6 +98,11 @@ package object util {
       case (_, Left(l)) => Left(l)
       case (Right(a), Right(b)) => Right((a._1, a._2, b))
     }))
+
+    def +^[O](other: Future[O])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R2, O)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (Right(a), _) => Right((a._1, a._2, o))
+    }))
   }
 
   implicit class FutureEitherCombine3[L, R1, R2, R3](future: Future[Either[L, (R1, R2, R3)]]) {
@@ -105,6 +110,11 @@ package object util {
       case (Left(l), _) => Left(l)
       case (_, Left(l)) => Left(l)
       case (Right(a), Right(b)) => Right((a._1, a._2, a._3, b))
+    }))
+
+    def +^[O](other: Future[O])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R2, R3, O)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (Right(a), _) => Right((a._1, a._2, a._3, o))
     }))
   }
 
@@ -114,6 +124,11 @@ package object util {
       case (_, Left(l)) => Left(l)
       case (Right(a), Right(b)) => Right((a._1, a._2, a._3, a._4, b))
     }))
+
+    def +^[O](other: Future[O])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R2, R3, R4, O)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (Right(a), _) => Right((a._1, a._2, a._3, a._4, o))
+    }))
   }
 
   implicit class FutureEitherCombine5[L, R1, R2, R3, R4, R5](future: Future[Either[L, (R1, R2, R3, R4, R5)]]) {
@@ -121,6 +136,11 @@ package object util {
       case (Left(l), _) => Left(l)
       case (_, Left(l)) => Left(l)
       case (Right(a), Right(b)) => Right((a._1, a._2, a._3, a._4, a._5, b))
+    }))
+
+    def +^[O](other: Future[O])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R2, R3, R4, R5, O)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (Right(a), _) => Right((a._1, a._2, a._3, a._4, a._5, o))
     }))
   }
 
