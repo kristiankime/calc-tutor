@@ -21,7 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class OrganizationController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
-  def view(organizationId: OrganizationId) = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { Action.async { request =>
+  def view(organizationId: OrganizationId) = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { user => Action.async { request =>
     organizationDAO(organizationId).map{ organizationEither =>
       organizationEither match {
         case Left(notFoundResult) => notFoundResult
@@ -30,7 +30,7 @@ class OrganizationController @Inject()(val config: Config, val playSessionStore:
     }
   } } }
 
-  def list() = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { Action.async { request =>
+  def list() = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { user => Action.async { request =>
     organizationDAO.allEnsureAnOrg().map{ organizations => Ok(views.html.organization.organizationList(organizations)) }
   } } }
 

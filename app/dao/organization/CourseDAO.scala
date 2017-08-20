@@ -6,9 +6,11 @@ import javax.inject.Singleton
 import dao.ColumnTypeMappings
 import dao.user.UserDAO
 import models._
-import models.organization.{Course, User2Course}
+import models.organization.{Course, Organization, User2Course}
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.mvc.Result
+import play.api.mvc.Results.NotFound
 import slick.lifted
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,6 +37,11 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   def byId(id : CourseId): Future[Option[Course]] = db.run(Courses.filter(_.id === id).result.headOption)
 
   def access(userId: UserId, courseId : CourseId): Future[Access] = Future(Edit)  // TODO
+
+  def apply(courseId: CourseId): Future[Either[Result, Course]] = byId(courseId).map { organizationOp => organizationOp match {
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no course for id=["+courseId+"]")))
+    case Some(course) => Right(course)
+  } }
 
   class CourseTable(tag: Tag) extends Table[Course](tag, "course") {
     def id = column[CourseId]("id", O.PrimaryKey, O.AutoInc)
