@@ -1,5 +1,7 @@
 package com.artclod
 
+import scala.concurrent.{ExecutionContext, Future}
+
 package object util {
 
   def optionElse[V, R](option : Option[V])(f : V => R)(or : R) =
@@ -43,6 +45,7 @@ package object util {
     def rightOp[X](f: B => X) = e.right.toOption.map(f(_))
   }
 
+  // =========== Either Combine
   implicit class EitherCombine1[L, R1](e: Either[L, R1]) {
     def +[R](o: Either[L, R]) = (e, o) match {
         case (Left(l), _) => Left(l)
@@ -74,4 +77,51 @@ package object util {
       case (Right(a), Right(b)) => Right((a._1, a._2, a._3, a._4, b))
     }
   }
+
+  // =========== Future Either Combine
+  implicit class FutureEitherCombine1[L, R1](future: Future[Either[L, R1]]) {
+    def +&[R](other: Future[Either[L, R]])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (_, Left(l)) => Left(l)
+      case (Right(a), Right(b)) => Right((a, b))
+    }))
+
+    def +^[O](other: Future[O])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, O)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (Right(a), _) => Right((a, o))
+    }))
+  }
+
+  implicit class FutureEitherCombine2[L, R1, R2](future: Future[Either[L, (R1, R2)]]) {
+    def +&[R](other: Future[Either[L, R]])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R2, R)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (_, Left(l)) => Left(l)
+      case (Right(a), Right(b)) => Right((a._1, a._2, b))
+    }))
+  }
+
+  implicit class FutureEitherCombine3[L, R1, R2, R3](future: Future[Either[L, (R1, R2, R3)]]) {
+    def +&[R](other: Future[Either[L, R]])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R2, R3, R)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (_, Left(l)) => Left(l)
+      case (Right(a), Right(b)) => Right((a._1, a._2, a._3, b))
+    }))
+  }
+
+  implicit class FutureEitherCombine4[L, R1, R2, R3, R4](future: Future[Either[L, (R1, R2, R3, R4)]]) {
+    def +&[R](other: Future[Either[L, R]])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R2, R3, R4, R)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (_, Left(l)) => Left(l)
+      case (Right(a), Right(b)) => Right((a._1, a._2, a._3, a._4, b))
+    }))
+  }
+
+  implicit class FutureEitherCombine5[L, R1, R2, R3, R4, R5](future: Future[Either[L, (R1, R2, R3, R4, R5)]]) {
+    def +&[R](other: Future[Either[L, R]])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R2, R3, R4, R5, R)]] = future.flatMap(e => other.map(o => (e, o) match {
+      case (Left(l), _) => Left(l)
+      case (_, Left(l)) => Left(l)
+      case (Right(a), Right(b)) => Right((a._1, a._2, a._3, a._4, a._5, b))
+    }))
+  }
+
 }

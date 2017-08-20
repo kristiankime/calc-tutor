@@ -11,13 +11,12 @@ GET         /orgs                                     controllers.organization.O
 GET         /orgs/:o                                  controllers.organization.OrganizationController.view(o: models.OrganizationId)
 
 # ----- Courses routes -----
-#GET         /orgs/:o/courses                          controllers.organization.CoursesController.list(o: OrganizationId)
-#GET         /orgs/:o/courses/create                   controllers.organization.CoursesController.createForm(o: OrganizationId)
-#POST        /orgs/:o/courses                          controllers.organization.CoursesController.createSubmit(o: OrganizationId)
-#GET         /orgs/:o/courses/:c                       controllers.organization.CoursesController.view(o: OrganizationId, c: CourseId)
-#POST        /orgs/:o/courses/:c/join                  controllers.organization.CoursesController.join(o: OrganizationId, c: CourseId)
-#GET         /orgs/:o/courses/:c/studentsummary        controllers.organization.CoursesController.studentSummary(o: OrganizationId, c: CourseId)
-
+GET         /orgs/:o/courses                          controllers.organization.CourseController.list(o: models.OrganizationId)
+#GET         /orgs/:o/courses/create                   controllers.organization.CourseController.createForm(o: models.OrganizationId)
+#POST        /orgs/:o/courses                          controllers.organization.CourseController.createSubmit(o: models.OrganizationId)
+#GET         /orgs/:o/courses/:c                       controllers.organization.CourseController.view(o: models.OrganizationId, c: models.CourseId)
+#POST        /orgs/:o/courses/:c/join                  controllers.organization.CourseController.join(o: models.OrganizationId, c: models.CourseId)
+#GET         /orgs/:o/courses/:c/studentsummary        controllers.organization.CourseController.studentSummary(o: models.OrganizationId, c: models.CourseId)
 
 # ===== Start auth routes ======
 GET         /auth/signIn                              controllers.auth.AuthController.signIn
@@ -32,7 +31,6 @@ POST        /consentPost                              controllers.auth.ConsentCo
 GET         /noconsent                                controllers.auth.ConsentController.noConsent
 POST        /revokeconsent                            controllers.auth.ConsentController.revokeConsent
 # ===== End auth routes ======
-
 
 # ===== Start play-pac4j routes ======
 GET         /callback                                 @org.pac4j.play.CallbackController.callback()

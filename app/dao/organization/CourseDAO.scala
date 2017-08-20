@@ -38,6 +38,8 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   def access(userId: UserId, courseId : CourseId): Future[Access] = Future(Edit)  // TODO
 
+  def coursesFor(organizationId: OrganizationId) : Future[Seq[Course]] = db.run(Courses.filter(_.organizationId === organizationId).result)
+
   def apply(courseId: CourseId): Future[Either[Result, Course]] = byId(courseId).map { organizationOp => organizationOp match {
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no course for id=["+courseId+"]")))
     case Some(course) => Right(course)
