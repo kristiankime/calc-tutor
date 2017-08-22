@@ -1,4 +1,4 @@
-@(goTo: Option[String], error: Option[String], request: Request[AnyContent])
+@(goTo: Option[String], error: Option[String])(implicit request: Request[AnyContent])
 
 @import helper._
 @import controllers.auth.ConsentForm
@@ -58,7 +58,7 @@
     @form(action = controllers.auth.routes.ConsentController.consentSubmit(goTo)) {
         @*  The hidden input is here because false checkboxes do not send values in forms, see https://groups.google.com/forum/?fromgroups=#!topic/play-framework/HygQuYF3a8E *@
         <input type="checkbox" name="@ConsentForm.agree" value="true" /> <input type="hidden" name="@ConsentForm.agree" value="false" /> I agree to take part in this study <input type="submit" value="Submit">
-        @views.html.helper.CSRF.formField(request)
+        @views.html.helper.CSRF.formField
     }
     </body>
 </html>

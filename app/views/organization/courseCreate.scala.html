@@ -1,0 +1,23 @@
+@(organization: models.organization.Organization)(implicit request: Request[AnyContent])
+
+@import helper._
+@import com.artclod.play._
+@import controllers.organization.CourseCreate
+
+@mainContent("Create a new Course for " + organization.name, tag.organizationLink(organization)) {
+    <h1>Welcome to the create a course page for @organization.name</h1>
+
+    <h5>Please enter the information about your course:</h5>
+
+    @form(action = controllers.organization.routes.CourseController.createSubmit(organization.id), 'class -> "pure-form") {
+        <label for="@CourseCreate.name">Name</label>
+        <input type="text" name="@CourseCreate.name" value="course name"> <br>
+
+        <label for="@CourseCreate.anyStudents"> Open Student Enrollment</label>
+        <input type="checkbox" name="@CourseCreate.anyStudents" value="true" /> <input type="hidden" name="@CourseCreate.anyStudents" value="false" /> <br>
+
+        <button type="submit" class="pure-button pure-button-primary"> Submit </button>
+        @views.html.helper.CSRF.formField
+    }
+
+}

@@ -12,10 +12,10 @@ GET         /orgs/:o                                  controllers.organization.O
 
 # ----- Courses routes -----
 GET         /orgs/:o/courses                          controllers.organization.CourseController.list(o: models.OrganizationId)
-#GET         /orgs/:o/courses/create                   controllers.organization.CourseController.createForm(o: models.OrganizationId)
-#POST        /orgs/:o/courses                          controllers.organization.CourseController.createSubmit(o: models.OrganizationId)
-#GET         /orgs/:o/courses/:c                       controllers.organization.CourseController.view(o: models.OrganizationId, c: models.CourseId)
-#POST        /orgs/:o/courses/:c/join                  controllers.organization.CourseController.join(o: models.OrganizationId, c: models.CourseId)
+GET         /orgs/:o/courses/create                   controllers.organization.CourseController.createForm(o: models.OrganizationId)
+POST        /orgs/:o/courses                          controllers.organization.CourseController.createSubmit(o: models.OrganizationId)
+GET         /orgs/:o/courses/:c                       controllers.organization.CourseController.view(o: models.OrganizationId, c: models.CourseId)
+POST        /orgs/:o/courses/:c/join                  controllers.organization.CourseController.join(o: models.OrganizationId, c: models.CourseId)
 #GET         /orgs/:o/courses/:c/studentsummary        controllers.organization.CourseController.studentSummary(o: models.OrganizationId, c: models.CourseId)
 
 # ===== Start auth routes ======

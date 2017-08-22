@@ -1,0 +1,59 @@
+@(organization: models.organization.Organization, course: models.organization.Course, access: models.Access)(implicit request: Request[AnyContent])
+
+@import com.artclod.play._
+@import views.html.tag._
+@import com.artclod.play._
+@import helper._
+@import models.AccessName.an
+@import models.Access._
+@import controllers.organization.CourseJoin
+
+@mainContent(organization.name, tag.organizationLink(organization)) {
+    <h2>Welcome to the information page for the course: @course.name</h2>
+    @* ======= Role ======= *@
+    @if(access > Non) {
+        <section>
+            <h5> You are assigned to this course as @an(access) </h5>
+        </section>
+    }
+    @* ======= Access Codes ======= *@
+    @if(access >= Edit) {
+        <section>
+            <h5> Teacher Access Code: @course.editCode </h5>
+            <h5> Student Access Code: @course.viewCode </h5>
+        </section>
+    }
+    @* ======= Sign up ======= *@
+    @if(access <= Non) {
+        <section>
+        @if(course.anyStudent){
+
+            <h5> This course has open student enrollment. If you need to sign up as a student click below: </h5>
+            @form(action = controllers.organization.routes.CourseController.join(course.organizationId, course.id), 'class -> "pure-form") {
+                <input type="hidden" name="@CourseJoin.code" value="dummy-value">
+                <input type="submit" class="pure-button pure-button-primary" value="Sign Up as a Student">
+                @views.html.helper.CSRF.formField
+            }
+
+            <h5> If you need to sign up as a teacher please input your code here: </h5>
+            @form(action = controllers.organization.routes.CourseController.join(course.organizationId, course.id), 'class -> "pure-form") {
+                <input type="text" name="@CourseJoin.code" placeholder="code goes here">
+                <input type="submit" class="pure-button pure-button-primary" value="Submit">
+                @views.html.helper.CSRF.formField
+            }
+
+        } else {
+
+            <h5> If you need to sign up please input your code here: </h5>
+            @form(action = controllers.organization.routes.CourseController.join(course.organizationId, course.id), 'class -> "pure-form") {
+                <input type="text" name="@CourseJoin.code" placeholder="code goes here">
+                <input type="submit" class="pure-button pure-button-primary" value="Submit">
+                @views.html.helper.CSRF.formField
+            }
+
+        }
+        </section>
+    }
+
+
+}

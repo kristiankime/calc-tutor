@@ -11,7 +11,7 @@ import org.pac4j.core.context.WebContext
 import org.pac4j.core.profile.CommonProfile
 import play.api.Logger
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object AccessAuthorizer {
   val ITEM_ID = "ITEM_ID"

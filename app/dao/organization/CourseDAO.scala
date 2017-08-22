@@ -7,6 +7,7 @@ import dao.ColumnTypeMappings
 import dao.user.UserDAO
 import models._
 import models.organization.{Course, Organization, User2Course}
+import models.user.User
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
@@ -28,20 +29,33 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   // ====
 
   val Courses = lifted.TableQuery[CourseTable]
-  val User2Courses = lifted.TableQuery[CourseTable]
+  val User2Courses = lifted.TableQuery[User2CourseTable]
 
   def all(): Future[Seq[Course]] = db.run(Courses.result)
 
-  def insert(course: Course): Future[Unit] = db.run(Courses += course).map { _ => () }
+//  def insert(course: Course): Future[Unit] = db.run(Courses += course).map { _ => () }
+
+  def insert(course: Course): Future[Course] = db.run(
+    (Courses returning Courses.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += course
+  )
 
   def byId(id : CourseId): Future[Option[Course]] = db.run(Courses.filter(_.id === id).result.headOption)
 
+  def byIds(organizationId: OrganizationId, id : CourseId): Future[Option[Course]] = db.run(Courses.filter(c => c.id === id && c.organizationId === organizationId).result.headOption)
+
   def access(userId: UserId, courseId : CourseId): Future[Access] = Future(Edit)  // TODO
+
+  def grantAccess(user: User, course: Course, access: Access) = db.run(User2Courses += User2Course(user.id, course.id, access)).map { _ => () }
 
   def coursesFor(organizationId: OrganizationId) : Future[Seq[Course]] = db.run(Courses.filter(_.organizationId === organizationId).result)
 
-  def apply(courseId: CourseId): Future[Either[Result, Course]] = byId(courseId).map { organizationOp => organizationOp match {
+  def apply(courseId: CourseId): Future[Either[Result, Course]] = byId(courseId).map { _ match {
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no course for id=["+courseId+"]")))
+    case Some(course) => Right(course)
+  } }
+
+  def apply(organizationId: OrganizationId, courseId: CourseId): Future[Either[Result, Course]] = byIds(organizationId, courseId).map { _ match {
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no course for id=["+courseId+"] which also had organizationid [" + OrganizationId + "]")))
     case Some(course) => Right(course)
   } }
 

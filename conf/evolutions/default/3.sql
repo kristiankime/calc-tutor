@@ -17,7 +17,7 @@ CREATE TABLE course
   organization_id INT NOT NULL REFERENCES organization(id),
   owner_id INT NOT NULL REFERENCES app_user(id),
   edit_code VARCHAR NOT NULL,
-  view_code VARCHAR NOT NULL,
+  view_code VARCHAR,
   creation_date TIMESTAMP,
   update_date TIMESTAMP
 );
