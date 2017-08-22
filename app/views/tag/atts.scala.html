@@ -1,0 +1,1 @@
+@(atts: Seq[(scala.Symbol, String)])@for(a <- com.artclod.play.collapse(atts)){ @com.artclod.play.asAtt(a._1)="@{a._2}"}

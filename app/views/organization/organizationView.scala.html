@@ -1,7 +1,6 @@
-@(organization: models.organization.Organization, courses: List[models.organization.Course])
+@(organization: models.organization.Organization, courses: Seq[models.organization.Course])
 
 @import com.artclod.play._
-@import views.html.tag._
 
 @mainContent(organization.name) {
     <h2>Welcome to the information page for the organization: @organization.name</h2>
@@ -12,6 +11,6 @@
     There are currently no available courses
     } else {
     <ul class="pure-list">
-         @for(course <- courses){<li> @* @courseAccessLink(course) *@ </li>}
+         @for(course <- courses){<li> @tag.courseLink(course) </li>}
     </ul>}
 }
