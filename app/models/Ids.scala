@@ -23,7 +23,7 @@ case class GameId(v: Long) {
   override def toString = "Ga"+v
 }
 
-case class QuizId(v: Long) {
+case class QuizId(v: Long) extends AccessibleId {
   override def toString = "Qz"+v
 }
 
@@ -33,6 +33,10 @@ case class QuestionId(v: Long) {
 
 case class SectionId(v: Long) {
   override def toString = "Sn"+v
+}
+
+case class PartId(v: Long) {
+  override def toString = "Pa"+v
 }
 
 case class AnswerId(v: Long) {

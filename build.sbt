@@ -53,3 +53,4 @@ excludeFilter in (Assets, LessKeys.less) := "_*.less"
 
 //
 routesImport += "dao.binders._"
+routesImport += "models._"

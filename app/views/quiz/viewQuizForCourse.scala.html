@@ -1,0 +1,21 @@
+@(access: models.Access,
+        course: models.organization.Course,
+        quiz: models.quiz.Quiz)(implicit request: Request[AnyContent])
+
+@import helper._
+@import com.artclod.play._
+@import controllers.organization.CourseCreate
+@import controllers.quiz.QuizRename
+
+@mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
+    <h2>Welcome to the page for quiz: @quiz.name </h2>
+
+    @if(access.write){
+        @form(controllers.quiz.routes.QuizController.rename(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
+            To rename type a new name here <input type="text" name="@QuizRename.name" value="@quiz.name">
+            and click <input class="pure-button" type="submit" value="rename" >
+            @views.html.helper.CSRF.formField
+        }
+    }
+
+}

@@ -1,3 +1,5 @@
+package models.quiz
+
 import models.{QuizId, Secured, UserId}
 import org.joda.time.DateTime
 

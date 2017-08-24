@@ -1,0 +1,23 @@
+@(course: models.organization.Course)(implicit request: Request[AnyContent])
+
+@import helper._
+@import com.artclod.play._
+@import controllers.organization.CourseCreate
+@import controllers.quiz.QuizCreate
+
+@mainContent("Create a Quiz", tag.courseLink(course)) {
+    <h2>Please enter the information about your quiz:</h2>
+
+    <p>
+        This quiz is for the course @tag.courseLink(course)
+    </p>
+
+    @form(controllers.quiz.routes.QuizController.createSubmit(course.organizationId, course.id), 'class -> "pure-form") {
+        <fieldset>
+            <label for="@QuizCreate.name">Name: <input type="text" name="@QuizCreate.name" value="quiz name"></label>
+            <input type="submit" class="pure-button pure-button-primary" value="Submit">
+            @views.html.helper.CSRF.formField
+        </fieldset>
+    }
+
+}
