@@ -60,7 +60,7 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
               val now = JodaUTC.now
               val viewOp = if(form._2){ None } else { Some("CO-V-" + viewNum) }
               val courseFuture = courseDAO.insert(Course(null, form._1, organization.id, user.id, "CO-E-" + editNum, viewOp, now, now))
-              courseFuture.map(course => Redirect(controllers.organization.routes.CourseController.view(organization.id, course.id)))
+              courseFuture.map(course =>  Redirect(controllers.organization.routes.CourseController.view(organization.id, course.id)))
             })
       }
     }

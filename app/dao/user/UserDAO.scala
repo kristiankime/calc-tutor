@@ -58,6 +58,8 @@ class UserDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(
     def emailUpdates = column[Boolean]("email_updates")
     def lastAccess = column[DateTime]("last_access")
 
+    def loginIdIndex = index("app_user_idx__login_id", loginId)
+
     def * = (id, loginId, name, email, consented, allowAutoMatch, seenHelp, emailUpdates, lastAccess) <> (User.tupled, User.unapply)
   }
 }

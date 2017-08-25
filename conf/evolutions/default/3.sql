@@ -4,8 +4,8 @@ CREATE TABLE organization
 (
   id SERIAL NOT NULL PRIMARY KEY,
   name VARCHAR NOT NULL,
-  creation_date TIMESTAMP,
-  update_date TIMESTAMP
+  creation_date TIMESTAMP NOT NULL,
+  update_date TIMESTAMP NOT NULL
 );
 
 CREATE TABLE course
@@ -16,8 +16,8 @@ CREATE TABLE course
   owner_id INT NOT NULL REFERENCES app_user(id),
   edit_code VARCHAR NOT NULL,
   view_code VARCHAR,
-  creation_date TIMESTAMP,
-  update_date TIMESTAMP
+  creation_date TIMESTAMP NOT NULL,
+  update_date TIMESTAMP NOT NULL
 );
 
 # --- !Downs

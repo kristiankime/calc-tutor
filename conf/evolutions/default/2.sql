@@ -6,11 +6,11 @@ CREATE TABLE app_user
   login_id VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   email VARCHAR,
-  consented BOOLEAN,
-  allow_auto_match BOOLEAN,
-  seen_help BOOLEAN,
-  email_updates BOOLEAN,
-  last_access TIMESTAMP
+  consented BOOLEAN NOT NULL,
+  allow_auto_match BOOLEAN NOT NULL,
+  seen_help BOOLEAN NOT NULL,
+  email_updates BOOLEAN NOT NULL,
+  last_access TIMESTAMP NOT NULL
 );
 
 CREATE INDEX app_user_idx__login_id ON app_user(login_id);

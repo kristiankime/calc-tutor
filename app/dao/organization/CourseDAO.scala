@@ -4,15 +4,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 import dao.ColumnTypeMappings
+import dao.quiz.QuizDAO
 import dao.user.UserDAO
 import models._
-import models.organization.{Course, Organization, User2Course}
+import models.organization.{Course, Course2Quiz, Organization, User2Course}
+import models.quiz.Quiz
 import models.user.User
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
 import play.api.mvc.Results.NotFound
 import slick.lifted
+import slick.lifted.PrimaryKey
+import models.organization.Course2Quiz
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -22,7 +26,7 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val organizationDAO: OrganizationDAO, protected val userDAO: UserDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val organizationDAO: OrganizationDAO, protected val userDAO: UserDAO, protected val quizDAO: QuizDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
@@ -30,6 +34,7 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   val Courses = lifted.TableQuery[CourseTable]
   val User2Courses = lifted.TableQuery[User2CourseTable]
+  val Courses2Quizzes = lifted.TableQuery[Course2QuizTable]
 
   def all(): Future[Seq[Course]] = db.run(Courses.result)
 
@@ -46,6 +51,8 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   def access(userId: UserId, courseId : CourseId): Future[Access] = Future(Edit)  // TODO
 
   def grantAccess(user: User, course: Course, access: Access) = db.run(User2Courses += User2Course(user.id, course.id, access)).map { _ => () }
+
+  def attach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, None, None)).map { _ => () }
 
   def coursesFor(organizationId: OrganizationId) : Future[Seq[Course]] = db.run(Courses.filter(_.organizationId === organizationId).result)
 
@@ -69,7 +76,8 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     def creationDate = column[DateTime]("creation_date")
     def updateDate = column[DateTime]("update_date")
 
-    def organizationIdFK = foreignKey("course_fk__organization_id", organizationId, organizationDAO.Organizations)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def ownerIdFK = foreignKey("course_fk__owner_id", ownerId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def organizationIdFK = foreignKey("course_fk__course", organizationId, organizationDAO.Organizations)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
     def * = (id, name, organizationId, ownerId, editCode, viewCode, creationDate, updateDate) <> (Course.tupled, Course.unapply)
   }
@@ -79,10 +87,26 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     def courseId = column[CourseId]("course_id")
     def access = column[Access]("access")
 
-    def userIdFK = foreignKey("app_user_2_course_fk__userId", userId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def courseIdFK = foreignKey("app_user_2_course_fk__courseId", courseId, Courses)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def userIdFK = foreignKey("app_user_2_course_fk__user_id", userId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def courseIdFK = foreignKey("app_user_2_course_fk__course_id", courseId, Courses)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
     def * = (userId, courseId, access) <> (User2Course.tupled, User2Course.unapply)
   }
+
+  class Course2QuizTable(tag: Tag) extends Table[Course2Quiz](tag, "course_2_quiz") {
+    def courseId = column[CourseId]("course_id")
+    def quizId = column[QuizId]("quiz_id")
+    def startDate = column[Option[DateTime]]("start_date")
+    def endDate = column[Option[DateTime]]("end_date")
+
+    def pk = primaryKey("pk_a", (courseId, quizId))
+
+    def quizIdFK = foreignKey("course_2_quiz_fk__user_id", quizId, quizDAO.Quizzes)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def courseIdFK = foreignKey("course_2_quiz_fk__course_id", courseId, Courses)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+
+
+    def * = (courseId, quizId, startDate, endDate) <> (Course2Quiz.tupled, Course2Quiz.unapply)
+  }
+
 }
 

@@ -48,10 +48,12 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
             val now = JodaUTC.now
-            val quizFuture = quizDAO.insert(Quiz(null, user.id, form, now, now))
-            quizFuture.map(quiz => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
-          })
-    }
+            quizDAO.insert(Quiz(null, user.id, form, now, now)).flatMap(quiz => // Create the Quiz
+              courseDAO.attach(course, quiz).map( _ => // Attach it to the Course
+                Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
+          }
+        )
+      }
     }
 
   } } } }
@@ -61,7 +63,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +^ quizDAO.access(user.id, quizId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
       case Right((course, quiz, access)) => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz))
-    }
+      }
     }
 
   } } } }
@@ -75,8 +77,9 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
             val updateNameFuture = quizDAO.updateName(quiz, form)
-            updateNameFuture.map(updateName => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
-          })
+            updateNameFuture.map(update => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
+          }
+        )
       }
     }
 
