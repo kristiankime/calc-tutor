@@ -48,7 +48,11 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   def byIds(organizationId: OrganizationId, id : CourseId): Future[Option[Course]] = db.run(Courses.filter(c => c.id === id && c.organizationId === organizationId).result.headOption)
 
-  def access(userId: UserId, courseId : CourseId): Future[Access] = Future(Edit)  // TODO
+  def access(userId: UserId, courseId : CourseId): Future[Access] = db.run {
+    val ownerAccess = (for(c <- Courses if c.ownerId === userId && c.id === courseId) yield c).result.headOption.map(_ match { case Some(_) => Own case None => Non})
+    val directAccess = (for(u2c <- User2Courses if u2c.userId === userId && u2c.courseId === courseId) yield u2c.access).result.headOption.map(_.getOrElse(Non))
+    ownerAccess.flatMap(oa => directAccess.map( da => oa max da))
+  }
 
   def grantAccess(user: User, course: Course, access: Access) = db.run(User2Courses += User2Course(user.id, course.id, access)).map { _ => () }
 

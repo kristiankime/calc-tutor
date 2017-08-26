@@ -9,6 +9,8 @@ sealed abstract class Access extends Ordered[Access] {
 
 	def compare(that: Access): Int = this.v.compare(that.v)
 
+	def max(other: Access) : Access = Seq(this, other).max
+
 	def ceilEdit = Seq(this, Edit).min
 
 	def read[T](block: () => T): Option[T] = if (read) { Some(block()) } else { None }
