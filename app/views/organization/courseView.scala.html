@@ -20,7 +20,7 @@
     @if(access >= Edit) {
         <section>
             <h5> Teacher Access Code: @course.editCode </h5>
-            <h5> Student Access Code: @course.viewCode </h5>
+            <h5> Student Access Code: @course.viewCode.getOrElse("Open Course") </h5>
         </section>
     }
     @* ======= Sign up ======= *@
