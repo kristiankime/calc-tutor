@@ -18,4 +18,8 @@
         }
     }
 
+
+    @if(access.write){
+        @views.html.quiz.question.questionEditor(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id))
+    }
 }

@@ -28,6 +28,34 @@ import scala.util.Right
 @Singleton
 class QuestionController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
+  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +^ quizDAO(courseId, quizId)).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, quiz)) =>
+
+        val jsonOp = request.body.asJson
+
+        Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None))) // Redirect to the view
+//        null
+//        QuizCreate.form.bindFromRequest.fold(
+//          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+//          form => {
+//
+//            val now = JodaUTC.now
+//            quizDAO.insert(Quiz(null, user.id, form, now, now)).flatMap(quiz => // Create the Quiz
+//              quizDAO.attach(course, quiz).map( _ => // Attach it to the Course
+//                Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
+//            null
+//          }
+//        )
+
+
+    }
+    }
+
+  } } } }
+
 //  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 //
 //    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).map{ _ match {
