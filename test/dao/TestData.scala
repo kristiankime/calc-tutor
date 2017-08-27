@@ -3,8 +3,9 @@ package dao
 import java.util.concurrent.TimeUnit
 
 import com.artclod.slick.JodaUTC
-import models.UserId
+import models.{QuizId, UserId}
 import models.organization.{Course, Organization}
+import models.quiz.Quiz
 import models.user.User
 import org.joda.time.DateTime
 
@@ -25,5 +26,7 @@ object TestData {
   def organization(id: Int) = Organization(name= "name" + id, creationDate=JodaUTC(0), updateDate=JodaUTC(0))
 
   def course(id: Int, organization : Organization, owner : User) = Course(name="name"+id, organizationId=organization.id, ownerId=owner.id, editCode = "", viewCode = None, creationDate = JodaUTC(0), updateDate = JodaUTC(0))
+
+  def quiz(id: Int, owner : User) = Quiz(id = null, ownerId = owner.id, name = "name"+id, creationDate = JodaUTC(0), updateDate = JodaUTC(0))
 
 }

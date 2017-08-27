@@ -8,7 +8,8 @@ import dao.ColumnTypeMappings
 import dao.user.UserDAO
 import models.quiz.{User2Quiz, _}
 import models._
-import models.organization.User2Course
+import models.organization.{Course, User2Course}
+import models.user.User
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
@@ -54,6 +55,8 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     val directAccess = (for(u2z <- User2Quizzes if u2z.userId === userId && u2z.quizId === quizId) yield u2z.access).result.headOption.map(_.getOrElse(Non))
     ownerAccess.flatMap(oa => directAccess.map( da => oa max da))
   }
+
+  def grantAccess(user: User, quiz: Quiz, access: Access) = db.run(User2Quizzes += User2Quiz(user.id, quiz.id, access)).map { _ => () }
 
   def apply(quizId: QuizId): Future[Either[Result, Quiz]] = byId(quizId).map { quizOp => quizOp match {
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no quiz for id=["+quizId+"]")))
