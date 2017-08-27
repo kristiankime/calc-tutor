@@ -49,7 +49,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
           form => {
             val now = JodaUTC.now
             quizDAO.insert(Quiz(null, user.id, form, now, now)).flatMap(quiz => // Create the Quiz
-              courseDAO.attach(course, quiz).map( _ => // Attach it to the Course
+              quizDAO.attach(course, quiz).map( _ => // Attach it to the Course
                 Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
           }
         )

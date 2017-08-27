@@ -5,8 +5,9 @@ import javax.inject.Singleton
 
 import com.artclod.slick.JodaUTC
 import dao.ColumnTypeMappings
-import models.{Access, Edit, OrganizationId, UserId}
-import models.organization.Organization
+import dao.user.UserDAO
+import models._
+import models.organization.{Course, Organization}
 import models.user.User
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -23,25 +24,33 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class OrganizationDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class OrganizationDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
-  // ====
 
+  // * ====== TABLE INSTANCES ====== *
   val Organizations = lifted.TableQuery[OrganizationTable]
 
+  // * ====== QUERIES ====== *
+
+  // ====== FIND ======
   def all(): Future[Seq[Organization]] = db.run(Organizations.result)
-
-//  def insert(cat: Organization): Future[Unit] = db.run(Organizations += cat).map { _ => () }
-
-  def insert(organization: Organization): Future[Organization] = db.run(
-    (Organizations returning Organizations.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += organization
-  )
 
   def byId(id : OrganizationId): Future[Option[Organization]] = db.run(Organizations.filter(_.id === id).result.headOption)
 
+  def apply(organizationId: OrganizationId): Future[Either[Result, Organization]] = byId(organizationId).map { organizationOp => organizationOp match {
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no organization for id=["+organizationId+"]")))
+    case Some(organization) => Right(organization)
+  } }
+
+  // ====== Access ======
   def access(userId: UserId, organizationId : OrganizationId): Future[Access] = Future(Edit)  // TODO
+
+  // ====== Create ======
+  def insert(organization: Organization): Future[Organization] = db.run(
+    (Organizations returning Organizations.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += organization
+  )
 
   def allEnsureAnOrg() : Future[Seq[Organization]] = all().flatMap{ organizations =>
     if(organizations.isEmpty) {
@@ -52,11 +61,7 @@ class OrganizationDAO @Inject()(protected val dbConfigProvider: DatabaseConfigPr
     }
   }
 
-  def apply(organizationId: OrganizationId): Future[Either[Result, Organization]] = byId(organizationId).map { organizationOp => organizationOp match {
-    case None => Left(NotFound(views.html.errors.notFoundPage("There was no organization for id=["+organizationId+"]")))
-    case Some(organization) => Right(organization)
-  } }
-
+  // * ====== TABLE CLASSES ====== *
   class OrganizationTable(tag: Tag) extends Table[Organization](tag, "organization") {
     def id = column[OrganizationId]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name")

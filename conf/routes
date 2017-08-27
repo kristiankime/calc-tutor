@@ -23,6 +23,9 @@ POST        /orgs/:o/courses/:c/quizzes                  controllers.quiz.QuizCo
 GET         /orgs/:o/courses/:c/quizzes/:z               controllers.quiz.QuizController.view(o: OrganizationId, c: CourseId, z: QuizId, a: Option[AnswerId])
 POST        /orgs/:o/courses/:c/quizzes/:z/rename        controllers.quiz.QuizController.rename(o: OrganizationId, c: CourseId, z: QuizId)
 
+# Course Quizzes Questions
+#GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q   controllers.quiz.QuestionController.view(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
+
 
 # ===== Start auth routes ======
 GET         /auth/signIn                                 controllers.auth.AuthController.signIn

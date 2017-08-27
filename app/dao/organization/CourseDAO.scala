@@ -26,26 +26,39 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val organizationDAO: OrganizationDAO, protected val userDAO: UserDAO, protected val quizDAO: QuizDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO, protected val organizationDAO: OrganizationDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
   // ====
 
+  // * ====== TABLE INSTANCES ====== *
   val Courses = lifted.TableQuery[CourseTable]
   val User2Courses = lifted.TableQuery[User2CourseTable]
-  val Courses2Quizzes = lifted.TableQuery[Course2QuizTable]
 
+
+  // * ====== QUERIES ====== *
+
+  // ====== FIND ======
   def all(): Future[Seq[Course]] = db.run(Courses.result)
-
-  def insert(course: Course): Future[Course] = db.run(
-    (Courses returning Courses.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += course
-  )
 
   def byId(id : CourseId): Future[Option[Course]] = db.run(Courses.filter(_.id === id).result.headOption)
 
+  def apply(courseId: CourseId): Future[Either[Result, Course]] = byId(courseId).map { _ match {
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no course for id=["+courseId+"]")))
+    case Some(course) => Right(course)
+  } }
+
   def byIds(organizationId: OrganizationId, id : CourseId): Future[Option[Course]] = db.run(Courses.filter(c => c.id === id && c.organizationId === organizationId).result.headOption)
 
+  def apply(organizationId: OrganizationId, courseId: CourseId): Future[Either[Result, Course]] = byIds(organizationId, courseId).map { _ match {
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no Course for id=["+courseId+"] which also had Organization Id [" + organizationId + "]")))
+    case Some(course) => Right(course)
+  } }
+
+  def coursesFor(organizationId: OrganizationId) : Future[Seq[Course]] = db.run(Courses.filter(_.organizationId === organizationId).result)
+
+  // ====== Access ======
   def access(userId: UserId, courseId : CourseId): Future[Access] = db.run {
     val ownerAccess = (for(c <- Courses if c.ownerId === userId && c.id === courseId) yield c).result.headOption.map(_ match { case Some(_) => Own case None => Non})
     val directAccess = (for(u2c <- User2Courses if u2c.userId === userId && u2c.courseId === courseId) yield u2c.access).result.headOption.map(_.getOrElse(Non))
@@ -54,24 +67,12 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   def grantAccess(user: User, course: Course, access: Access) = db.run(User2Courses += User2Course(user.id, course.id, access)).map { _ => () }
 
-  def attach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, None, None)).map { _ => () }
+  // ====== Create ======
+  def insert(course: Course): Future[Course] = db.run(
+    (Courses returning Courses.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += course
+  )
 
-  def coursesFor(organizationId: OrganizationId) : Future[Seq[Course]] = db.run(Courses.filter(_.organizationId === organizationId).result)
-
-  def quizzesFor(courseId: CourseId) : Future[Seq[Quiz]] = db.run {
-    (for(c2z <- Courses2Quizzes; z <- quizDAO.Quizzes if c2z.courseId === courseId && c2z.quizId === z.id) yield z).result
-  }
-
-  def apply(courseId: CourseId): Future[Either[Result, Course]] = byId(courseId).map { _ match {
-    case None => Left(NotFound(views.html.errors.notFoundPage("There was no course for id=["+courseId+"]")))
-    case Some(course) => Right(course)
-  } }
-
-  def apply(organizationId: OrganizationId, courseId: CourseId): Future[Either[Result, Course]] = byIds(organizationId, courseId).map { _ match {
-    case None => Left(NotFound(views.html.errors.notFoundPage("There was no course for id=["+courseId+"] which also had organizationid [" + OrganizationId + "]")))
-    case Some(course) => Right(course)
-  } }
-
+  // * ====== TABLE CLASSES ====== *
   class CourseTable(tag: Tag) extends Table[Course](tag, "course") {
     def id = column[CourseId]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name")
@@ -99,20 +100,6 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     def courseIdFK = foreignKey("app_user_2_course_fk__course_id", courseId, Courses)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
     def * = (userId, courseId, access) <> (User2Course.tupled, User2Course.unapply)
-  }
-
-  class Course2QuizTable(tag: Tag) extends Table[Course2Quiz](tag, "course_2_quiz") {
-    def courseId = column[CourseId]("course_id")
-    def quizId = column[QuizId]("quiz_id")
-    def startDate = column[Option[DateTime]]("start_date")
-    def endDate = column[Option[DateTime]]("end_date")
-
-    def pk = primaryKey("course_2_quiz_pk", (courseId, quizId))
-
-    def quizIdFK = foreignKey("course_2_quiz_fk__user_id", quizId, quizDAO.Quizzes)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def courseIdFK = foreignKey("course_2_quiz_fk__course_id", courseId, Courses)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (courseId, quizId, startDate, endDate) <> (Course2Quiz.tupled, Course2Quiz.unapply)
   }
 
 }

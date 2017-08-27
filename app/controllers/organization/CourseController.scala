@@ -18,13 +18,14 @@ import models.organization.Course
 import play.api.data.Form
 import play.api.data.Forms._
 import com.artclod.random._
+import dao.quiz.QuizDAO
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Random, Right}
 
 
 @Singleton
-class CourseController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class CourseController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
   implicit val randomEngine = new Random(JodaUTC.now.getMillis())
   val codeRange = (0 to 100000).toVector
 
@@ -69,7 +70,7 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
 
   def view(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
-    (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ courseDAO.quizzesFor(courseId)).map{ _ match {
+    (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ quizDAO.quizzesFor(courseId)).map{ _ match {
        case Left(notFoundResult) => notFoundResult
        case Right((organization, course, accesss, quizzes)) => Ok(views.html.organization.courseView(organization, course, accesss, quizzes))
       }
