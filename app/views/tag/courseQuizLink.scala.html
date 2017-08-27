@@ -1,0 +1,1 @@
+@(course: models.organization.Course, quiz: models.quiz.Quiz, text: Option[String], atts: (scala.Symbol, String)*)<a href="@controllers.quiz.routes.QuizController.view(course.organizationId, course.id, quiz.id, None)"@tag.atts(('class -> "pure-button") +: atts)>@text.getOrElse(quiz.name)</a>

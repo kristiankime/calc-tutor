@@ -1,4 +1,4 @@
-@(organization: models.organization.Organization, course: models.organization.Course, access: models.Access)(implicit request: Request[AnyContent])
+@(organization: models.organization.Organization, course: models.organization.Course, access: models.Access, quizzes: Seq[models.quiz.Quiz])(implicit request: Request[AnyContent])
 
 @import com.artclod.play._
 @import views.html.tag._
@@ -55,5 +55,23 @@
         </section>
     }
 
+    @* >>>>> Start Access > Non *@
+    @if(access > Non) {
+
+        @* ======= Quizzes ======= *@
+        <section>
+            @if(quizzes.isEmpty) {
+                <h5> There are no quizzes for this course </h5>
+            } else {
+                <h5> The course has the following quiz@zes(quizzes): </h5>
+                <ul class="pure-list">
+                @for(quiz <- quizzes) {<li> @tag.courseQuizLink(course, quiz, None) </li> }
+                </ul>
+            }
+            @if(access.write) { <a href="@controllers.quiz.routes.QuizController.createForm(course.organizationId, course.id)" class="pure-button"> add a quiz</a> }
+        </section>
+
+    }
+    @* <<<<< Close Access > Non *@
 
 }

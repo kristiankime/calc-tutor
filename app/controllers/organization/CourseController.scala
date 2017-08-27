@@ -69,9 +69,9 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
 
   def view(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
-    (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId)).map{ _ match {
+    (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ courseDAO.quizzesFor(courseId)).map{ _ match {
        case Left(notFoundResult) => notFoundResult
-       case Right((organization, course, accesss)) => Ok(views.html.organization.courseView(organization, course, accesss))
+       case Right((organization, course, accesss, quizzes)) => Ok(views.html.organization.courseView(organization, course, accesss, quizzes))
       }
     }
 

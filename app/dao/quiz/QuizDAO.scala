@@ -6,8 +6,9 @@ import com.artclod.mathml.scalar.MathMLElem
 import com.artclod.slick.JodaUTC
 import dao.ColumnTypeMappings
 import dao.user.UserDAO
-import models.quiz._
+import models.quiz.{User2Quiz, _}
 import models._
+import models.organization.User2Course
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
@@ -30,14 +31,13 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   // ====
 
   val Quizzes = lifted.TableQuery[QuizTable]
+  val User2Quizzes = lifted.TableQuery[User2QuizTable]
   val Questions = lifted.TableQuery[QuestionTable]
   val QuestionSections = lifted.TableQuery[QuestionSectionTable]
   val QuestionPartChoices = lifted.TableQuery[QuestionPartChoiceTable]
   val QuestionPartFunctions = lifted.TableQuery[QuestionPartFunctionTable]
 
   def all(): Future[Seq[Quiz]] = db.run(Quizzes.result)
-
-//  def insert(cat: Quiz): Future[Unit] = db.run(Quizs += cat).map { _ => () }
 
   def insert(quiz: Quiz): Future[Quiz] = db.run(
     (Quizzes returning Quizzes.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += quiz
@@ -49,7 +49,11 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
 
   def byId(id : QuizId): Future[Option[Quiz]] = db.run(Quizzes.filter(_.id === id).result.headOption)
 
-  def access(userId: UserId, quizId : QuizId): Future[Access] = Future(Edit)  // TODO
+  def access(userId: UserId, quizId : QuizId): Future[Access] = db.run {
+    val ownerAccess = (for(z <- Quizzes if z.ownerId === userId && z.id === quizId) yield z).result.headOption.map(_ match { case Some(_) => Own case None => Non})
+    val directAccess = (for(u2z <- User2Quizzes if u2z.userId === userId && u2z.quizId === quizId) yield u2z.access).result.headOption.map(_.getOrElse(Non))
+    ownerAccess.flatMap(oa => directAccess.map( da => oa max da))
+  }
 
   def apply(quizId: QuizId): Future[Either[Result, Quiz]] = byId(quizId).map { quizOp => quizOp match {
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no quiz for id=["+quizId+"]")))
@@ -66,6 +70,19 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     def ownerIdFK = foreignKey("quiz_fk__owner_id", ownerId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
     def * = (id, ownerId, name, creationDate, updateDate) <> (Quiz.tupled, Quiz.unapply)
+  }
+
+  class User2QuizTable(tag: Tag) extends Table[User2Quiz](tag, "app_user_2_quiz") {
+    def userId = column[UserId]("user_id")
+    def quizId = column[QuizId]("quiz_id")
+    def access = column[Access]("access")
+
+    def pk = primaryKey("course_2_quiz_pk", (userId, quizId))
+
+    def userIdFK = foreignKey("app_user_2_quiz_fk__user_id", userId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def quizIdFK = foreignKey("app_user_2_quiz_fk__quiz_id", quizId, Quizzes)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+
+    def * = (userId, quizId, access) <> (User2Quiz.tupled, User2Quiz.unapply)
   }
 
   class QuestionTable(tag: Tag) extends Table[Question](tag, "question") {

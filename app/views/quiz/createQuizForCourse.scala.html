@@ -14,7 +14,7 @@
 
     @form(controllers.quiz.routes.QuizController.createSubmit(course.organizationId, course.id), 'class -> "pure-form") {
         <fieldset>
-            <label for="@QuizCreate.name">Name: <input type="text" name="@QuizCreate.name" value="quiz name"></label>
+            <label for="@QuizCreate.name">Name: <input type="text" name="@QuizCreate.name" placeholder="quiz name"></label>
             <input type="submit" class="pure-button pure-button-primary" value="Submit">
             @views.html.helper.CSRF.formField
         </fieldset>

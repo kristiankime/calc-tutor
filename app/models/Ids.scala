@@ -1,7 +1,6 @@
 package models
 
-import models.AccessibleId.organizationPrefix
-import models.AccessibleId.coursePrefix
+import models.AccessibleId._
 
 sealed trait AccessibleId {
   val v: Long
@@ -24,7 +23,7 @@ case class GameId(v: Long) {
 }
 
 case class QuizId(v: Long) extends AccessibleId {
-  override def toString = "Qz"+v
+  override def toString = quizPrefix+v
 }
 
 case class QuestionId(v: Long) {
@@ -50,13 +49,16 @@ case class AlertId(v: Long) {
 object AccessibleId {
   val organizationPrefix = "Or"
   val coursePrefix = "Co"
+  val quizPrefix = "Qz"
 
   val organizationIdReg = (organizationPrefix + "([0-9]*)").r
   val courseIdReg = (coursePrefix + "([0-9]*)").r
+  val quizIdReg = (quizPrefix + "([0-9]*)").r
 
   def fromStr(string: String) : AccessibleId = string match {
     case organizationIdReg(v) => OrganizationId(v.toLong)
-    case courseIdReg(v)       =>       CourseId(v.toLong)
-    case _                    =>  throw new IllegalArgumentException("Unknown Accessible id pattern [" + string + "]")
+    case courseIdReg(v)       => CourseId(v.toLong)
+    case quizIdReg(v)         => QuizId(v.toLong)
+    case _                    => throw new IllegalArgumentException("Unknown Accessible id pattern [" + string + "]")
   }
 }

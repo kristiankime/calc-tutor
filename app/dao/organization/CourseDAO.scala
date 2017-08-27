@@ -38,8 +38,6 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   def all(): Future[Seq[Course]] = db.run(Courses.result)
 
-//  def insert(course: Course): Future[Unit] = db.run(Courses += course).map { _ => () }
-
   def insert(course: Course): Future[Course] = db.run(
     (Courses returning Courses.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += course
   )
@@ -59,6 +57,10 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   def attach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, None, None)).map { _ => () }
 
   def coursesFor(organizationId: OrganizationId) : Future[Seq[Course]] = db.run(Courses.filter(_.organizationId === organizationId).result)
+
+  def quizzesFor(courseId: CourseId) : Future[Seq[Quiz]] = db.run {
+    (for(c2z <- Courses2Quizzes; z <- quizDAO.Quizzes if c2z.courseId === courseId && c2z.quizId === z.id) yield z).result
+  }
 
   def apply(courseId: CourseId): Future[Either[Result, Course]] = byId(courseId).map { _ match {
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no course for id=["+courseId+"]")))
@@ -91,6 +93,8 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     def courseId = column[CourseId]("course_id")
     def access = column[Access]("access")
 
+    def pk = primaryKey("app_user_2_course_pk", (userId, courseId))
+
     def userIdFK = foreignKey("app_user_2_course_fk__user_id", userId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
     def courseIdFK = foreignKey("app_user_2_course_fk__course_id", courseId, Courses)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
@@ -103,11 +107,10 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     def startDate = column[Option[DateTime]]("start_date")
     def endDate = column[Option[DateTime]]("end_date")
 
-    def pk = primaryKey("pk_a", (courseId, quizId))
+    def pk = primaryKey("course_2_quiz_pk", (courseId, quizId))
 
     def quizIdFK = foreignKey("course_2_quiz_fk__user_id", quizId, quizDAO.Quizzes)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
     def courseIdFK = foreignKey("course_2_quiz_fk__course_id", courseId, Courses)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
 
     def * = (courseId, quizId, startDate, endDate) <> (Course2Quiz.tupled, Course2Quiz.unapply)
   }

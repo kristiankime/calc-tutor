@@ -11,7 +11,7 @@
 
     @form(action = controllers.organization.routes.CourseController.createSubmit(organization.id), 'class -> "pure-form") {
         <label for="@CourseCreate.name">Name</label>
-        <input type="text" name="@CourseCreate.name" value="course name"> <br>
+        <input type="text" name="@CourseCreate.name" placeholder="course name"> <br>
 
         <label for="@CourseCreate.anyStudents"> Open Student Enrollment</label>
         <input type="checkbox" name="@CourseCreate.anyStudents" value="true" /> <input type="hidden" name="@CourseCreate.anyStudents" value="false" /> <br>

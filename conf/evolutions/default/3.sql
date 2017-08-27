@@ -25,11 +25,10 @@ CREATE TABLE app_user_2_course
   user_id INT NOT NULL REFERENCES app_user(id),
   course_id INT NOT NULL REFERENCES course(id),
   access SMALLINT NOT NULL
+
 );
 
-
 # --- !Downs
-
 DROP TABLE app_user_2_course CASCADE;
 DROP TABLE course CASCADE;
 DROP TABLE organization CASCADE;
