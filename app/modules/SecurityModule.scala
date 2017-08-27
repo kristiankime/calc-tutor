@@ -18,6 +18,7 @@ import org.pac4j.core.credentials.password.SpringSecurityPasswordEncoder
 import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import com.google.inject.Provides
 import dao.organization.{CourseDAO, OrganizationDAO}
+import dao.quiz.QuizDAO
 import dao.user.UserDAO
 import org.pac4j.sql.profile.service.DbProfileService
 
@@ -57,7 +58,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     dbProfileService
   }
 
-  @Provides def config(dbProfileService: DbProfileService, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO) : Config = {
+  @Provides def config(dbProfileService: DbProfileService, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO) : Config = {
     val formClient = new FormClient(baseUrl + "/auth/loginForm", dbProfileService)
 
     val oidcConfiguration = new OidcConfiguration()
@@ -77,7 +78,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     val clients = new Clients(baseUrl + "/callback", formClient, oidcClient, redirectUnauthenticatedClient, indirectBasicAuthClient)
 
     val config = new Config(clients)
-    config.addAuthorizer("Access", new AccessAuthorizer(userDAO, organizationDAO, courseDAO))
+    config.addAuthorizer("Access", new AccessAuthorizer(userDAO, organizationDAO, courseDAO, quizDAO))
     config.setHttpActionAdapter(new DemoHttpActionAdapter())
     config
   }
