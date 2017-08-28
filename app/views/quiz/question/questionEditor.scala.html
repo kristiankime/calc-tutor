@@ -1,7 +1,8 @@
-@(action: play.api.mvc.Call, initialDataModel: Option[Html] = None)
+@(action: play.api.mvc.Call, initialDataModel: Option[String] = None)(implicit request: Request[AnyContent])
 
 @import helper._
 @import com.artclod.play.FormEnhanced
+@import controllers.quiz.QuestionCreate
 
 <section id="question-editor">
     Build a question. When you are done hit "Save Question": <br>
@@ -68,11 +69,23 @@
     </div>
 
     <a href="javascript:printViewModel();"> Print View Model </a>
+
+    @form(action, 'id -> "questionJsonForm", 'class -> "pure-form") {
+        <fieldset>
+            <input type="hidden" name="@QuestionCreate.questionJson" id="questionJson">
+            <input type="button" class="pure-button" value="Save Question" onclick="questionJsonFormSubmit()">
+            @views.html.helper.CSRF.formField
+        </fieldset>
+    }
+    <script>
+        questionJsonFormSubmit = function() {
+            $("#questionJson").val(JSON.stringify(getQuestionJson()));
+            $("#questionJsonForm").submit();
+        }
+    </script>
 </section>
 
 <script type="text/javascript">
-
-        console.log("test");
 
         var renderMath = function(text, id) {
             console.log("update newValue=[" + text + "] id=[" + id + "]");
@@ -85,7 +98,7 @@
             return "b" + text + "b";
         }
 
-        var data = {
+        var data = @initialDataModel.getOrElse(Html("""{
             description : "a question",
             sections : [
                 {
@@ -105,7 +118,7 @@
                     functions : []
                 }
             ]
-        }
+        }"""))
 
         console.log(data);
 
@@ -161,6 +174,10 @@
         }
 
         ko.applyBindings(viewModel, document.getElementById("question-editor"));
+
+        var getQuestionJson = function() {
+            return ko.mapping.toJS(viewModel);
+        }
 
         var printViewModel = function(){
             console.log( ko.mapping.toJS(viewModel) );

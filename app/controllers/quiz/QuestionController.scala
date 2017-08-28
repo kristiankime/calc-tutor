@@ -20,7 +20,7 @@ import models.organization.Course
 import models.quiz.Quiz
 import play.api.data.Form
 import play.api.data.Forms._
-
+import play.api.libs.json.Json
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Right
 
@@ -34,21 +34,22 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, quiz)) =>
 
-        val jsonOp = request.body.asJson
+//        val jsonOp = request.body.asJson
+//        Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None))) // Redirect to the view
 
-        Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None))) // Redirect to the view
-//        null
-//        QuizCreate.form.bindFromRequest.fold(
-//          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
-//          form => {
-//
+        QuestionCreate.form.bindFromRequest.fold(
+          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+          form => {
+
+            val questionJson = QuestionCreate.questionFormat.reads(Json.parse(form))
 //            val now = JodaUTC.now
 //            quizDAO.insert(Quiz(null, user.id, form, now, now)).flatMap(quiz => // Create the Quiz
 //              quizDAO.attach(course, quiz).map( _ => // Attach it to the Course
 //                Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
-//            null
-//          }
-//        )
+
+            Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+          }
+        )
 
 
     }
@@ -79,3 +80,40 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 //
 //  val form : Form[String] = Form(name -> nonEmptyText)
 //}
+
+case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson])
+
+case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, choiceOrFunction: String, choice: Vector[QuestionPartChoiceJson], function: Vector[QuestionPartFunctionJson] )
+
+case class QuestionPartChoiceJson(descriptionRaw: String, descriptionHtml: String, correctChoice: Boolean)
+
+case class QuestionPartFunctionJson(descriptionRaw: String, descriptionHtml: String, functionRaw: String, functionMath: String)
+
+object QuestionCreate {
+  val questionJson = "question-json"
+
+  val form : Form[String] = Form(questionJson -> nonEmptyText)
+
+
+  val title = "title"
+  val descriptionRaw = "descriptionRaw"
+  val descriptionHtml = "descriptionHtml"
+  val sections = "sections"
+  val explanationRaw = "descriptionRaw"
+  val explanationHtml = "descriptionRaw"
+
+  val choiceOrFunction = "choiceOrFunction"
+  val choice = "choice"
+  val function = "function"
+
+  val functionRaw = "descriptionRaw"
+  val functionMath = "descriptionRaw"
+
+  implicit val questionPartChoiceFormat = Json.format[QuestionPartChoiceJson]
+  implicit val questionPartFunctionFormat = Json.format[QuestionPartFunctionJson]
+  implicit val questionSectionFormat = Json.format[QuestionSectionJson]
+  implicit val questionFormat = Json.format[QuestionJson]
+}
+
+
+
