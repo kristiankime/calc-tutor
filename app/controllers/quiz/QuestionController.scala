@@ -71,7 +71,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
 case class QuestionJson(id: String, title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson])
 
-case class QuestionSectionJson(id: String, explanationRaw: String, explanationHtml: String, choiceOrFunction: String, correctChoiceIndex: Int, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson] )
+case class QuestionSectionJson(id: String, explanationRaw: String, explanationHtml: String, choiceOrFunction: String, correctChoiceIndex: String, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson] )
 
 case class QuestionPartChoiceJson(id: String, summaryRaw: String, summaryHtml: String, correctChoice: Boolean)
 

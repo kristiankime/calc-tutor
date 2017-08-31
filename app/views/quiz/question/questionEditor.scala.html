@@ -5,7 +5,8 @@
 @import controllers.quiz.QuestionCreate
 
 <section id="question-editor">
-    Build a question. When you are done hit "Save Question": <br>
+
+    <h4> Build a question. When you are done hit "Save Question": </h4>
 
     <div class="flexbox-container">
         <div class="flexbox-column"> Question Title: <input data-bind="value: @QuestionCreate.title" /> </div>
@@ -45,8 +46,11 @@
                             Choice Summary: <input data-bind="value: @QuestionCreate.summaryRaw" />
                         </div>
                         <div class="flexbox-column">
-                            @*<span data-bind="text: $parent.@QuestionCreate.id"></span>*@
-                            @*<span data-bind="text: @QuestionCreate.id"></span>*@
+
+                            pid: <span data-bind="text: $parent.@QuestionCreate.id"></span>
+                            id: <span data-bind="text: @QuestionCreate.id"></span>
+                            cci: <span data-bind="text: $parent.@QuestionCreate.correctChoiceIndex"></span>
+
                             <input type="radio" data-bind="name: $parent.@QuestionCreate.id, value: $data.@QuestionCreate.id, checked: $parent.@QuestionCreate.correctChoiceIndex, text: $parent.@QuestionCreate.id"> Correct </input>
                             <span data-bind="html: @QuestionCreate.summaryHtml"> </span>
                         </div>
@@ -61,8 +65,10 @@
                             Function Summary: <input data-bind="value: @QuestionCreate.summaryRaw" />
                         </div>
                         <div class="flexbox-column">
-                            @*<span data-bind="text: $parent.@QuestionCreate.id"></span>*@
-                            @*<span data-bind="text: @QuestionCreate.id"></span>*@
+
+                            <span data-bind="text: $parent.@QuestionCreate.id"></span>
+                            <span data-bind="text: @QuestionCreate.id"></span>
+
                             <span data-bind="html: @QuestionCreate.summaryHtml"> </span>
                         </div>
                     </div>
@@ -98,6 +104,161 @@
 </section>
 
 <script type="text/javascript">
+
+
+        var QE = function() { // The Question Editor Knockoutjs support Module
+            // ============ Choice Part Enhancement ============
+            var choicePartId = function (section, num) {
+                return section.@QuestionCreate.id + "c" + num;
+            }
+
+            var enhanceChoicePart = function (section, part, num) {
+                part.@QuestionCreate.id = choicePartId(section, num); // Note here we overwrite the id
+
+                // Overwrite/Bind the html summary
+                part.@QuestionCreate.summaryHtml = ko.computed(function () {
+                    return ARTC.markdown(part.@{QuestionCreate.summaryRaw}());
+                }, part);
+            }
+
+            // ============ Function Part Enhancement ============
+            var functionPartId = function (section, num) {
+                return section.@QuestionCreate.id + "f" + num;
+            }
+
+            var enhanceFunctionPart = function (section, part, num) {
+                part.@QuestionCreate.id = functionPartId(section, num); // Note here we overwrite the id
+
+                // Overwrite/Bind the html summary
+                part.@QuestionCreate.summaryHtml = ko.computed(function () {
+                    return ARTC.markdown(part.@{QuestionCreate.summaryRaw}());
+                }, section);
+
+                // Upadate the math function related values
+                var func = part.@{QuestionCreate.functionRaw};
+                func.subscribe(function (newValue) {
+                    var mathResult = ARTC.mathJS.defaultParser(newValue);
+                    ARTC.mathJax.updateById(part.@QuestionCreate.id, ARTC.mathJax.tex(mathResult.node.toTex()));
+                    part.@{QuestionCreate.functionMath} = mathResult.node.content;
+                });
+            }
+
+            // ============ Section Enhancement ============
+            var sectionId = function (num) {
+                return "sec" + (num);
+            }
+
+            // Adds functions etc to a Section View Model
+            var enhanceSection = function (main, section, num) {
+                var choiceIdGenerator = section.@{QuestionCreate.choices}.length;
+                var functionIdGenerator = section.@{QuestionCreate.functions}.length;
+
+                // Set the id for consistency
+                section.@QuestionCreate.id = sectionId(num); // Note here we overwrite the id
+
+                // Overwrite/Bind the html explanation
+                section.@QuestionCreate.explanationHtml = ko.computed(function () {
+                    return ARTC.markdown(section.@{QuestionCreate.explanationRaw}());
+                }, section);
+
+                // --- Choice Part ----
+                // Update any existing Choice Parts (ie make sure they are enhanced)
+                for (var i = 0; i < section.@{QuestionCreate.choices}().length; i++) {
+                    enhanceChoicePart(section, section.@{QuestionCreate.choices}()[i], i);
+                }
+
+                // add new choice function
+                section.addChoice = function () {
+                    var choiceId = choicePartId(section, choiceIdGenerator++);
+
+                    var newChoice = ko.mapping.fromJS({
+                        @QuestionCreate.id          : choiceId,
+                        @QuestionCreate.summaryRaw  : "new choice " + choiceIdGenerator,
+                        @QuestionCreate.summaryHtml : "new choice " + choiceIdGenerator
+                    } );
+
+                    enhanceChoicePart(section, newChoice, choiceIdGenerator);
+
+                    var chs = section.@{QuestionCreate.choices};
+                    chs.push(newChoice);
+                }
+                // -----------------------
+
+                // --- Function Part ----
+                // Update any existing Function Parts (ie make sure they are enhanced)
+                for (var i = 0; i < section.@{QuestionCreate.functions}().length; i++) {
+                    enhanceFunctionPart(section, section.@{QuestionCreate.functions}()[i], i);
+                }
+
+                section.addFunction = function () {
+                    var functionId = functionPartId(section, functionIdGenerator++);
+                    var newFunction = ko.mapping.fromJS({
+                        @QuestionCreate.id           : functionId,
+                        @QuestionCreate.summaryRaw   : "new function " + functionIdGenerator,
+                        @QuestionCreate.summaryHtml  : "new function " + functionIdGenerator,
+                        @QuestionCreate.functionRaw  : "",
+                        @QuestionCreate.functionMath : ""
+                    } );
+
+                    enhanceFunctionPart(section, newFunction, functionIdGenerator);
+
+                    var funcs = section.@{QuestionCreate.functions};
+                    funcs.push(newFunction);
+                }
+                // -----------------------
+
+                // Remove this section
+                section.removeThisSection = function () {
+                    var secs = main.@{QuestionCreate.sections};
+                    secs.remove(function (s) {
+                        return s.id === section.id;
+                    });
+                }
+            }
+
+            // ============ Root Enhancement ============
+            // Adds functions to the Root of the Question View Model
+            var enhanceMain = function (main) {
+                // Each sections needs a unique id
+                var idGenerator = main.@{QuestionCreate.sections}.length;
+
+                // Create the computed Description Html from the raw
+                main.@QuestionCreate.descriptionHtml = ko.computed(function () {
+                    return ARTC.markdown(main.@{QuestionCreate.descriptionRaw}());
+                }, main);
+
+                // Update any existing Sections
+                for (var i = 0; i < main.@{QuestionCreate.sections}().length; i++) {
+                    enhanceSection(main, main.@{QuestionCreate.sections}()[i], i);
+                }
+
+                // Function to create a new section
+                main.addSection = function () {
+                    var newSection = ko.mapping.fromJS({
+                        @QuestionCreate.id                 : sectionId(idGenerator++), // Note this is also set in enhanceSection
+                        @QuestionCreate.explanationRaw     : "new section " + idGenerator,
+                        @QuestionCreate.explanationHtml    : "new section " + idGenerator,
+                        @QuestionCreate.choiceOrFunction   : "choice",
+                        @QuestionCreate.correctChoiceIndex : "",
+                        @QuestionCreate.choices            : [],
+                        @QuestionCreate.functions          : []
+                    });
+                    enhanceSection(main, newSection, idGenerator);
+                    var secs = viewModel.@{QuestionCreate.sections}
+                    secs.push(newSection);
+                }
+
+                // Add at toJS function
+                main.toJSON = function () {
+                    return ko.mapping.toJS(main);
+                }
+            }
+
+            var QE = {};
+            QE.enhanceMain = enhanceMain;
+            return QE;
+        }();
+
         var data = @initialDataModel.getOrElse(Html("""{
             title : "title",
             descriptionRaw : "a question",
@@ -108,7 +269,7 @@
                     explanationRaw : "explanation 1",
                     explanationHtml : "explanation 1",
                     choiceOrFunction : "choice",
-                    correctChoice : null,
+                    correctChoiceIndex : "",
                     choices : [],
                     functions : []
                 },
@@ -117,169 +278,19 @@
                     explanationRaw : "explanation 2",
                     explanationHtml : "explanation 2",
                     choiceOrFunction : "choice",
-                    correctChoice : null,
+                    correctChoiceIndex : "",
                     choices : [],
                     functions : []
                 }
             ]
         }"""))
 
-                console.log(data);
+        console.log(data);
 
         var viewModel = ko.mapping.fromJS(data);
 
-        // ============ Choice Part Enhancement ============
-        var choicePartId = function(section, num) {
-            return section.@QuestionCreate.id + "c" + num;
-        }
-
-        var enhanceChoicePart = function(section, part, num) {
-            part.@QuestionCreate.id = choicePartId(section, num);
-
-            // Update the html summary
-            part.@QuestionCreate.summaryHtml = ko.computed(function() {
-                return ARTC.markdown(part.@{QuestionCreate.summaryRaw}());
-            }, part);
-
-            @*
-            // Properly indicate if this is the correct choice
-            part.@QuestionCreate.correctChoice = ko.computed(function() {
-                return section.correctChoice() === part.@QuestionCreate.id;
-            }, section);
-            *@
-        }
-
-        // ============ Function Part Enhancement ============
-        var functionPartId = function(section, num) {
-            return section.@QuestionCreate.id + "f" + num;
-        }
-
-        var enhanceFunctionPart = function(section, part, num) {
-            part.@QuestionCreate.id = functionPartId(section, num)
-
-            // Update the html summary
-            part.@QuestionCreate.summaryHtml = ko.computed(function() {
-                return ARTC.markdown(part.@{QuestionCreate.summaryRaw}());
-            }, section);
-
-            // Upadate the math related stuff
-            var func = part.@{QuestionCreate.functionRaw};
-            func.subscribe(function(newValue){
-                var mathResult = ARTC.mathJS.defaultParser(newValue);
-                ARTC.mathJax.updateById(part.@{QuestionCreate.id}(), ARTC.mathJax.tex(mathResult.node.toTex()));
-                part.@{QuestionCreate.functionMath} = mathResult.node.content;
-            });
-        }
-
-        // ============ Section Enhancement ============
-        var sectionId = function(num) {
-            return "sec"+(num);
-        }
-
-        // Adds functions etc to a Section View Model
-        enhanceSection = function(main, section, num) {
-            var choiceIdGenerator = section.@{QuestionCreate.choices}.length;
-            var functionIdGenerator = section.@{QuestionCreate.functions}.length;
-
-            // Set the id for consistency
-            section.@QuestionCreate.id = sectionId(num);
-
-            // Update the html
-            section.@QuestionCreate.explanationHtml = ko.computed(function() {
-                return ARTC.markdown(section.@{QuestionCreate.explanationRaw}());
-            }, section);
-
-            // --- Choice Part ----
-            // Update any existing Choice Parts
-            for (var i = 0; i < section.@{QuestionCreate.choices}().length; i++) {
-                enhanceChoicePart(section, section.@{QuestionCreate.choices}()[i], i);
-            }
-
-            // add new choice function
-            section.addChoice = function(){
-                var choiceId = choicePartId(section, choiceIdGenerator++);
-
-                var newChoice = ko.mapping.fromJS( {
-                    @QuestionCreate.id : choiceId,
-                    @QuestionCreate.summaryRaw : "new choice " + choiceIdGenerator,
-                    @QuestionCreate.summaryHtml : "new choice " + choiceIdGenerator
-                } );
-
-                enhanceChoicePart(section, newChoice, choiceIdGenerator);
-
-                var chs = section.@{QuestionCreate.choices};
-                chs.push(newChoice);
-            }
-            // -----------------------
-
-            // --- Function Part ----
-            // Update any existing Function Parts
-            for (var i = 0; i < section.@{QuestionCreate.functions}().length; i++) {
-                enhanceFunctionPart(section, section.@{QuestionCreate.functions}()[i], i);
-            }
-
-            section.addFunction = function(){
-                var functionId = functionPartId(section, functionIdGenerator++);
-                var newFunction = ko.mapping.fromJS( {
-                    @QuestionCreate.id : functionId,
-                    @QuestionCreate.summaryRaw : "new function " + functionIdGenerator,
-                    @QuestionCreate.summaryHtml :  "new function " + functionIdGenerator,
-                    @QuestionCreate.functionRaw : "",
-                    @QuestionCreate.functionMath : ""
-                } );
-
-                enhanceFunctionPart(section, newFunction, functionIdGenerator);
-
-                var funcs = section.@{QuestionCreate.functions};
-                funcs.push(newFunction);
-            }
-            // -----------------------
-
-            // Remove this section
-            section.removeThisSection = function() {
-                var secs = main.@{QuestionCreate.sections};
-                secs.remove(function(s){ return s.id === section.id;});
-            }
-        }
-
-        // ============ Root Enhancement ============
-        // Adds functions to the Root of the Question View Model
-        enhanceMain = function(main){
-            // Each sections needs a unique id
-            var idGenerator = main.@{QuestionCreate.sections}.length;
-
-            // Create the computed Description Html from the raw
-            main.@QuestionCreate.descriptionHtml = ko.computed(function() {
-                return ARTC.markdown(main.@{QuestionCreate.descriptionRaw}());
-            }, main);
-
-            // Update any existing Sections
-            for (var i = 0; i < main.@{QuestionCreate.sections}().length; i++) {
-                enhanceSection(main, main.@{QuestionCreate.sections}()[i], i);
-            }
-
-            // Function to create a new section
-            main.addSection = function() {
-                var newSection = ko.mapping.fromJS({
-                @QuestionCreate.id                 : sectionId(idGenerator++), // Note this is also set in enhanceSection
-                @QuestionCreate.explanationRaw     : "new section " + idGenerator,
-                @QuestionCreate.explanationHtml    : "new section " + idGenerator,
-                @QuestionCreate.choiceOrFunction   : "choice",
-                @QuestionCreate.correctChoiceIndex : null,
-                @QuestionCreate.choices            : [],
-                @QuestionCreate.functions          : []
-            });
-                enhanceSection(main, newSection, idGenerator);
-                var secs = viewModel.@{QuestionCreate.sections}
-                secs.push(newSection);
-            }
-
-            // Add at toJS function
-            main.toJSON = function(){ return ko.mapping.toJS(main); }
-        }
-
         // Bootstrap by adding all functions etc
-        enhanceMain(viewModel);
+        QE.enhanceMain(viewModel);
 
         // then applying bindings
         ko.applyBindings(viewModel, document.getElementById("question-editor"));
