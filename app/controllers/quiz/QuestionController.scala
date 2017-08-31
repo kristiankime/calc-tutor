@@ -69,45 +69,41 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
 }
 
-//object QuizCreate {
-//  val name = "name"
-//
-//  val form : Form[String] = Form(name -> nonEmptyText)
-//}
-//
-//object QuizRename {
-//  val name = "name"
-//
-//  val form : Form[String] = Form(name -> nonEmptyText)
-//}
+case class QuestionJson(id: String, title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson])
 
-case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson])
+case class QuestionSectionJson(id: String, explanationRaw: String, explanationHtml: String, choiceOrFunction: String, correctChoiceIndex: Int, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson] )
 
-case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, choiceOrFunction: String, choice: Vector[QuestionPartChoiceJson], function: Vector[QuestionPartFunctionJson] )
+case class QuestionPartChoiceJson(id: String, summaryRaw: String, summaryHtml: String, correctChoice: Boolean)
 
-case class QuestionPartChoiceJson(descriptionRaw: String, descriptionHtml: String, correctChoice: Boolean)
-
-case class QuestionPartFunctionJson(descriptionRaw: String, descriptionHtml: String, functionRaw: String, functionMath: String)
+case class QuestionPartFunctionJson(id: String, summaryRaw: String, summaryHtml: String, functionRaw: String, functionMath: String)
 
 object QuestionCreate {
   val questionJson = "question-json"
 
   val form : Form[String] = Form(questionJson -> nonEmptyText)
 
+  // all
+  val id = "id"
 
+  // Question
   val title = "title"
   val descriptionRaw = "descriptionRaw"
   val descriptionHtml = "descriptionHtml"
   val sections = "sections"
-  val explanationRaw = "descriptionRaw"
-  val explanationHtml = "descriptionRaw"
 
+  // Section
+  val explanationRaw = "explanationRaw"
+  val explanationHtml = "explanationHtml"
   val choiceOrFunction = "choiceOrFunction"
-  val choice = "choice"
-  val function = "function"
+  val correctChoiceIndex = "correctChoiceIndex"
+  val choices = "choices"
+  val functions = "functions"
 
-  val functionRaw = "descriptionRaw"
-  val functionMath = "descriptionRaw"
+  // Parts
+  val summaryRaw = "summaryRaw"
+  val summaryHtml = "summaryHtml"
+  val functionRaw = "functionRaw"
+  val functionMath = "functionMath"
 
   implicit val questionPartChoiceFormat = Json.format[QuestionPartChoiceJson]
   implicit val questionPartFunctionFormat = Json.format[QuestionPartFunctionJson]
