@@ -1,4 +1,4 @@
-@(action: play.api.mvc.Call, initialDataModel: Option[String] = None)(implicit request: Request[AnyContent])
+@(action: play.api.mvc.Call, initialDataModel: Option[String] = None, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
 
 @import helper._
 @import com.artclod.play.FormEnhanced
@@ -44,6 +44,7 @@
                     <div class="flexbox-container">
                         <div class="flexbox-column">
                             Choice Summary: <input data-bind="value: @QuestionCreate.summaryRaw" />
+                            <a href='#' data-bind='click: removeThisPart' class="pure-button">Remove This Part</a>
                         </div>
                         <div class="flexbox-column">
 
@@ -63,6 +64,7 @@
                     <div class="flexbox-container">
                         <div class="flexbox-column">
                             Function Summary: <input data-bind="value: @QuestionCreate.summaryRaw" />
+                            <a href='#' data-bind='click: removeThisPart' class="pure-button">Remove This Part</a>
                         </div>
                         <div class="flexbox-column">
 
@@ -86,8 +88,6 @@
         </div>
     </div>
 
-    <a href="javascript:printViewModel();"> Print View Model </a>
-
     @form(action, 'id -> "questionJsonForm", 'class -> "pure-form") {
         <fieldset>
             <input type="hidden" name="@QuestionCreate.questionJson" id="questionJson">
@@ -97,15 +97,13 @@
     }
     <script>
         questionJsonFormSubmit = function() {
-            $("#questionJson").val(JSON.stringify(viewModel.toJSON()));
+            $("#questionJson").val(ko.mapping.toJSON(viewModel));
             $("#questionJsonForm").submit();
         }
     </script>
 </section>
 
 <script type="text/javascript">
-
-
         var QE = function() { // The Question Editor Knockoutjs support Module
             // ============ Choice Part Enhancement ============
             var choicePartId = function (section, num) {
@@ -119,6 +117,14 @@
                 part.@QuestionCreate.summaryHtml = ko.computed(function () {
                     return ARTC.markdown(part.@{QuestionCreate.summaryRaw}());
                 }, part);
+
+                // Remove this part
+                part.removeThisPart = function () {
+                    var parts = section.@{QuestionCreate.choices};
+                    parts.remove(function (p) {
+                        return p.id === part.id;
+                    });
+                }
             }
 
             // ============ Function Part Enhancement ============
@@ -132,15 +138,23 @@
                 // Overwrite/Bind the html summary
                 part.@QuestionCreate.summaryHtml = ko.computed(function () {
                     return ARTC.markdown(part.@{QuestionCreate.summaryRaw}());
-                }, section);
+                }, part);
 
-                // Upadate the math function related values
+                // Update the math display & value
                 var func = part.@{QuestionCreate.functionRaw};
                 func.subscribe(function (newValue) {
-                    var mathResult = ARTC.mathJS.defaultParser(newValue);
+                    var mathResult = @{mathJsParser}(newValue);
                     ARTC.mathJax.updateById(part.@QuestionCreate.id, ARTC.mathJax.tex(mathResult.node.toTex()));
-                    part.@{QuestionCreate.functionMath} = mathResult.node.content;
+                    part.@{QuestionCreate.functionMath}(mathResult.content);
                 });
+
+                // Remove this part
+                part.removeThisPart = function () {
+                    var parts = section.@{QuestionCreate.functions};
+                    parts.remove(function (p) {
+                        return p.id === part.id;
+                    });
+                }
             }
 
             // ============ Section Enhancement ============
@@ -247,12 +261,7 @@
                     var secs = viewModel.@{QuestionCreate.sections}
                     secs.push(newSection);
                 }
-
-                // Add at toJS function
-                main.toJSON = function () {
-                    return ko.mapping.toJS(main);
-                }
-            }
+           }
 
             var QE = {};
             QE.enhanceMain = enhanceMain;
@@ -285,8 +294,6 @@
             ]
         }"""))
 
-        console.log(data);
-
         var viewModel = ko.mapping.fromJS(data);
 
         // Bootstrap by adding all functions etc
@@ -294,8 +301,4 @@
 
         // then applying bindings
         ko.applyBindings(viewModel, document.getElementById("question-editor"));
-
-        var printViewModel = function(){
-            console.log( ko.mapping.toJS(viewModel) );
-        }
 </script>
