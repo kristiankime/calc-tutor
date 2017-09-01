@@ -3,6 +3,7 @@ package dao.quiz
 import javax.inject.{Inject, Singleton}
 
 import com.artclod.mathml.scalar.MathMLElem
+import controllers.quiz.{QuestionPartChoiceJson, QuestionPartFunctionJson}
 import dao.ColumnTypeMappings
 import dao.user.UserDAO
 import models._
@@ -15,6 +16,7 @@ import play.api.mvc.Results._
 import play.twirl.api.Html
 import slick.lifted
 
+import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 
 // ====
@@ -43,6 +45,47 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+questionId+"]")))
     case Some(quiz) => Right(quiz)
   } }
+
+  // ====== Create ======
+  def insert(questionFrame: QuestionFrame) : Future[QuestionFrame] = {
+    insert(questionFrame.question).flatMap{
+      question => {
+        val sectionsFutures : Seq[Future[SectionFrame]] = questionFrame.id(question.id).sections.map(section => insert(section))
+//        val futureOfSections : Future[Vector[SectionFrame]] = sectionsFutures.foldLeft(Future.successful(Vector[SectionFrame]()))((cur, add) => cur.flatMap(c => add.map(a => c :+ a)) ).map(_.sorted)
+        val futureOfSections : Future[Vector[SectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
+        futureOfSections.map(sections => QuestionFrame(question, sections))
+      }
+    }
+  }
+
+  def insert(sectionFrame: SectionFrame) : Future[SectionFrame] = {
+    insert(sectionFrame.section).flatMap(section => {
+      (sectionFrame.id(section.id).parts match {
+        case Left(ps) => insertChoices(ps).map(p => Left(Vector(p:_*).sorted))
+        case Right(ps) => insertFunctions(ps).map(p => Right(Vector(p:_*).sorted))
+      }).map(parts => SectionFrame(section = section, parts = parts) )
+    })
+  }
+
+
+  def insert(question: Question): Future[Question] = db.run(
+    (Questions returning Questions.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += question
+  )
+
+  def insert(questionSection: QuestionSection): Future[QuestionSection] = db.run(
+    (QuestionSections returning QuestionSections.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += questionSection
+  )
+
+  def insertChoices(questionPartChoices: Seq[QuestionPartChoice]): Future[Seq[QuestionPartChoice]] = db.run {
+    (QuestionPartChoices returning QuestionPartChoices.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= questionPartChoices
+  }
+
+  def insertFunctions(questionPartFunctions: Seq[QuestionPartFunction]): Future[Seq[QuestionPartFunction]] = db.run {
+    (QuestionPartFunctions returning QuestionPartFunctions.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= questionPartFunctions
+  }
+
+  // === Support ===
+
 
   // * ====== TABLE CLASSES ====== *
   class QuestionTable(tag: Tag) extends Table[Question](tag, "question") {

@@ -14,8 +14,8 @@ CREATE TABLE question_section
 (
   id SERIAL NOT NULL PRIMARY KEY,
   question_id INT NOT NULL REFERENCES question(id),
-  description_raw VARCHAR NOT NULL,
-  description_html VARCHAR NOT NULL,
+  explanation_raw VARCHAR NOT NULL,
+  explanation_html VARCHAR NOT NULL,
   section_order SMALLINT NOT NULL
 );
 

@@ -17,10 +17,11 @@ import com.artclod.util._
 import controllers.organization.CourseCreate
 import dao.quiz.{QuestionDAO, QuizDAO}
 import models.organization.Course
-import models.quiz.Quiz
+import models.quiz.{QuestionFrame, Quiz}
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, JsSuccess, Json}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Right
 
@@ -41,14 +42,31 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
 
-            val questionJson = QuestionCreate.questionFormat.reads(Json.parse(form))
+            QuestionCreate.questionFormat.reads(Json.parse(form)) match {
+              case JsError(errors) => {
+                Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
+              }
+              case JsSuccess(value, path) => {
+                val questionFrame = QuestionFrame(value, user.id)
+
+                questionDAO.insert(questionFrame).map( qf => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+
+//                Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+              }
+            }
+
+//            jsResultQuestionJson.
+
+//            val questionFrame = QuestionFrame(questionJson, user.id)
 //            val now = JodaUTC.now
 //            quizDAO.insert(Quiz(null, user.id, form, now, now)).flatMap(quiz => // Create the Quiz
 //              quizDAO.attach(course, quiz).map( _ => // Attach it to the Course
 //                Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
 
-            Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+//            Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
           }
+
+
         )
 
 

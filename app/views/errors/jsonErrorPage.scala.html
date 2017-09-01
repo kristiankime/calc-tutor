@@ -1,0 +1,17 @@
+@(errors: Seq[(play.api.libs.json.JsPath, Seq[play.api.data.validation.ValidationError])])
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Error entering a form</title>
+    </head>
+    <body>
+  		<h1>Error(s) occurred when entering a form:</h1>
+        <ul>
+        @for(error <- errors) {
+            <li>@error._1 -> @error._2</li>
+        }
+        </ul>
+    </body>
+</html>
