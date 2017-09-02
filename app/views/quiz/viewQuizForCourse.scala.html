@@ -11,6 +11,18 @@
 @mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
     <h2>Welcome to the page for quiz: @quiz.name </h2>
 
+    <h4>There @are(questions) @questions.size Question@s(questions) in the quiz @tag.icon("icon-help", 'data_ot -> "Click a question to answer it")</h4>
+
+    <table class="pure-table pure-table-striped">
+        <tr>
+            <th>Question</th>
+        </tr>
+        @for(question <- questions){<tr>
+            <td> <a class="pure-button"> @question.title </a> </td>
+        </tr>}
+    </table>
+
+
     @if(access.write){
         @form(controllers.quiz.routes.QuizController.rename(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
             To rename type a new name here <input type="text" name="@QuizRename.name" value="@quiz.name">
