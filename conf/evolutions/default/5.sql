@@ -42,13 +42,21 @@ CREATE TABLE question_part_function
   part_order SMALLINT NOT NULL
 );
 
+CREATE TABLE question_2_quiz
+(
+  question_id INT NOT NULL REFERENCES question(id),
+  quiz_id INT NOT NULL REFERENCES quiz(id),
+  owner_id INT NOT NULL REFERENCES app_user(id),
+  creation_date TIMESTAMP NOT NULL,
+  question_order INT NOT NULL,
+  PRIMARY KEY(question_id, quiz_id)
+);
+
 # --- !Downs
 
-DROP TABLE course_2_quiz CASCADE;
+DROP TABLE question_2_quiz CASCADE;
 DROP TABLE question_part_function CASCADE;
 DROP TABLE question_part_choice CASCADE;
 DROP TABLE question_section CASCADE;
-DROP TABLE question_section CASCADE;
 DROP TABLE question CASCADE;
-DROP TABLE course CASCADE;
 

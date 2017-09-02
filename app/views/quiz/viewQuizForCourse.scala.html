@@ -1,6 +1,7 @@
 @(access: models.Access,
         course: models.organization.Course,
-        quiz: models.quiz.Quiz)(implicit request: Request[AnyContent])
+        quiz: models.quiz.Quiz,
+        questions: Seq[models.quiz.Question])(implicit request: Request[AnyContent])
 
 @import helper._
 @import com.artclod.play._

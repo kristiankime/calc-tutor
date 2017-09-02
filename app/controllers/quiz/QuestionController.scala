@@ -31,46 +31,25 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +^ quizDAO(courseId, quizId)).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, quiz)) =>
-
-//        val jsonOp = request.body.asJson
-//        Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None))) // Redirect to the view
-
         QuestionCreate.form.bindFromRequest.fold(
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
-
             QuestionCreate.questionFormat.reads(Json.parse(form)) match {
-              case JsError(errors) => {
-                Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
-              }
+              case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
               case JsSuccess(value, path) => {
-                val questionFrame = QuestionFrame(value, user.id)
-
-                questionDAO.insert(questionFrame).map( qf => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
-
-//                Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id))
+                questionFrameFuture.flatMap(questionFrame => {
+                  quizDAO.attach(questionFrame.question, quiz, user.id)
+                  Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+                })
               }
             }
-
-//            jsResultQuestionJson.
-
-//            val questionFrame = QuestionFrame(questionJson, user.id)
-//            val now = JodaUTC.now
-//            quizDAO.insert(Quiz(null, user.id, form, now, now)).flatMap(quiz => // Create the Quiz
-//              quizDAO.attach(course, quiz).map( _ => // Attach it to the Course
-//                Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
-
-//            Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
           }
-
-
         )
-
-
-    }
+      }
     }
 
   } } } }

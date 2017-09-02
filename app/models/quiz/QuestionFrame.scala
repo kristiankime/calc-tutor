@@ -11,11 +11,33 @@ import play.twirl.api.Html
 
 case class QuestionFrame(question: Question, sections: Vector[SectionFrame]) {
   def id(questionId: QuestionId) = QuestionFrame(question.copy(id = questionId), sections.map(s => s.questionId(questionId)))
+
+  if(sections.isEmpty) {
+    throw new IllegalArgumentException("There were no sections");
+  }
+
 }
 
 case class SectionFrame(section: QuestionSection, parts: Either[Vector[QuestionPartChoice], Vector[QuestionPartFunction]]) extends HasOrder[SectionFrame] {
 
   override def order = section.order
+
+  parts match {
+    case Left(partChoices) => {
+      if(partChoices.isEmpty) {
+        throw new IllegalArgumentException("There were no partChoices");
+      } else if (!partChoices.map(_.correctChoice == 1).fold(false)((a, b) => a || b)) {
+        throw new IllegalArgumentException("There was no correct choice in " + partChoices)
+      }
+      QuestionFrame.checkInOrder(partChoices, "partChoices")
+    }
+    case Right(functionChoices) => {
+      if(functionChoices.isEmpty) {
+        throw new IllegalArgumentException("There were no functionChoices");
+      }
+      QuestionFrame.checkInOrder(functionChoices, "functionChoices")
+    }
+  }
 
   def id(sectionId: SectionId) = SectionFrame(
       section = section.copy(id = sectionId),
@@ -36,6 +58,13 @@ case class SectionFrame(section: QuestionSection, parts: Either[Vector[QuestionP
 }
 
 object QuestionFrame {
+
+  def checkInOrder(items : Seq[HasOrder[_]], message: String) {
+    val size = items.size
+    if(items.map(_.order.toInt) != (0 until size)) {
+      throw new IllegalArgumentException(message + " was not in order " + items)
+    }
+  }
 
   // ==== JSON to Frame ====
   def  apply(questionJson: QuestionJson, ownerId: UserId, now : DateTime = JodaUTC.now) : QuestionFrame = {
@@ -58,7 +87,12 @@ object QuestionFrame {
       order = index.toShort)
 
     val parts = section.choiceOrFunction match {
-      case "choice" => Left(section.choices.zipWithIndex.map(f => partChoice(f._1, f._2, NumericBoolean(section.correctChoiceIndex == f._1.id))))
+      case "choice" => {
+        if(!section.choices.map( _.id == section.correctChoiceIndex).fold(false)( (a,b) => a || b)) {
+          throw new IllegalArgumentException("section.correctChoiceIndex did not match any section [" + section.correctChoiceIndex + "] " + section.choices.map(_.id))
+        }
+        Left(section.choices.zipWithIndex.map(f => partChoice(f._1, f._2, NumericBoolean(section.correctChoiceIndex == f._1.id))))
+      }
       case "function" => Right(section.functions.zipWithIndex.map(f => partFunction(f._1, f._2)))
       case _ => throw new IllegalArgumentException("section.choiceOrFunction was not recognized [" + section.choiceOrFunction + "]")
     }

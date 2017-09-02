@@ -70,6 +70,14 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
 
   def attach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, None, None)).map { _ => () }
 
+  def attach(question: Question, quiz: Quiz, userId: UserId) = {
+    val lastOrder = db.run( Question2Quizzes.filter(_.quizId === quiz.id).map(_.order).max.result)
+    lastOrder.flatMap( lo => {
+      val nextOrder = (lo.getOrElse(-1) + 1).toShort
+      db.run(Question2Quizzes += Question2Quiz(question.id, quiz.id, userId, JodaUTC.now, nextOrder)).map { _ => () }
+    })
+  }
+
   def grantAccess(user: User, quiz: Quiz, access: Access) = db.run(User2Quizzes += User2Quiz(user.id, quiz.id, access)).map { _ => () }
 
   // ====== Create ======
@@ -130,7 +138,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     def quizId = column[QuizId]("quiz_id")
     def ownerId = column[UserId]("owner_id")
     def creationDate = column[DateTime]("creation_date")
-    def order = column[Int]("section_order")
+    def order = column[Int]("question_order")
 
     def pk = primaryKey("course_2_quiz_pk", (questionId, quizId))
 
