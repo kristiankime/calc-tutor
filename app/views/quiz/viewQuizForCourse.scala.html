@@ -18,7 +18,7 @@
             <th>Question</th>
         </tr>
         @for(question <- questions){<tr>
-            <td> <a class="pure-button"> @question.title </a> </td>
+            <td> @tag.courseQuestionLink(course, quiz, question, None) </td>
         </tr>}
     </table>
 

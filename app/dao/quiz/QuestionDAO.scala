@@ -41,9 +41,43 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   // ====== FIND ======
   def byId(id : QuestionId): Future[Option[Question]] = db.run(Questions.filter(_.id === id).result.headOption)
 
-  def apply(questionId: QuestionId): Future[Either[Result, Question]] = byId(questionId).map { quizOp => quizOp match {
+  def sectionsById(id : QuestionId): Future[Seq[QuestionSection]] = db.run(QuestionSections.filter(_.questionId === id).result)
+
+  def choicePartsId(id : QuestionId): Future[Seq[QuestionPartChoice]] = db.run(QuestionPartChoices.filter(_.questionId === id).result)
+
+  def functionPartsId(id : QuestionId): Future[Seq[QuestionPartFunction]] = db.run(QuestionPartFunctions.filter(_.questionId === id).result)
+
+  def frameById(id : QuestionId): Future[Option[QuestionFrame]] = {
+    val questionFuture = byId(id)
+    val sectionsFuture = sectionsById(id)
+    val choicePartsFuture = choicePartsId(id)
+    val functionPartsFuture = functionPartsId(id)
+
+    questionFuture.flatMap(questionOp => { sectionsFuture.flatMap(sections => { choicePartsFuture.flatMap( choiceParts => { functionPartsFuture.map( functionParts => {
+      val secId2Fp = functionParts.groupBy(p => p.sectionId)
+      val secId2Cp = choiceParts.groupBy(p => p.sectionId)
+
+      val sectionFrames = sections.map(section => SectionFrame(section, secId2Cp.getOrElse(section.id, Seq()), secId2Fp.getOrElse(section.id, Seq())))
+
+      questionOp.map(question => {
+        sectionFrames.nonEmpty match {
+          case false => throw new IllegalArgumentException("There were no sections for id = " + id)
+          case true => QuestionFrame(question, Vector(sectionFrames:_*).sorted)
+        }
+      })
+
+    }) }) }) })
+ }
+
+  // ---
+  def apply(questionId: QuestionId): Future[Either[Result, Question]] = byId(questionId).map { _ match {
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+questionId+"]")))
-    case Some(quiz) => Right(quiz)
+    case Some(question) => Right(question)
+  } }
+
+  def frameByIdEither(questionId : QuestionId): Future[Either[Result, QuestionFrame]] = frameById(questionId).map { _ match {
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+questionId+"]")))
+    case Some(questionFrame) => Right(questionFrame)
   } }
 
   // ====== Create ======

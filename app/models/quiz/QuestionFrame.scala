@@ -118,3 +118,15 @@ object QuestionFrame {
   }
 
 }
+
+object SectionFrame {
+
+  def apply(section: QuestionSection, choices: Seq[QuestionPartChoice], functions: Seq[QuestionPartFunction]): SectionFrame  =
+    (choices.nonEmpty, functions.nonEmpty) match {
+      case (false, false) => throw new IllegalArgumentException("functions and choices were both null")
+      case (true, true) => throw new IllegalArgumentException("both functions and choices had values functions = " + functions + " choices = " + choices)
+      case (true, false) => SectionFrame(section, Left( Vector(choices:_*).sorted ))
+      case (false, true) => SectionFrame(section, Right( Vector(functions:_*).sorted ))
+    }
+
+}

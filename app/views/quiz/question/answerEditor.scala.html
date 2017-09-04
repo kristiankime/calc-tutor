@@ -1,0 +1,53 @@
+@(action: play.api.mvc.Call, questionFrame: models.quiz.QuestionFrame, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
+
+@import helper._
+@import com.artclod.play._
+@import controllers.quiz.AnswerCreate
+
+<section id="answer-editor">
+
+    <h4> Answer the question section@s(questionFrame.sections). When you are done hit the "Answer" Button: </h4>
+
+
+    <h5> @questionFrame.question.title </h5>
+
+    @questionFrame.question.descriptionHtml
+
+    @for(sectionFrame <- questionFrame.sections) {
+    @sectionFrame.section.explanationRaw
+
+        @sectionFrame.parts match {
+        case Left(parts) => { @for(part <- parts) {
+
+            @part.descriptionHtml
+
+        } }
+        case Right(parts) => {@for(part <- parts) {
+
+            @part.descriptionHtml
+            $$ @part.functionMath $$
+
+        } }
+        }
+    }
+
+    @form(action, 'id -> "answerJsonForm", 'class -> "pure-form") {
+        <fieldset>
+            <input type="hidden" name="@AnswerCreate.answerJson" id="answerJson">
+            <input type="button" class="pure-button" value="Answer" onclick="answerJsonFormSubmit()">
+            @views.html.helper.CSRF.formField
+        </fieldset>
+    }
+    <script>
+        answerJsonFormSubmit = function() {
+            $("#answerJson").val(ko.mapping.toJSON(viewModel));
+            $("#answerJsonForm").submit();
+        }
+    </script>
+</section>
+
+<script type="text/javascript">
+//        var viewModel = ko.mapping.fromJS(data);
+//        // then applying bindings
+//        ko.applyBindings(viewModel, document.getElementById("answer-editor"));
+</script>

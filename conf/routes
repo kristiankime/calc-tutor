@@ -3,53 +3,54 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET         /                                            controllers.HomeController.index
-GET         /home                                        controllers.HomeController.home
+GET         /                                                         controllers.HomeController.index
+GET         /home                                                     controllers.HomeController.home
 
 # ----- Organization routes -----
-GET         /orgs                                        controllers.organization.OrganizationController.list()
-GET         /orgs/:o                                     controllers.organization.OrganizationController.view(o: OrganizationId)
+GET         /orgs                                                     controllers.organization.OrganizationController.list()
+GET         /orgs/:o                                                  controllers.organization.OrganizationController.view(o: OrganizationId)
 
 # ----- Courses routes -----
-GET         /orgs/:o/courses                             controllers.organization.CourseController.list(o: OrganizationId)
-GET         /orgs/:o/courses/create                      controllers.organization.CourseController.createForm(o: OrganizationId)
-POST        /orgs/:o/courses                             controllers.organization.CourseController.createSubmit(o: OrganizationId)
-GET         /orgs/:o/courses/:c                          controllers.organization.CourseController.view(o: OrganizationId, c: CourseId)
-POST        /orgs/:o/courses/:c/join                     controllers.organization.CourseController.join(o: OrganizationId, c: CourseId)
+GET         /orgs/:o/courses                                          controllers.organization.CourseController.list(o: OrganizationId)
+GET         /orgs/:o/courses/create                                   controllers.organization.CourseController.createForm(o: OrganizationId)
+POST        /orgs/:o/courses                                          controllers.organization.CourseController.createSubmit(o: OrganizationId)
+GET         /orgs/:o/courses/:c                                       controllers.organization.CourseController.view(o: OrganizationId, c: CourseId)
+POST        /orgs/:o/courses/:c/join                                  controllers.organization.CourseController.join(o: OrganizationId, c: CourseId)
 
 # Course Quizzes
-GET         /orgs/:o/courses/:c/quizzes/create           controllers.quiz.QuizController.createForm(o: OrganizationId, c: CourseId)
-POST        /orgs/:o/courses/:c/quizzes                  controllers.quiz.QuizController.createSubmit(o: OrganizationId, c: CourseId)
-GET         /orgs/:o/courses/:c/quizzes/:z               controllers.quiz.QuizController.view(o: OrganizationId, c: CourseId, z: QuizId, a: Option[AnswerId])
-POST        /orgs/:o/courses/:c/quizzes/:z/rename        controllers.quiz.QuizController.rename(o: OrganizationId, c: CourseId, z: QuizId)
+GET         /orgs/:o/courses/:c/quizzes/create                        controllers.quiz.QuizController.createForm(o: OrganizationId, c: CourseId)
+POST        /orgs/:o/courses/:c/quizzes                               controllers.quiz.QuizController.createSubmit(o: OrganizationId, c: CourseId)
+GET         /orgs/:o/courses/:c/quizzes/:z                            controllers.quiz.QuizController.view(o: OrganizationId, c: CourseId, z: QuizId, a: Option[AnswerId])
+POST        /orgs/:o/courses/:c/quizzes/:z/rename                     controllers.quiz.QuizController.rename(o: OrganizationId, c: CourseId, z: QuizId)
 
 # Course Quizzes Questions
-#GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q   controllers.quiz.QuestionController.view(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
-POST         /orgs/:o/courses/:c/quizzes/:z/questions/create   controllers.quiz.QuestionController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId)
+POST        /orgs/:o/courses/:c/quizzes/:z/questions/create           controllers.quiz.QuestionController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId)
+GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q               controllers.quiz.QuestionController.view(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId, a: Option[AnswerId])
+POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/create        controllers.quiz.AnswerController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 
 
 # ===== Start auth routes ======
-GET         /auth/signIn                                 controllers.auth.AuthController.signIn
-GET         /auth/signUp                                 controllers.auth.AuthController.signUp
-GET         /auth/form                                   controllers.auth.AuthController.formClient
-GET         /auth/google                                 controllers.auth.AuthController.googleClient
+GET         /auth/signIn                                              controllers.auth.AuthController.signIn
+GET         /auth/signUp                                              controllers.auth.AuthController.signUp
+GET         /auth/form                                                controllers.auth.AuthController.formClient
+GET         /auth/google                                              controllers.auth.AuthController.googleClient
 #GET     /auth/viewdb                controllers.auth.AuthController.viewLoginDb
-POST        /auth/createLogin                            controllers.auth.AuthController.createLogin
+POST        /auth/createLogin                                         controllers.auth.AuthController.createLogin
 # Consent Form
-GET         /consent                                     controllers.auth.ConsentController.consent(goTo: Option[String], errorInfo: Option[String])
-POST        /consentPost                                 controllers.auth.ConsentController.consentSubmit(goTo: Option[String])
-GET         /noconsent                                   controllers.auth.ConsentController.noConsent
-POST        /revokeconsent                               controllers.auth.ConsentController.revokeConsent
+GET         /consent                                                  controllers.auth.ConsentController.consent(goTo: Option[String], errorInfo: Option[String])
+POST        /consentPost                                              controllers.auth.ConsentController.consentSubmit(goTo: Option[String])
+GET         /noconsent                                                controllers.auth.ConsentController.noConsent
+POST        /revokeconsent                                            controllers.auth.ConsentController.revokeConsent
 # ===== End auth routes ======
 
 # ===== Start play-pac4j routes ======
-GET         /callback                                    @org.pac4j.play.CallbackController.callback()
-POST        /callback                                    @org.pac4j.play.CallbackController.callback()
-GET         /casProxyCallback                            @org.pac4j.play.CallbackController.callback()
-POST        /casProxyCallback                            @org.pac4j.play.CallbackController.callback()
-GET         /logout                                      @org.pac4j.play.LogoutController.logout()
-GET         /auth/loginForm                              controllers.auth.AuthController.loginForm
+GET         /callback                                                 @org.pac4j.play.CallbackController.callback()
+POST        /callback                                                 @org.pac4j.play.CallbackController.callback()
+GET         /casProxyCallback                                         @org.pac4j.play.CallbackController.callback()
+POST        /casProxyCallback                                         @org.pac4j.play.CallbackController.callback()
+GET         /logout                                                   @org.pac4j.play.LogoutController.logout()
+GET         /auth/loginForm                                           controllers.auth.AuthController.loginForm
 # ===== End play-pac4j routes ======
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                                controllers.Assets.versioned(path="/public", file: Asset)
+GET         /assets/*file                                             controllers.Assets.versioned(path="/public", file: Asset)
