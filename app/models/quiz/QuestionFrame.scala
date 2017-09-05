@@ -12,6 +12,7 @@ import play.twirl.api.Html
 case class QuestionFrame(question: Question, sections: Vector[SectionFrame]) {
   def id(questionId: QuestionId) = QuestionFrame(question.copy(id = questionId), sections.map(s => s.questionId(questionId)))
 
+  // ==== throw errors for bad formulation
   if(sections.isEmpty) {
     throw new IllegalArgumentException("There were no sections");
   }
@@ -22,6 +23,38 @@ case class SectionFrame(section: QuestionSection, parts: Either[Vector[QuestionP
 
   override def order = section.order
 
+  def correctIndex = parts match {
+    case Left(choices) => Some(choices.indexWhere(_.correctChoice == 1))
+    case Right(functions) => None
+  }
+
+  def choiceSize = parts match {
+    case Left(choices) => Some(choices.size)
+    case Right(functions) => None
+  }
+
+  def choiceOrFunction = parts match {
+    case Left(choices) => "choice"
+    case Right(functions) => "function"
+  }
+
+  def id(sectionId: SectionId) = SectionFrame(
+    section = section.copy(id = sectionId),
+    parts = parts match {
+      case Left(ps) => Left(ps.map(p => p.copy(sectionId=sectionId)))
+      case Right(ps) => Right(ps.map(p => p.copy(sectionId=sectionId)))
+    }
+  )
+
+  def questionId(questionId: QuestionId) = SectionFrame(
+    section = section.copy(questionId = questionId),
+    parts = parts match {
+      case Left(ps) => Left(ps.map(p => p.copy(questionId=questionId)))
+      case Right(ps) => Right(ps.map(p => p.copy(questionId=questionId)))
+    }
+  )
+
+  // ==== throw errors for bad formulation
   parts match {
     case Left(partChoices) => {
       if(partChoices.isEmpty) {
@@ -39,21 +72,7 @@ case class SectionFrame(section: QuestionSection, parts: Either[Vector[QuestionP
     }
   }
 
-  def id(sectionId: SectionId) = SectionFrame(
-      section = section.copy(id = sectionId),
-      parts = parts match {
-        case Left(ps) => Left(ps.map(p => p.copy(sectionId=sectionId)))
-        case Right(ps) => Right(ps.map(p => p.copy(sectionId=sectionId)))
-      }
-    )
 
-  def questionId(questionId: QuestionId) = SectionFrame(
-    section = section.copy(questionId = questionId),
-    parts = parts match {
-      case Left(ps) => Left(ps.map(p => p.copy(questionId=questionId)))
-      case Right(ps) => Right(ps.map(p => p.copy(questionId=questionId)))
-    }
-  )
 
 }
 

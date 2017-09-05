@@ -17,13 +17,13 @@ import com.artclod.util._
 import controllers.organization.CourseCreate
 import dao.quiz.{QuestionDAO, QuizDAO}
 import models.organization.Course
-import models.quiz.{QuestionFrame, Quiz}
+import models.quiz.{QuestionFrame, QuestionPartFunction, Quiz, SectionFrame}
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsNumber, JsSuccess, Json}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Right
+import scala.util.{Random, Right}
 
 
 @Singleton
@@ -68,8 +68,50 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
 
 }
 
+
+
+case class AnswerJson(sections: Vector[AnswerSectionJson])
+
+case class AnswerSectionJson(choiceIndex: String /* This should be the toString of an Int */, functions: Vector[AnswerPartFunctionJson])
+
+case class AnswerPartFunctionJson(functionRaw: String, functionMath: String)
+
+
 object AnswerCreate {
   val answerJson = "answer-json"
+
+  // all
+  val id = "id"
+
+  // Question
+  val sections = "sections"
+
+  // Section
+  val choiceOrFunction = "choiceOrFunction"
+  val choiceIndex = "choiceIndex"
+  val choices = "choices"
+  val functions = "functions"
+
+  // Parts
+  val functionRaw = "functionRaw"
+  val functionMath = "functionMath"
+
+  implicit val answerPartFunctionFormat = Json.format[AnswerPartFunctionJson]
+  implicit val answerSectionFormat = Json.format[AnswerSectionJson]
+  implicit val answerFormat = Json.format[AnswerJson]
 }
 
+object AnswerJson {
+  val rand = new Random(System.currentTimeMillis())
 
+  def blank(questionFrame: QuestionFrame): AnswerJson = AnswerJson(questionFrame.sections.map( sectionFrame => answerSection(sectionFrame)))
+
+  def answerSection(sectionFrame: SectionFrame): AnswerSectionJson =
+    AnswerSectionJson(choiceIndex = sectionFrame.choiceSize.map(v => rand.nextInt(v)).getOrElse(-1).toString, functions=answerParts(sectionFrame.parts))
+
+
+  def answerParts(functionParts: Either[_, Vector[QuestionPartFunction]]): Vector[AnswerPartFunctionJson] = functionParts match {
+    case Left(_) => Vector()
+    case Right(fps) => fps.map(p => AnswerPartFunctionJson("", ""))
+  }
+}

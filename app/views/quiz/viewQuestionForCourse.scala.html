@@ -11,5 +11,8 @@
 @mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
     <h2>Welcome to a question page for quiz: @quiz.name </h2>
 
-    @views.html.quiz.question.answerEditor(controllers.quiz.routes.AnswerController.createCourseSubmit(course.organizationId, course.id, quiz.id, questionFrame.question.id), questionFrame)
+    @views.html.quiz.question.answerEditor(
+        controllers.quiz.routes.AnswerController.createCourseSubmit(course.organizationId, course.id, quiz.id, questionFrame.question.id),
+        questionFrame,
+        controllers.quiz.AnswerJson.blank(questionFrame))
 }

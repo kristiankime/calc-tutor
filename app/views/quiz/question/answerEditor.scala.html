@@ -1,8 +1,9 @@
-@(action: play.api.mvc.Call, questionFrame: models.quiz.QuestionFrame, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
+@(action: play.api.mvc.Call, questionFrame: models.quiz.QuestionFrame, answerJson : controllers.quiz.AnswerJson, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
 
 @import helper._
 @import com.artclod.play._
 @import controllers.quiz.AnswerCreate
+@import controllers.quiz.AnswerCreate.answerFormat
 
 <section id="answer-editor">
 
@@ -11,25 +12,33 @@
 
     <h5> @questionFrame.question.title </h5>
 
+    <section id="answer-editor">
     @questionFrame.question.descriptionHtml
 
-    @for(sectionFrame <- questionFrame.sections) {
-    @sectionFrame.section.explanationRaw
+    @for(sectionFrame <- questionFrame.sections.zipWithIndex) {
+    <section>
+    @sectionFrame._1.section.explanationRaw
 
-        @sectionFrame.parts match {
-        case Left(parts) => { @for(part <- parts) {
-
-            @part.descriptionHtml
-
+        @sectionFrame._1.parts match {
+        case Left(parts) => { @for(part <- parts.zipWithIndex) {
+        <div>
+            <input type="radio" name="@{"s"+sectionFrame._2}" id="@{"s"+sectionFrame._2+"c"+part._2}" value="@part._2" data-bind="checked: $root.@{AnswerCreate.sections}()[@{sectionFrame._2}].@{AnswerCreate.choiceIndex}"> @part._1.descriptionHtml </input>
+        </div>
         } }
-        case Right(parts) => {@for(part <- parts) {
-
-            @part.descriptionHtml
-            $$ @part.functionMath $$
-
+        case Right(parts) => {@for(part <- parts.zipWithIndex) {
+        <div>
+            @part._1.descriptionHtml
+            <input data-bind="value: $root.@{AnswerCreate.sections}()[@{sectionFrame._2}].@{AnswerCreate.functions}()[@part._2].@{AnswerCreate.functionRaw}" />
+            <span data-bind="attr: { 'id' : $root.@{AnswerCreate.sections}()[@{sectionFrame._2}].@{AnswerCreate.functions}()[@part._2].id }"> not updated yet</span>
+            @*<span id="@{"s"+sectionFrame._2+"f"+part._2}"> </span>*@
+            @* @math.mathmlDisplay(part.functionRaw) *@
+        </div>
         } }
+
         }
     }
+    </section>
+
 
     @form(action, 'id -> "answerJsonForm", 'class -> "pure-form") {
         <fieldset>
@@ -38,6 +47,8 @@
             @views.html.helper.CSRF.formField
         </fieldset>
     }
+    </section>
+
     <script>
         answerJsonFormSubmit = function() {
             $("#answerJson").val(ko.mapping.toJSON(viewModel));
@@ -47,7 +58,30 @@
 </section>
 
 <script type="text/javascript">
-//        var viewModel = ko.mapping.fromJS(data);
-//        // then applying bindings
-//        ko.applyBindings(viewModel, document.getElementById("answer-editor"));
+    // Get the raw data into a var
+    var data = @Html(answerFormat.writes(answerJson).toString)
+
+    // Turn it into a view model
+    var viewModel = ko.mapping.fromJS(data);
+
+    // Enhance with the MathJAX computations/displays
+    for(var si=0; si<viewModel.@{AnswerCreate.sections}().length; si++) {
+        var sectionModel = viewModel.@{AnswerCreate.sections}()[si];
+
+        for(var pi=0; pi<sectionModel.@{AnswerCreate.functions}().length; pi++) {
+            var partModel = sectionModel.@{AnswerCreate.functions}()[pi];
+
+            // Create an id for this part
+            partModel.id = "s"+si+"f"+pi;
+            // Set up the mathjax updates
+            var func = partModel.@{AnswerCreate.functionRaw};
+            func.subscribe(function (newValue) {
+                var mathResult = @{mathJsParser}(newValue);
+                ARTC.mathJax.updateById(partModel.id, ARTC.mathJax.tex(mathResult.node.toTex()));
+                partModel.@{AnswerCreate.functionMath}(mathResult.content);
+            });
+        }
+    }
+    // then applying bindings
+    ko.applyBindings(viewModel, document.getElementById("answer-editor"));
 </script>
