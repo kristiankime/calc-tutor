@@ -33,7 +33,7 @@ class QuestionFrameSpec extends PlaySpec {
       // Scala
       val questionPartChoice = QuestionPartChoice(null, null, null, "summaryRaw", Html("summaryHtml"), 1, 0)
       val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
-      val sectionFrame = SectionFrame(questionSection, Left(Vector(questionPartChoice)))
+      val sectionFrame = QuestionSectionFrame(questionSection, Left(Vector(questionPartChoice)))
       val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(sectionFrame))
 
       // Test
@@ -50,7 +50,7 @@ class QuestionFrameSpec extends PlaySpec {
       // Scala
       val questionPartFunction = QuestionPartFunction(null, null, null, "summaryRaw", Html("summaryHtml"), "1", MathML("<cn>1</cn>").get, 0)
       val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
-      val sectionFrame = SectionFrame(questionSection, Right(Vector(questionPartFunction)))
+      val sectionFrame = QuestionSectionFrame(questionSection, Right(Vector(questionPartFunction)))
       val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(sectionFrame))
 
       // Test

@@ -15,9 +15,10 @@ import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
 import controllers.organization.CourseCreate
+import controllers.quiz.QuestionCreate.questionJson
 import dao.quiz.{QuestionDAO, QuizDAO}
 import models.organization.Course
-import models.quiz.{QuestionFrame, QuestionPartFunction, Quiz, SectionFrame}
+import models.quiz.{QuestionFrame, QuestionPartFunction, Quiz, QuestionSectionFrame}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{JsError, JsNumber, JsSuccess, Json}
@@ -35,21 +36,24 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, quiz, question)) =>
 
-//        AnswerCreate.form.bindFromRequest.fold(
-//          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
-//          form => {
-//            QuestionCreate.questionFormat.reads(Json.parse(form)) match {
-//              case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
-//              case JsSuccess(value, path) => {
-//                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id))
-//                questionFrameFuture.flatMap(questionFrame => {
-//                  quizDAO.attach(questionFrame.question, quiz, user.id)
-//                  Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
-//                })
-//              }
-//            }
-//          }
-//        )
+        AnswerCreate.form.bindFromRequest.fold(
+          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+          form => {
+            AnswerCreate.answerFormat.reads(Json.parse(form)) match {
+              case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
+              case JsSuccess(value, path) => {
+
+                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id))
+                questionFrameFuture.flatMap(questionFrame => {
+                  quizDAO.attach(questionFrame.question, quiz, user.id)
+                  Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+                })
+
+              }
+            }
+          }
+        )
+
         Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
       }
     }
@@ -80,6 +84,8 @@ case class AnswerPartFunctionJson(functionRaw: String, functionMath: String)
 object AnswerCreate {
   val answerJson = "answer-json"
 
+val form : Form[String] = Form(questionJson -> nonEmptyText)
+
   // all
   val id = "id"
 
@@ -106,7 +112,7 @@ object AnswerJson {
 
   def blank(questionFrame: QuestionFrame): AnswerJson = AnswerJson(questionFrame.sections.map( sectionFrame => answerSection(sectionFrame)))
 
-  def answerSection(sectionFrame: SectionFrame): AnswerSectionJson =
+  def answerSection(sectionFrame: QuestionSectionFrame): AnswerSectionJson =
     AnswerSectionJson(choiceIndex = sectionFrame.choiceSize.map(v => rand.nextInt(v)).getOrElse(-1).toString, functions=answerParts(sectionFrame.parts))
 
 

@@ -57,7 +57,7 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
       val secId2Fp = functionParts.groupBy(p => p.sectionId)
       val secId2Cp = choiceParts.groupBy(p => p.sectionId)
 
-      val sectionFrames = sections.map(section => SectionFrame(section, secId2Cp.getOrElse(section.id, Seq()), secId2Fp.getOrElse(section.id, Seq())))
+      val sectionFrames = sections.map(section => QuestionSectionFrame(section, secId2Cp.getOrElse(section.id, Seq()), secId2Fp.getOrElse(section.id, Seq())))
 
       questionOp.map(question => {
         sectionFrames.nonEmpty match {
@@ -84,20 +84,20 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   def insert(questionFrame: QuestionFrame) : Future[QuestionFrame] = {
     insert(questionFrame.question).flatMap{
       question => {
-        val sectionsFutures : Seq[Future[SectionFrame]] = questionFrame.id(question.id).sections.map(section => insert(section))
+        val sectionsFutures : Seq[Future[QuestionSectionFrame]] = questionFrame.id(question.id).sections.map(section => insert(section))
 //        val futureOfSections : Future[Vector[SectionFrame]] = sectionsFutures.foldLeft(Future.successful(Vector[SectionFrame]()))((cur, add) => cur.flatMap(c => add.map(a => c :+ a)) ).map(_.sorted)
-        val futureOfSections : Future[Vector[SectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
+        val futureOfSections : Future[Vector[QuestionSectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
         futureOfSections.map(sections => QuestionFrame(question, sections))
       }
     }
   }
 
-  def insert(sectionFrame: SectionFrame) : Future[SectionFrame] = {
+  def insert(sectionFrame: QuestionSectionFrame) : Future[QuestionSectionFrame] = {
     insert(sectionFrame.section).flatMap(section => {
       (sectionFrame.id(section.id).parts match {
         case Left(ps) => insertChoices(ps).map(p => Left(Vector(p:_*).sorted))
         case Right(ps) => insertFunctions(ps).map(p => Right(Vector(p:_*).sorted))
-      }).map(parts => SectionFrame(section = section, parts = parts) )
+      }).map(parts => QuestionSectionFrame(section = section, parts = parts) )
     })
   }
 

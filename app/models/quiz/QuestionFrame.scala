@@ -9,7 +9,7 @@ import models.{PartId, QuestionId, SectionId, UserId}
 import org.joda.time.DateTime
 import play.twirl.api.Html
 
-case class QuestionFrame(question: Question, sections: Vector[SectionFrame]) {
+case class QuestionFrame(question: Question, sections: Vector[QuestionSectionFrame]) {
   def id(questionId: QuestionId) = QuestionFrame(question.copy(id = questionId), sections.map(s => s.questionId(questionId)))
 
   // ==== throw errors for bad formulation
@@ -19,7 +19,7 @@ case class QuestionFrame(question: Question, sections: Vector[SectionFrame]) {
 
 }
 
-case class SectionFrame(section: QuestionSection, parts: Either[Vector[QuestionPartChoice], Vector[QuestionPartFunction]]) extends HasOrder[SectionFrame] {
+case class QuestionSectionFrame(section: QuestionSection, parts: Either[Vector[QuestionPartChoice], Vector[QuestionPartFunction]]) extends HasOrder[QuestionSectionFrame] {
 
   override def order = section.order
 
@@ -38,7 +38,7 @@ case class SectionFrame(section: QuestionSection, parts: Either[Vector[QuestionP
     case Right(functions) => "function"
   }
 
-  def id(sectionId: SectionId) = SectionFrame(
+  def id(sectionId: SectionId) = QuestionSectionFrame(
     section = section.copy(id = sectionId),
     parts = parts match {
       case Left(ps) => Left(ps.map(p => p.copy(sectionId=sectionId)))
@@ -46,7 +46,7 @@ case class SectionFrame(section: QuestionSection, parts: Either[Vector[QuestionP
     }
   )
 
-  def questionId(questionId: QuestionId) = SectionFrame(
+  def questionId(questionId: QuestionId) = QuestionSectionFrame(
     section = section.copy(questionId = questionId),
     parts = parts match {
       case Left(ps) => Left(ps.map(p => p.copy(questionId=questionId)))
@@ -72,8 +72,6 @@ case class SectionFrame(section: QuestionSection, parts: Either[Vector[QuestionP
     }
   }
 
-
-
 }
 
 object QuestionFrame {
@@ -94,12 +92,12 @@ object QuestionFrame {
       descriptionHtml = Html(questionJson.descriptionHtml),
       creationDate = now)
 
-    val sections : Vector[SectionFrame] = questionJson.sections.zipWithIndex.map(s => sectionFrame(s._1, s._2))
+    val sections : Vector[QuestionSectionFrame] = questionJson.sections.zipWithIndex.map(s => sectionFrame(s._1, s._2))
 
    QuestionFrame(question=question, sections=sections)
   }
 
-  private def sectionFrame(section: QuestionSectionJson, index: Int) : SectionFrame = {
+  private def sectionFrame(section: QuestionSectionJson, index: Int) : QuestionSectionFrame = {
     val questionSection = QuestionSection(id = null, questionId = null,
       explanationRaw = section.explanationRaw,
       explanationHtml = Html(section.explanationHtml),
@@ -116,7 +114,7 @@ object QuestionFrame {
       case _ => throw new IllegalArgumentException("section.choiceOrFunction was not recognized [" + section.choiceOrFunction + "]")
     }
 
-    SectionFrame(questionSection, parts)
+    QuestionSectionFrame(questionSection, parts)
   }
 
   private def partChoice(part: QuestionPartChoiceJson, index: Int, correct: Short) : QuestionPartChoice = {
@@ -138,14 +136,14 @@ object QuestionFrame {
 
 }
 
-object SectionFrame {
+object QuestionSectionFrame {
 
-  def apply(section: QuestionSection, choices: Seq[QuestionPartChoice], functions: Seq[QuestionPartFunction]): SectionFrame  =
+  def apply(section: QuestionSection, choices: Seq[QuestionPartChoice], functions: Seq[QuestionPartFunction]): QuestionSectionFrame  =
     (choices.nonEmpty, functions.nonEmpty) match {
       case (false, false) => throw new IllegalArgumentException("functions and choices were both null")
       case (true, true) => throw new IllegalArgumentException("both functions and choices had values functions = " + functions + " choices = " + choices)
-      case (true, false) => SectionFrame(section, Left( Vector(choices:_*).sorted ))
-      case (false, true) => SectionFrame(section, Right( Vector(functions:_*).sorted ))
+      case (true, false) => QuestionSectionFrame(section, Left( Vector(choices:_*).sorted ))
+      case (false, true) => QuestionSectionFrame(section, Right( Vector(functions:_*).sorted ))
     }
 
 }
