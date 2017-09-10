@@ -75,16 +75,16 @@ trait ColumnTypeMappings extends HasDatabaseConfigProvider[JdbcProfile] {
   // ==========================
   // SectionId
   // ==========================
-  implicit def long2SectionId = MappedColumnType.base[SectionId, Long](
+  implicit def long2SectionId = MappedColumnType.base[QuestionSectionId, Long](
     id => id.v,
-    long => SectionId(long))
+    long => QuestionSectionId(long))
 
   // ==========================
   // PartId
   // ==========================
-  implicit def long2PartId = MappedColumnType.base[PartId, Long](
+  implicit def long2PartId = MappedColumnType.base[QuestionPartId, Long](
     id => id.v,
-    long => PartId(long))
+    long => QuestionPartId(long))
 
   // ==========================
   // AnswerId

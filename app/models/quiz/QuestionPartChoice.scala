@@ -2,9 +2,9 @@ package models.quiz
 
 import com.artclod.slick.NumericBoolean
 import models.support.HasOrder
-import models.{PartId, QuestionId, SectionId}
+import models.{QuestionPartId, QuestionId, QuestionSectionId}
 import play.twirl.api.Html
 
-case class QuestionPartChoice(id: PartId, sectionId: SectionId, questionId: QuestionId, descriptionRaw: String, descriptionHtml: Html, correctChoice: Short, order: Short) extends HasOrder[QuestionPartChoice] {
+case class QuestionPartChoice(id: QuestionPartId, sectionId: QuestionSectionId, questionId: QuestionId, descriptionRaw: String, descriptionHtml: Html, correctChoice: Short, order: Short) extends HasOrder[QuestionPartChoice] {
   def correct = NumericBoolean(correctChoice)
 }

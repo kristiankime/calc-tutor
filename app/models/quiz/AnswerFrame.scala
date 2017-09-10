@@ -9,10 +9,47 @@ import org.joda.time.DateTime
 
 case class AnswerFrame(answer: Answer, sections: Vector[AnswerSectionFrame]) {
   if(sections.isEmpty) {throw new IllegalArgumentException("Answer sections was empty")}
+
+  def id(answerId: AnswerId) = AnswerFrame(
+    answer = answer.copy(id = answerId),
+    sections = sections.map(s => s.answerId(answerId))
+  )
+
+//  def questionId(questionId: QuestionId) = AnswerFrame(
+//    answer = answer.copy(questionId = questionId),
+//    sections = sections.map(s => s.questionId(questionId))
+//  )
+
 }
 
 case class AnswerSectionFrame(answerSection: AnswerSection, parts: Vector[AnswerPart]) extends HasOrder[AnswerSectionFrame] {
   override def order = answerSection.order
+
+  (answerSection.choice.nonEmpty, parts.nonEmpty ) match {
+    case (true, true) => {throw new IllegalArgumentException("Answer was had both choice and parts")}
+    case (false, false) => {throw new IllegalArgumentException("Answer was had neither choice not parts")}
+  }
+
+  def id(sectionId: AnswerSectionId) = AnswerSectionFrame(
+    answerSection = answerSection.copy(id = sectionId),
+    parts = parts.map(p => p.copy(answerSectionId=sectionId))
+  )
+
+  def answerId(answerId: AnswerId) = AnswerSectionFrame(
+    answerSection = answerSection.copy(answerId = answerId),
+    parts = parts.map(p => p.copy(answerId=answerId))
+  )
+
+//  def questionSectionId(sectionId: QuestionSectionId) = AnswerSectionFrame(
+//    answerSection = answerSection.copy(sectionId = sectionId),
+//    parts = parts.map(p => p.copy(sectionId=sectionId))
+//  )
+//
+//  def questionId(questionId: QuestionId) = AnswerSectionFrame(
+//    answerSection = answerSection.copy(questionId = questionId),
+//    parts = parts.map(p => p.copy(questionId=questionId))
+//  )
+
 }
 
 object AnswerFrame {
@@ -31,7 +68,7 @@ object AnswerFrame {
       case Left(choices) => {
         val choiceIndex = answerSectionJson.choiceIndex.toInt // TODO can throw
         val correctIndex = choices.indexWhere(c => c.correct)
-        val answerSection = AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, correctNum=NumericBoolean(choiceIndex == correctIndex), order=index)
+        val answerSection = AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, choice=Some(choiceIndex.toShort), correctNum=NumericBoolean(choiceIndex == correctIndex), order=index)
         AnswerSectionFrame(answerSection, Vector())
       }
       case Right(functions) => {
@@ -40,7 +77,7 @@ object AnswerFrame {
         }
         val parts = answerSectionJson.functions.zip(functions).zipWithIndex.map(fs => answerPart(fs._1._1, fs._1._2, fs._2.toShort))
         val correct = parts.map(p => p.correct).reduce(_ && _)
-        val answerSection =  AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, correctNum=NumericBoolean(correct), order=index)
+        val answerSection =  AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, choice=None, correctNum=NumericBoolean(correct), order=index)
         AnswerSectionFrame(answerSection, parts)
       }
     }

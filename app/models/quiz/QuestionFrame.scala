@@ -5,7 +5,7 @@ import com.artclod.mathml.scalar.MathMLElem
 import com.artclod.slick.{JodaUTC, NumericBoolean}
 import controllers.quiz.{QuestionJson, QuestionPartChoiceJson, QuestionPartFunctionJson, QuestionSectionJson}
 import models.support.HasOrder
-import models.{PartId, QuestionId, SectionId, UserId}
+import models.{QuestionPartId, QuestionId, QuestionSectionId, UserId}
 import org.joda.time.DateTime
 import play.twirl.api.Html
 
@@ -38,7 +38,7 @@ case class QuestionSectionFrame(section: QuestionSection, parts: Either[Vector[Q
     case Right(functions) => "function"
   }
 
-  def id(sectionId: SectionId) = QuestionSectionFrame(
+  def id(sectionId: QuestionSectionId) = QuestionSectionFrame(
     section = section.copy(id = sectionId),
     parts = parts match {
       case Left(ps) => Left(ps.map(p => p.copy(sectionId=sectionId)))

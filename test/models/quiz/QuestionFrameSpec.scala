@@ -3,7 +3,7 @@ package models.quiz
 import com.artclod.mathml.MathML
 import com.artclod.slick.JodaUTC
 import controllers.quiz.{QuestionJson, QuestionPartChoiceJson, QuestionPartFunctionJson, QuestionSectionJson}
-import models.{PartId, QuestionId, SectionId, UserId}
+import models.{QuestionPartId, QuestionId, QuestionSectionId, UserId}
 import org.scalatestplus.play._
 import play.twirl.api.Html
 

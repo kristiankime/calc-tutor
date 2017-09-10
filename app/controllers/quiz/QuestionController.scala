@@ -42,8 +42,8 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
               case JsSuccess(value, path) => {
                 val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id))
                 questionFrameFuture.flatMap(questionFrame => {
-                  quizDAO.attach(questionFrame.question, quiz, user.id)
-                  Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+                  quizDAO.attach(questionFrame.question, quiz, user.id).map(_ =>
+                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
                 })
               }
             }

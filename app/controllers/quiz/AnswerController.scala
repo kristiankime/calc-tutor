@@ -16,9 +16,9 @@ import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
 import controllers.organization.CourseCreate
 import controllers.quiz.QuestionCreate.questionJson
-import dao.quiz.{QuestionDAO, QuizDAO}
+import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO}
 import models.organization.Course
-import models.quiz.{QuestionFrame, QuestionPartFunction, Quiz, QuestionSectionFrame}
+import models.quiz._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{JsError, JsNumber, JsSuccess, Json}
@@ -28,7 +28,7 @@ import scala.util.{Random, Right}
 
 
 @Singleton
-class AnswerController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class AnswerController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
   def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
@@ -42,19 +42,33 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
             AnswerCreate.answerFormat.reads(Json.parse(form)) match {
               case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
               case JsSuccess(value, path) => {
+                val answerFrame = AnswerFrame(question, value, user.id)
+                answerDAO.insert(answerFrame).map(answerFrame => {
 
-                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id))
-                questionFrameFuture.flatMap(questionFrame => {
-                  quizDAO.attach(questionFrame.question, quiz, user.id)
-                  Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+                  if(answerFrame.answer.allCorrect) { // TODO go to failed answer page on fail
+                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None))
+                  } else {
+                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None))
+                  }
+
                 })
+
+
+
+//                val answerFrameFuture = answerDAO.insert(answerFrame)
+//
+//                answerFrameFuture.flatMap(answerFrame => {
+//                  quizDAO.attach(questionFrame.question, quiz, user.id)
+//                  Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+//                })
+//                Future.successful(null)
 
               }
             }
           }
         )
 
-        Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+//        Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
       }
     }
 

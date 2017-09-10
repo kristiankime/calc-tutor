@@ -82,8 +82,7 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   // ====== Create ======
   def insert(questionFrame: QuestionFrame) : Future[QuestionFrame] = {
-    insert(questionFrame.question).flatMap{
-      question => {
+    insert(questionFrame.question).flatMap{ question => {
         val sectionsFutures : Seq[Future[QuestionSectionFrame]] = questionFrame.id(question.id).sections.map(section => insert(section))
 //        val futureOfSections : Future[Vector[SectionFrame]] = sectionsFutures.foldLeft(Future.successful(Vector[SectionFrame]()))((cur, add) => cur.flatMap(c => add.map(a => c :+ a)) ).map(_.sorted)
         val futureOfSections : Future[Vector[QuestionSectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
@@ -100,7 +99,6 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
       }).map(parts => QuestionSectionFrame(section = section, parts = parts) )
     })
   }
-
 
   def insert(question: Question): Future[Question] = db.run(
     (Questions returning Questions.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += question
@@ -136,7 +134,7 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   }
 
   class QuestionSectionTable(tag: Tag) extends Table[QuestionSection](tag, "question_section") {
-    def id = column[SectionId]("id", O.PrimaryKey, O.AutoInc)
+    def id = column[QuestionSectionId]("id", O.PrimaryKey, O.AutoInc)
     def questionId = column[QuestionId]("question_id")
     def explanationRaw = column[String]("explanation_raw")
     def explanationHtml = column[Html]("explanation_html")
@@ -148,8 +146,8 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   }
 
   class QuestionPartChoiceTable(tag: Tag) extends Table[QuestionPartChoice](tag, "question_part_choice") {
-    def id = column[PartId]("id", O.PrimaryKey, O.AutoInc)
-    def sectionId = column[SectionId]("section_id")
+    def id = column[QuestionPartId]("id", O.PrimaryKey, O.AutoInc)
+    def sectionId = column[QuestionSectionId]("section_id")
     def questionId = column[QuestionId]("question_id")
     def explanationRaw = column[String]("explanation_raw")
     def explanationHtml = column[Html]("explanation_html")
@@ -163,8 +161,8 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   }
 
   class QuestionPartFunctionTable(tag: Tag) extends Table[QuestionPartFunction](tag, "question_part_function") {
-    def id = column[PartId]("id", O.PrimaryKey, O.AutoInc)
-    def sectionId = column[SectionId]("section_id")
+    def id = column[QuestionPartId]("id", O.PrimaryKey, O.AutoInc)
+    def sectionId = column[QuestionSectionId]("section_id")
     def questionId = column[QuestionId]("question_id")
     def explanationRaw = column[String]("explanation_raw")
     def explanationHtml = column[Html]("explanation_html")
