@@ -13,21 +13,17 @@ class QuestionFrameSpec extends PlaySpec {
 
 	"convert to model" should {
 
-		"convert successfully with no sections" in {
-      // Json
-      val questionJson = QuestionJson("title", "questionRaw", "questionHtml", Vector())
-
+		"throw with no sections" in {
       // Scala
-      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector())
-
-      // Test
-      QuestionFrame(questionJson, UserId(0), JodaUTC.zero) mustBe(questionFrame)
+      a[java.lang.IllegalArgumentException] must be thrownBy {
+        QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector())
+      }
 		}
 
     "convert successfully with one choice section" in {
       // Json
-      val questionPartChoiceJson = QuestionPartChoiceJson("sec0c0", "summaryRaw", "summaryHtml")
-      val questionSectionJson = QuestionSectionJson("sec0", "explanationRaw", "explanationHtml", "choice", "sec0c0", Vector(questionPartChoiceJson), Vector())
+      val questionPartChoiceJson = QuestionPartChoiceJson("summaryRaw", "summaryHtml")
+      val questionSectionJson = QuestionSectionJson("explanationRaw", "explanationHtml", "choice", 0, Vector(questionPartChoiceJson), Vector())
       val questionJson = QuestionJson("title", "questionRaw", "questionHtml", Vector(questionSectionJson))
 
       // Scala
@@ -43,8 +39,8 @@ class QuestionFrameSpec extends PlaySpec {
 
     "convert successfully with one function section" in {
       // Json
-      val questionPartFunctionJson = QuestionPartFunctionJson("sec0f0", "summaryRaw", "summaryHtml", "1", "<cn>1</cn>")
-      val questionSectionJson = QuestionSectionJson("sec0", "explanationRaw", "explanationHtml", "function", "sec0f0", Vector(), Vector(questionPartFunctionJson))
+      val questionPartFunctionJson = QuestionPartFunctionJson("summaryRaw", "summaryHtml", "1", "<cn>1</cn>")
+      val questionSectionJson = QuestionSectionJson("explanationRaw", "explanationHtml", "function", 0, Vector(), Vector(questionPartFunctionJson))
       val questionJson = QuestionJson("title", "questionRaw", "questionHtml", Vector(questionSectionJson))
 
       // Scala
