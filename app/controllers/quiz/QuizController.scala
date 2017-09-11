@@ -58,28 +58,28 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   } } } }
 
-//  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
-//
-//    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +^ quizDAO.access(user.id, quizId)).flatMap{ _ match {
-//      case Left(notFoundResult) => Future.successful(notFoundResult)
-//      case Right((course, quiz, access)) =>
-//        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, questions)))
-//      }
-//    }
-//
-//  } } } }
+  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
-  // Use this version to switching off login for easier testing
-  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = Action.async { implicit request =>
-
-    (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +^ quizDAO.access(user.id, quizId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, quiz)) =>
-        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(Edit, course, quiz, questions)))
+      case Right((course, quiz, access)) =>
+        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, questions)))
       }
     }
 
-  }
+  } } } }
+
+  // Use this version to switching off login for easier testing
+//  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = Action.async { implicit request =>
+//
+//    (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
+//      case Left(notFoundResult) => Future.successful(notFoundResult)
+//      case Right((course, quiz)) =>
+//        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(Edit, course, quiz, questions)))
+//      }
+//    }
+//
+//  }
 
 
   def rename(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
