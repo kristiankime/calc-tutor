@@ -1,7 +1,6 @@
 @(action: play.api.mvc.Call, initialDataModel: Option[String] = None, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
 
 @import helper._
-@import com.artclod.play.FormEnhanced
 @import controllers.quiz.QuestionCreate
 
 <section id="question-editor">
@@ -52,7 +51,8 @@
                             id: <span data-bind="text: @QuestionCreate.id"></span>
                             cci: <span data-bind="text: $parent.@QuestionCreate.correctChoiceIndex"></span>
 
-                            <input type="radio" data-bind="name: $parent.@QuestionCreate.id, value: $data.@QuestionCreate.id, checked: $parent.@QuestionCreate.correctChoiceIndex, text: $parent.@QuestionCreate.id"> Correct </input>
+                            @*<input type="radio" data-bind="name: $parent.@QuestionCreate.id, value: $data.@QuestionCreate.id, checked: $parent.@QuestionCreate.correctChoiceIndex, text: $parent.@QuestionCreate.id"> Correct </input>*@
+                             <input type="radio" data-bind="name: $parent.@QuestionCreate.id, value: $index, checked: $parent.@QuestionCreate.correctChoiceIndex, text: $parent.@QuestionCreate.id"> Correct </input>
                             <span data-bind="html: @QuestionCreate.summaryHtml"> </span>
                         </div>
                     </div>
@@ -186,9 +186,9 @@
                     var choiceId = choicePartId(section, choiceIdGenerator++);
 
                     var newChoice = ko.mapping.fromJS({
-                        @QuestionCreate.id          : choiceId,
+                        @* @QuestionCreate.id          : choiceId,*@
                         @QuestionCreate.summaryRaw  : "new choice " + choiceIdGenerator,
-                        @QuestionCreate.summaryHtml : "new choice " + choiceIdGenerator
+                        @QuestionCreate.summaryHtml : ARTC.markdown("new choice " + choiceIdGenerator)
                     } );
 
                     enhanceChoicePart(section, newChoice, choiceIdGenerator);
@@ -207,9 +207,9 @@
                 section.addFunction = function () {
                     var functionId = functionPartId(section, functionIdGenerator++);
                     var newFunction = ko.mapping.fromJS({
-                        @QuestionCreate.id           : functionId,
+                        @* @QuestionCreate.id           : functionId,*@
                         @QuestionCreate.summaryRaw   : "new function " + functionIdGenerator,
-                        @QuestionCreate.summaryHtml  : "new function " + functionIdGenerator,
+                        @QuestionCreate.summaryHtml  : ARTC.markdown("new function " + functionIdGenerator),
                         @QuestionCreate.functionRaw  : "",
                         @QuestionCreate.functionMath : ""
                     } );
@@ -248,12 +248,13 @@
 
                 // Function to create a new section
                 main.addSection = function () {
+                    var secId = sectionId(idGenerator++);
                     var newSection = ko.mapping.fromJS({
-                        @QuestionCreate.id                 : sectionId(idGenerator++), // Note this is also set in enhanceSection
+                        @* @QuestionCreate.id                 : secId, // Note this is also set in enhanceSection*@
                         @QuestionCreate.explanationRaw     : "new section " + idGenerator,
-                        @QuestionCreate.explanationHtml    : "new section " + idGenerator,
+                        @QuestionCreate.explanationHtml    : ARTC.markdown("new section " + idGenerator),
                         @QuestionCreate.choiceOrFunction   : "choice",
-                        @QuestionCreate.correctChoiceIndex : "",
+                        @QuestionCreate.correctChoiceIndex : 0,
                         @QuestionCreate.choices            : [],
                         @QuestionCreate.functions          : []
                     });
@@ -268,7 +269,7 @@
             return QE;
         }();
 
-        var data = @initialDataModel.getOrElse(Html("""{
+        var dataOld = @initialDataModel.getOrElse(Html("""{
             title : "title",
             descriptionRaw : "a question",
             descriptionHtml : "a question",
@@ -293,6 +294,13 @@
                 }
             ]
         }"""))
+
+        var data = @initialDataModel.getOrElse(Html("{ " +
+            QuestionCreate.title +           """ : "", """ +
+            QuestionCreate.descriptionRaw +  """ : "", """ +
+            QuestionCreate.descriptionHtml + """ : ARTC.markdown(""), """ +
+            "sections : []" +
+        "}"))
 
         var viewModel = ko.mapping.fromJS(data);
 

@@ -29,7 +29,33 @@ import scala.util.Right
 @Singleton
 class QuestionController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
-  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+//  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+//
+//    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId)).flatMap{ _ match {
+//      case Left(notFoundResult) => Future.successful(notFoundResult)
+//      case Right((course, quiz)) =>
+//        QuestionCreate.form.bindFromRequest.fold(
+//          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+//          form => {
+//            QuestionCreate.questionFormat.reads(Json.parse(form)) match {
+//              case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
+//              case JsSuccess(value, path) => {
+//                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id))
+//                questionFrameFuture.flatMap(questionFrame => {
+//                  quizDAO.attach(questionFrame.question, quiz, user.id).map(_ =>
+//                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+//                })
+//              }
+//            }
+//          }
+//        )
+//      }
+//    }
+//
+//  } } } }
+
+  // Use this version to switching off login for easier testing
+  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -40,9 +66,9 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
             QuestionCreate.questionFormat.reads(Json.parse(form)) match {
               case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
               case JsSuccess(value, path) => {
-                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id))
+                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, UserId(1)))
                 questionFrameFuture.flatMap(questionFrame => {
-                  quizDAO.attach(questionFrame.question, quiz, user.id).map(_ =>
+                  quizDAO.attach(questionFrame.question, quiz, UserId(1)).map(_ =>
                     Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
                 })
               }
@@ -52,17 +78,9 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
       }
     }
 
-  } } } }
+  }
 
-//  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
-//
-//    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +^ quizDAO.access(user.id, quizId)).map{ _ match {
-//      case Left(notFoundResult) => notFoundResult
-//      case Right((course, quiz, question, access)) => Ok(views.html.quiz.viewQuestionForCourse(access, course, quiz, question))
-//      }
-//    }
-//
-//  } } } }
+
 
   def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = Action.async { implicit request =>
 
@@ -79,11 +97,11 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
 case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson])
 
-case class QuestionSectionJson(id: String, explanationRaw: String, explanationHtml: String, choiceOrFunction: String, correctChoiceIndex: String, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson])
+case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, choiceOrFunction: String, correctChoiceIndex: Int, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson])
 
-case class QuestionPartChoiceJson(id: String, summaryRaw: String, summaryHtml: String)
+case class QuestionPartChoiceJson(summaryRaw: String, summaryHtml: String)
 
-case class QuestionPartFunctionJson(id: String, summaryRaw: String, summaryHtml: String, functionRaw: String, functionMath: String)
+case class QuestionPartFunctionJson(summaryRaw: String, summaryHtml: String, functionRaw: String, functionMath: String)
 
 object QuestionCreate {
   val questionJson = "question-json"

@@ -105,10 +105,10 @@ object QuestionFrame {
 
     val parts = section.choiceOrFunction match {
       case "choice" => {
-        if(!section.choices.map( _.id == section.correctChoiceIndex).fold(false)( (a,b) => a || b)) {
-          throw new IllegalArgumentException("section.correctChoiceIndex did not match any section [" + section.correctChoiceIndex + "] " + section.choices.map(_.id))
+        if(section.correctChoiceIndex >= section.choices.size || section.correctChoiceIndex < 0) {
+          throw new IllegalArgumentException("section.correctChoiceIndex did not match any section [" + section.correctChoiceIndex + "] " + section.choices.size)
         }
-        Left(section.choices.zipWithIndex.map(f => partChoice(f._1, f._2, NumericBoolean(section.correctChoiceIndex == f._1.id))))
+        Left(section.choices.zipWithIndex.map(f => partChoice(f._1, f._2, NumericBoolean(section.correctChoiceIndex == f._2))))
       }
       case "function" => Right(section.functions.zipWithIndex.map(f => partFunction(f._1, f._2)))
       case _ => throw new IllegalArgumentException("section.choiceOrFunction was not recognized [" + section.choiceOrFunction + "]")
