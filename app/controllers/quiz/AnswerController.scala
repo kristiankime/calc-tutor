@@ -46,30 +46,19 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
                 val answerFrame = AnswerFrame(question, value, user.id)
                 answerDAO.insert(answerFrame).map(answerFrame => {
 
-                  if(answerFrame.answer.allCorrect) { // TODO go to failed answer page on fail
-                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None))
+                  if(answerFrame.answer.allCorrect) {
+                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, Some(answerFrame.answer.id)))
                   } else {
-                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None))
+                    Redirect(controllers.quiz.routes.QuestionController.view(organizationId, course.id, quizId, questionId, Some(answerFrame.answer.id)))
                   }
-
+  
                 })
-
-
-
-//                val answerFrameFuture = answerDAO.insert(answerFrame)
-//
-//                answerFrameFuture.flatMap(answerFrame => {
-//                  quizDAO.attach(questionFrame.question, quiz, user.id)
-//                  Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
-//                })
-//                Future.successful(null)
 
               }
             }
           }
         )
 
-//        Future.successful(Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
       }
     }
 
