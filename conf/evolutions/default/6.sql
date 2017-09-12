@@ -28,7 +28,7 @@ CREATE TABLE answer_part
   answer_section_id INT NOT NULL REFERENCES answer_section(id),
   answer_id INT NOT NULL REFERENCES answer(id),
   question_part_id INT NOT NULL REFERENCES question_part_function(id),
-  section_id INT NOT NULL REFERENCES question_section(id),
+  question_section_id INT NOT NULL REFERENCES question_section(id),
   question_id INT NOT NULL REFERENCES question(id),
   function_raw VARCHAR NOT NULL,
   function_math VARCHAR NOT NULL,

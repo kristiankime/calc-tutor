@@ -37,7 +37,8 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
       case Right((course, quiz, question)) =>
 
         AnswerCreate.form.bindFromRequest.fold(
-          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+          errors =>
+            Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
             AnswerCreate.answerFormat.reads(Json.parse(form)) match {
               case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
@@ -98,7 +99,7 @@ case class AnswerPartFunctionJson(functionRaw: String, functionMath: String)
 object AnswerCreate {
   val answerJson = "answer-json"
 
-val form : Form[String] = Form(questionJson -> nonEmptyText)
+  val form : Form[String] = Form(answerJson -> nonEmptyText)
 
   // all
   val id = "id"

@@ -28,6 +28,7 @@ case class AnswerSectionFrame(answerSection: AnswerSection, parts: Vector[Answer
   (answerSection.choice.nonEmpty, parts.nonEmpty ) match {
     case (true, true) => {throw new IllegalArgumentException("Answer was had both choice and parts")}
     case (false, false) => {throw new IllegalArgumentException("Answer was had neither choice not parts")}
+    case _ : (Boolean, Boolean) => { "All good" }
   }
 
   def id(sectionId: AnswerSectionId) = AnswerSectionFrame(
@@ -72,7 +73,7 @@ object AnswerFrame {
         AnswerSectionFrame(answerSection, Vector())
       }
       case Right(functions) => {
-        if(answerSectionJson.functions.size != functions) {
+        if(answerSectionJson.functions.size != functions.size) {
           throw new IllegalArgumentException("function parts were not the same size")
         }
         val parts = answerSectionJson.functions.zip(functions).zipWithIndex.map(fs => answerPart(fs._1._1, fs._1._2, fs._2.toShort))
