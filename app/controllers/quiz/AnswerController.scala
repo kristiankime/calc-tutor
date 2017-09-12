@@ -51,7 +51,7 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
                   } else {
                     Redirect(controllers.quiz.routes.QuestionController.view(organizationId, course.id, quizId, questionId, Some(answerFrame.answer.id)))
                   }
-  
+
                 })
 
               }

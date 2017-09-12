@@ -1,7 +1,8 @@
 @(access: models.Access,
         course: models.organization.Course,
         quiz: models.quiz.Quiz,
-        questions: Seq[models.quiz.Question])(implicit request: Request[AnyContent])
+        questions: Seq[models.quiz.Question],
+        answerOp: Option[models.quiz.Answer])(implicit request: Request[AnyContent])
 
 @import helper._
 @import com.artclod.play._
@@ -16,9 +17,11 @@
     <table class="pure-table pure-table-striped">
         <tr>
             <th>Question</th>
+            @for(answer <- answerOp){<th>Correct</th>}
         </tr>
         @for(question <- questions){<tr>
             <td> @tag.courseQuestionLink(course, quiz, question, None) </td>
+            @for(answer <- answerOp){<td> @tag.maybeIndicateCorrect(question, answer)</td>}
         </tr>}
     </table>
 

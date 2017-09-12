@@ -15,7 +15,7 @@ import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
 import controllers.organization.CourseCreate
-import dao.quiz.QuizDAO
+import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO}
 import models.organization.Course
 import models.quiz.Quiz
 import play.api.data.Form
@@ -26,7 +26,7 @@ import scala.util.Right
 
 
 @Singleton
-class QuizController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class QuizController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
 
   def createForm(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
@@ -60,10 +60,10 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +^ quizDAO.access(user.id, quizId)).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, quiz, access)) =>
-        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, questions)))
+      case Right((course, quiz, access, answerOp)) =>
+        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, questions, answerOp)))
       }
     }
 

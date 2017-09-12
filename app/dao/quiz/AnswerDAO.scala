@@ -63,12 +63,21 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   }
   // ---
   def apply(answerId: AnswerId): Future[Either[Result, Answer]] = byId(answerId).map { _ match {
-    case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+answerId+"]")))
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no answer for id=["+answerId+"]")))
     case Some(answer) => Right(answer)
   } }
 
+  def apply(answerIdOp: Option[AnswerId]): Future[Either[Result, Option[Answer]]] =
+    answerIdOp match {
+      case Some(answerId) => byId(answerId).map { _ match {
+          case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+answerId+"]")))
+          case Some(answer) => Right(Some(answer))
+        } }
+      case None => Future.successful(Right(None))
+    }
+
   def frameByIdEither(answerId : AnswerId): Future[Either[Result, AnswerFrame]] = frameById(answerId).map { _ match {
-    case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+answerId+"]")))
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no answer for id=["+answerId+"]")))
     case Some(answerFrame) => Right(answerFrame)
   } }
 
