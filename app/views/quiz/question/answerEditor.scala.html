@@ -15,30 +15,38 @@
     <section id="answer-editor">
     @questionFrame.question.descriptionHtml
 
+    @* ===== START SECTION ==== *@
     @for(sectionFrame <- questionFrame.sections.zipWithIndex) {
+    @defining("$root." + AnswerCreate.sections + "()[" + sectionFrame._2 + "]") { secId =>
     <section>
+
     @sectionFrame._1.section.explanationRaw
 
+        @* ===== START PARTS ==== *@
         @sectionFrame._1.parts match {
+
         case Left(parts) => { @for(part <- parts.zipWithIndex) {
         <div>
-            <input type="radio" name="@{"s"+sectionFrame._2}" id="@{"s"+sectionFrame._2+"c"+part._2}" value="@part._2" data-bind="checked: $root.@{AnswerCreate.sections}()[@{sectionFrame._2}].@{AnswerCreate.choiceIndex}"> @part._1.descriptionHtml </input>
+            <input type="radio" name="@{"s"+sectionFrame._2}" id="@{"s"+sectionFrame._2+"c"+part._2}" value="@part._2" data-bind="checked: @{secId}.@{AnswerCreate.choiceIndex}"> @part._1.descriptionHtml </input>
+            <div data-bind="{visible: ,}"> </div>
         </div>
         } }
+
         case Right(parts) => {@for(part <- parts.zipWithIndex) {
         <div>
             @part._1.descriptionHtml
-            <input data-bind="value: $root.@{AnswerCreate.sections}()[@{sectionFrame._2}].@{AnswerCreate.functions}()[@part._2].@{AnswerCreate.functionRaw}" />
-            <span data-bind="attr: { 'id' : $root.@{AnswerCreate.sections}()[@{sectionFrame._2}].@{AnswerCreate.functions}()[@part._2].id }"> not updated yet</span>
+            <input data-bind="value: @{secId}.@{AnswerCreate.functions}()[@part._2].@{AnswerCreate.functionRaw}" />
+            <span data-bind="attr: { 'id' : @{secId}.@{AnswerCreate.functions}()[@part._2].id }"> not updated yet</span>
             @*<span id="@{"s"+sectionFrame._2+"f"+part._2}"> </span>*@
             @* @math.mathmlDisplay(part.functionRaw) *@
         </div>
         } }
-
         }
-    }
+        @* ===== END PARTS ==== *@
     </section>
-
+    }
+    }
+    @* ===== END SECTION ==== *@
 
     @form(action, 'id -> "answerJsonForm", 'class -> "pure-form") {
         <fieldset>
