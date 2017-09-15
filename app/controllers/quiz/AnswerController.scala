@@ -3,7 +3,7 @@ package controllers.quiz
 import javax.inject._
 
 import _root_.controllers.support.{Consented, RequireAccess}
-import com.artclod.slick.JodaUTC
+import com.artclod.slick.{JodaUTC, NumericBoolean}
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
 import models._
@@ -44,15 +44,19 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
               case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
               case JsSuccess(value, path) => {
                 val answerFrame = AnswerFrame(question, value, user.id)
-                answerDAO.insert(answerFrame).map(answerFrame => {
 
-                  if(answerFrame.answer.allCorrect) {
-                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, Some(answerFrame.answer.id)))
-                  } else {
-                    Redirect(controllers.quiz.routes.QuestionController.view(organizationId, course.id, quizId, questionId, Some(answerFrame.answer.id)))
-                  }
+                if(answerFrame.correctUnknown) { // Here we are unable to determine if the question was answered correctly so we go back to the page
+                  Future.successful( Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, AnswerJson(answerFrame))) )
+                } else {
+                  answerDAO.insert(answerFrame).map(answerFrame => {
+                    if (answerFrame.answer.allCorrect) { // Here everything was correct so go back to the quiz itself
+                      Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, Some(answerFrame.answer.id)))
+                    } else { // Here an answer was wrong so give the user another chance to answer
+                      Redirect(controllers.quiz.routes.QuestionController.view(organizationId, course.id, quizId, questionId, Some(answerFrame.answer.id)))
+                    }
 
-                })
+                  })
+                }
 
               }
             }
@@ -76,14 +80,11 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
 
 }
 
+case class AnswerJson(sections: Vector[AnswerSectionJson], correct: Int)
 
+case class AnswerSectionJson(choiceIndex: Int, functions: Vector[AnswerPartFunctionJson], correct: Int)
 
-case class AnswerJson(sections: Vector[AnswerSectionJson])
-
-case class AnswerSectionJson(choiceIndex: String /* This should be the toString of an Int */, functions: Vector[AnswerPartFunctionJson])
-
-case class AnswerPartFunctionJson(functionRaw: String, functionMath: String)
-
+case class AnswerPartFunctionJson(functionRaw: String, functionMath: String, correct: Int)
 
 object AnswerCreate {
   val answerJson = "answer-json"
@@ -92,6 +93,7 @@ object AnswerCreate {
 
   // all
   val id = "id"
+  val correct = "correct"
 
   // Question
   val sections = "sections"
@@ -99,7 +101,6 @@ object AnswerCreate {
   // Section
   val choiceOrFunction = "choiceOrFunction"
   val choiceIndex = "choiceIndex"
-  val choices = "choices"
   val functions = "functions"
 
   // Parts
@@ -112,16 +113,42 @@ object AnswerCreate {
 }
 
 object AnswerJson {
+  // These can be stored in the db
+  val correctYes = NumericBoolean.T
+  val correctNo = NumericBoolean.F
+  // These are temporary values only used in the Json/Ui
+  val correctUnknown = NumericBoolean.Unknown
+  val correctBlank = NumericBoolean.Blank
+
+  // ============== Blank
   val rand = new Random(System.currentTimeMillis())
 
-  def blank(questionFrame: QuestionFrame): AnswerJson = AnswerJson(questionFrame.sections.map( sectionFrame => answerSection(sectionFrame)))
+  def blank(questionFrame: QuestionFrame): AnswerJson = AnswerJson(questionFrame.sections.map(sectionFrame => answerSectionBlank(sectionFrame)), correct = correctBlank)
 
-  def answerSection(sectionFrame: QuestionSectionFrame): AnswerSectionJson =
-    AnswerSectionJson(choiceIndex = sectionFrame.choiceSize.map(v => rand.nextInt(v)).getOrElse(-1).toString, functions=answerParts(sectionFrame.parts))
+  def answerSectionBlank(sectionFrame: QuestionSectionFrame): AnswerSectionJson =
+    AnswerSectionJson(choiceIndex = sectionFrame.choiceSize.map(v => rand.nextInt(v)).getOrElse(-1), functions=answerPartsBlank(sectionFrame.parts), correct = correctBlank)
 
 
-  def answerParts(functionParts: Either[_, Vector[QuestionPartFunction]]): Vector[AnswerPartFunctionJson] = functionParts match {
+  def answerPartsBlank(functionParts: Either[_, Vector[QuestionPartFunction]]): Vector[AnswerPartFunctionJson] = functionParts match {
     case Left(_) => Vector()
-    case Right(fps) => fps.map(p => AnswerPartFunctionJson("", ""))
+    case Right(fps) => fps.map(p => AnswerPartFunctionJson("", "", correctBlank))
   }
+
+  // ============== Filled in from previous answer
+  def apply(answerFrame: AnswerFrame) : AnswerJson = {
+    val correct = if(answerFrame.correctUnknown){NumericBoolean.Unknown}else{NumericBoolean(answerFrame.answer.allCorrect)}
+    AnswerJson(sections = answerFrame.sections.map(s => answerSectionJson(s)), correct = correct )
+  }
+
+  def answerSectionJson(answerSectionFrame: AnswerSectionFrame ) : AnswerSectionJson = {
+    val correct = answerSectionFrame.parts.map(p => p.correctNum).reduce( (a, b) => math.min(a,b).toShort)
+    val parts = answerSectionFrame.parts.map(p => answerPartJson(p))
+    val choiceIndex : Int = answerSectionFrame.answerSection.choice.map(_.toInt).getOrElse(-1)
+    AnswerSectionJson(choiceIndex = choiceIndex, functions = parts, correct = if(answerSectionFrame.correctUnknown){NumericBoolean.Unknown}else{correct})
+  }
+
+  def answerPartJson(answerPart: AnswerPart) : AnswerPartFunctionJson = {
+    AnswerPartFunctionJson(functionRaw=answerPart.functionRaw, functionMath=answerPart.functionMath.toString, correct = answerPart.correctNum)
+  }
+
 }

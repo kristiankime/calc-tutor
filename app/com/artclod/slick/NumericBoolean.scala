@@ -11,6 +11,10 @@ object NumericBoolean {
   val T : Short = 1
   val F : Short = 0
 
+  // These are "hack" values used in special cases and should not actually go in the db
+  val Unknown : Short = -1 // We were unable to determine if the answer is correct or not
+  val Blank : Short = -2 // The value has not been computed yet yet
+
   def apply(s: Short) = s match {
     case 0 => false
     case 1 => true

@@ -15,7 +15,7 @@ import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
 import controllers.organization.CourseCreate
-import dao.quiz.{QuestionDAO, QuizDAO}
+import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO}
 import models.organization.Course
 import models.quiz.{QuestionFrame, Quiz}
 import play.api.data.Form
@@ -27,7 +27,7 @@ import scala.util.Right
 
 
 @Singleton
-class QuestionController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class QuestionController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
   def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
@@ -84,9 +84,11 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId)).map{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& answerDAO.frameByIdEither(answerIdOp)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
-      case Right((course, quiz, question)) => Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question))
+      case Right((course, quiz, question, answerOp)) =>
+        val answerJson : AnswerJson = answerOp.map(a => AnswerJson(a)).getOrElse(controllers.quiz.AnswerJson.blank(question))
+        Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, answerJson ))
     }
     }
 

@@ -50,12 +50,12 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     answerFuture.flatMap(answerOp => { sectionsFuture.flatMap(sections => { partsFuture.map( parts => {
       val secId2parts: Map[AnswerSectionId, Seq[AnswerPart]] = parts.groupBy(p => p.answerSectionId)
 
-      val sectionFrames = sections.map(section => AnswerSectionFrame(section, secId2parts.getOrElse(section.id, Seq()).toVector.sorted))
+      val sectionFrames = sections.map(section => AnswerSectionFrame(section, secId2parts.getOrElse(section.id, Seq()).toVector.sorted, false))
 
       answerOp.map(answer => {
         sectionFrames.nonEmpty match {
           case false => throw new IllegalArgumentException("There were no sections for id = " + id)
-          case true => AnswerFrame(answer, Vector(sectionFrames:_*).sorted)
+          case true => AnswerFrame(answer, Vector(sectionFrames:_*).sorted, false)
         }
       })
 
@@ -81,19 +81,28 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     case Some(answerFrame) => Right(answerFrame)
   } }
 
+  def frameByIdEither(answerIdOp: Option[AnswerId]): Future[Either[Result, Option[AnswerFrame]]] =
+    answerIdOp match {
+      case Some(answerId) => frameById(answerId).map { _ match {
+        case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+answerId+"]")))
+        case Some(answer) => Right(Some(answer))
+      } }
+      case None => Future.successful(Right(None))
+    }
+
   // ====== Create ======
   def insert(answerFrame: AnswerFrame) : Future[AnswerFrame] = {
     insert(answerFrame.answer).flatMap(answer => {
       val sectionsFutures : Seq[Future[AnswerSectionFrame]] = answerFrame.id(answer.id).sections.map(section => insert(section))
       val futureOfSections : Future[Vector[AnswerSectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
-      futureOfSections.map(sections => AnswerFrame(answer, sections))
+      futureOfSections.map(sections => AnswerFrame(answer, sections, false))
     })
   }
 
   def insert(sectionFrame: AnswerSectionFrame) : Future[AnswerSectionFrame] = {
     insert(sectionFrame.answerSection).flatMap(section => {
       insert(sectionFrame.id(section.id).parts).map(parts =>
-        AnswerSectionFrame(answerSection = section, parts = parts.toVector.sorted) )
+        AnswerSectionFrame(answerSection = section, parts = parts.toVector.sorted, false) )
     })
   }
 

@@ -68,11 +68,15 @@
     for(var si=0; si<viewModel.@{AnswerCreate.sections}().length; si++) {
         var sectionModel = viewModel.@{AnswerCreate.sections}()[si];
 
+        // Create an id for this section
+        sectionModel.id = "s"+si;
+
         for(var pi=0; pi<sectionModel.@{AnswerCreate.functions}().length; pi++) {
             var partModel = sectionModel.@{AnswerCreate.functions}()[pi];
 
             // Create an id for this part
             partModel.id = "s"+si+"f"+pi;
+
             // Set up the mathjax updates
             var func = partModel.@{AnswerCreate.functionRaw};
             func.subscribe(function (newValue) {

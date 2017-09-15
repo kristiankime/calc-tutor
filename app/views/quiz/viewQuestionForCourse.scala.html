@@ -1,7 +1,8 @@
 @(access: models.Access,
         course: models.organization.Course,
         quiz: models.quiz.Quiz,
-        questionFrame: models.quiz.QuestionFrame)(implicit request: Request[AnyContent])
+        questionFrame: models.quiz.QuestionFrame,
+        answer: controllers.quiz.AnswerJson)(implicit request: Request[AnyContent])
 
 @import helper._
 @import com.artclod.play._
@@ -14,5 +15,5 @@
     @views.html.quiz.question.answerEditor(
         controllers.quiz.routes.AnswerController.createCourseSubmit(course.organizationId, course.id, quiz.id, questionFrame.question.id),
         questionFrame,
-        controllers.quiz.AnswerJson.blank(questionFrame))
+        answer)
 }
