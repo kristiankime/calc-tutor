@@ -123,7 +123,9 @@ object AnswerJson {
   // ============== Blank
   val rand = new Random(System.currentTimeMillis())
 
-  def blank(questionFrame: QuestionFrame): AnswerJson = AnswerJson(questionFrame.sections.map(sectionFrame => answerSectionBlank(sectionFrame)), correct = correctBlank)
+  def blank(questionFrame: QuestionFrame): AnswerJson = {
+    AnswerJson(questionFrame.sections.map(sectionFrame => answerSectionBlank(sectionFrame)), correct = correctBlank)
+  }
 
   def answerSectionBlank(sectionFrame: QuestionSectionFrame): AnswerSectionJson =
     AnswerSectionJson(choiceIndex = sectionFrame.choiceSize.map(v => rand.nextInt(v)).getOrElse(-1), functions=answerPartsBlank(sectionFrame.parts), correct = correctBlank)
