@@ -9,9 +9,9 @@
 
     <div class="question-header">
 
-        <div class="item title-input"> Question Title: <input data-bind="value: @QuestionCreate.title" /> </div>
+        <div class="item title-input"> Question Title: <input data-bind="textInput: @QuestionCreate.title" /> </div>
         <div class="item title-output"> <span data-bind="html: @QuestionCreate.title"> </span> </div>
-        <div class="item description-input"> Question Description: <br> <input data-bind="value: @QuestionCreate.descriptionRaw" /> </div>
+        <div class="item description-input"> Question Description: <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.descriptionRaw"></textarea> </div>
         <div class="item description-output"> <span data-bind="html: @QuestionCreate.descriptionHtml"> </span> </div>
         <div class="item add-section"> <a href='#' data-bind='click: addSection' class="pure-button">Add Section</a> </div>
 

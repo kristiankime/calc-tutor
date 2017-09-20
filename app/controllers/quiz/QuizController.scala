@@ -72,10 +72,10 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
   // Use this version to switching off login for easier testing
 //  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = Action.async { implicit request =>
 //
-//    (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
+//    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& answerDAO(answerIdOp) ).flatMap{ _ match {
 //      case Left(notFoundResult) => Future.successful(notFoundResult)
-//      case Right((course, quiz)) =>
-//        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(Edit, course, quiz, questions)))
+//      case Right((course, quiz, answerOp)) =>
+//        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(Edit, course, quiz, questions, answerOp)))
 //      }
 //    }
 //
