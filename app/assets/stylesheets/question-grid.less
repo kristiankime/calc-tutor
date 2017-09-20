@@ -1,0 +1,114 @@
+@import "colors.less";
+
+/* ========== HEADER CSS ========== */
+.question-header {
+  display: grid;
+  grid-gap: 5px;
+  grid-template-columns: 1fr 1fr ;
+  grid-template-rows: auto auto auto;
+
+  grid-template-areas:
+          "title-input       title-output"
+          "description-input description-output"
+          "add-section       .";
+
+  grid-auto-rows: auto;
+
+  background-color: @dark;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.title-input { grid-area: title-input; }
+.title-output { grid-area: title-output; }
+.description-input { grid-area: description-input; }
+.description-output { grid-area: description-output; }
+.add-section { grid-area: add-section;}
+
+.span-header {
+  grid-column: 1 / span 2
+}
+
+/* ========== SECTIONS CSS ========== */
+.question-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  grid-gap: 5px;
+
+  grid-template-areas:
+          "explanation-input      explanation-output"
+          "section-controls       .";
+
+  grid-auto-rows: auto;
+
+  background-color: @medium;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.explanation-input { grid-area: explanation-input; }
+.explanation-output { grid-area: explanation-output; }
+.section-controls { grid-area: section-controls; }
+
+.span-section {
+  grid-column: 1 / span 2
+}
+
+/* ========== CHOICES CSS ========== */
+
+.question-choice {
+  display: grid;
+  grid-template-columns: 5fr 4fr 1fr;
+  grid-template-rows: auto auto;
+  grid-gap: 5px;
+
+  grid-template-areas:
+          "summary-input     summary-output   choice-correct"
+          "choice-controls   .                .";
+
+  grid-auto-rows: auto;
+
+  background-color: @light;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.summary-input { grid-area: summary-input; }
+.summary-output { grid-area: summary-output; }
+.choice-controls { grid-area: choice-controls; }
+.choice-correct { grid-area: choice-correct; }
+
+/* ========== FUNCTIONS CSS ========== */
+.question-function {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  grid-gap: 5px;
+
+  grid-template-areas:
+          "summary-input     summary-output"
+          "function-input    function-output"
+          "function-controls .";
+
+  grid-auto-rows: auto;
+
+  background-color: @light;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.function-input { grid-area: function-input; }
+.function-output { grid-area: function-output; }
+.function-controls { grid-area: function-controls; }
+
+/* ========== GENERAL ========== */
+.item {
+  background-color: @white;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.item:empty {
+  visibility: hidden;
+}

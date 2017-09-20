@@ -133,6 +133,10 @@ object QuestionCreate {
   val functionRaw = "functionRaw"
   val functionMath = "functionMath"
 
+  // Function versus choice
+  val function = "function"
+  val choice = "choice"
+
   implicit val questionPartChoiceFormat = Json.format[QuestionPartChoiceJson]
   implicit val questionPartFunctionFormat = Json.format[QuestionPartFunctionJson]
   implicit val questionSectionFormat = Json.format[QuestionSectionJson]

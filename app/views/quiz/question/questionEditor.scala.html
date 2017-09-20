@@ -270,29 +270,10 @@
         }();
 
         var dataOld = @initialDataModel.getOrElse(Html("""{
-            title : "title",
-            descriptionRaw : "a question",
-            descriptionHtml : "a question",
-            sections : [
-                {
-                    id : "sec0",
-                    explanationRaw : "explanation 1",
-                    explanationHtml : "explanation 1",
-                    choiceOrFunction : "choice",
-                    correctChoiceIndex : "",
-                    choices : [],
-                    functions : []
-                },
-                {
-                    id : "sec1",
-                    explanationRaw : "explanation 2",
-                    explanationHtml : "explanation 2",
-                    choiceOrFunction : "choice",
-                    correctChoiceIndex : "",
-                    choices : [],
-                    functions : []
-                }
-            ]
+            title : "",
+            descriptionRaw : "",
+            descriptionHtml : ARTC.markdown(""),
+            sections : []
         }"""))
 
         var data = @initialDataModel.getOrElse(Html("{ " +
