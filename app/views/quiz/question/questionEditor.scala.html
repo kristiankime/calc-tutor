@@ -7,85 +7,56 @@
 
     <h4> Build a question. When you are done hit "Save Question": </h4>
 
-    <div class="flexbox-container">
-        <div class="flexbox-column"> Question Title: <input data-bind="value: @QuestionCreate.title" /> </div>
-        <div class="flexbox-column"> <span data-bind="html: @QuestionCreate.title"> </span> </div>
-    </div>
+    <div class="question-header">
 
-    <div class="flexbox-container">
-        <div class="flexbox-column"> Question Description: <input data-bind="value: @QuestionCreate.descriptionRaw" /> </div>
-        <div class="flexbox-column"> <span data-bind="html: @QuestionCreate.descriptionHtml"> </span> </div>
-    </div>
+        <div class="item title-input"> Question Title: <input data-bind="value: @QuestionCreate.title" /> </div>
+        <div class="item title-output"> <span data-bind="html: @QuestionCreate.title"> </span> </div>
+        <div class="item description-input"> Question Description: <br> <input data-bind="value: @QuestionCreate.descriptionRaw" /> </div>
+        <div class="item description-output"> <span data-bind="html: @QuestionCreate.descriptionHtml"> </span> </div>
+        <div class="item add-section"> <a href='#' data-bind='click: addSection' class="pure-button">Add Section</a> </div>
 
-    <div>
-        <a href='#' data-bind='click: addSection' class="pure-button">Add Section</a>
-    </div>
 
-    <div data-bind="foreach: @QuestionCreate.sections">
-        <div class="section">
-            <div class="flexbox-container">
-                <div class="flexbox-column"> Section Descripton: <input data-bind="value: @QuestionCreate.explanationRaw" /> </div>
-                <div class="flexbox-column"> <span data-bind="html: @QuestionCreate.explanationHtml"> </span> </div>
-            </div>
-
-            <div>
+        <!-- ko foreach: @QuestionCreate.sections -->
+        <div class="span-header question-section">
+            <div class="item explanation-input"> Section Descripton: <input data-bind="value: @QuestionCreate.explanationRaw" /> </div>
+            <div class="item explanation-output"> <span data-bind="html: @QuestionCreate.explanationHtml"> </span> </div>
+            <div class="item section-controls">
                 <a href='#' data-bind='click: removeThisSection' class="pure-button">Remove This Section</a>
-
                 <input type="radio" value="choice"  data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> choice </input>
                 <input type="radio" value="function" data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> function </input>
-
                 <a href='#' data-bind='click: addChoice' class="pure-button">Add Choice</a>
                 <a href='#' data-bind='click: addFunction' class="pure-button">Add Function</a>
             </div>
 
-            <span data-bind="if: @{QuestionCreate.choiceOrFunction}() === 'choice'">
-                <div data-bind="foreach: @QuestionCreate.choices">
-                    <div class="flexbox-container">
-                        <div class="flexbox-column">
-                            Choice Summary: <input data-bind="value: @QuestionCreate.summaryRaw" />
-                            <a href='#' data-bind='click: removeThisPart' class="pure-button">Remove This Part</a>
-                        </div>
-                        <div class="flexbox-column">
+            <!-- ko if: @{QuestionCreate.choiceOrFunction}() == 'choice' -->
+                wtf choice
+            <!-- ko foreach: @QuestionCreate.choices -->
+            <div class="span-section question-choice">
+                <div class="item summary-input"> Choice Summary: <input data-bind="value: @QuestionCreate.summaryRaw" /> </div>
+                <div class="item summary-output"> <span data-bind="html: @QuestionCreate.summaryHtml"> </span> </div>
+                <div class="item choice-correct"> <input type="radio" data-bind="name: $parent.@QuestionCreate.id, value: $index, checked: $parent.@QuestionCreate.correctChoiceIndex, text: $parent.@QuestionCreate.id"> Correct </input> </div>
+                <div class="item choice-controls"> <a href='#' data-bind='click: removeThisPart' class="pure-button">Remove This Part</a> </div>
+            </div>
+            <!-- /ko -->
+            <!-- /ko -->
 
-                            pid: <span data-bind="text: $parent.@QuestionCreate.id"></span>
-                            id: <span data-bind="text: @QuestionCreate.id"></span>
-                            cci: <span data-bind="text: $parent.@QuestionCreate.correctChoiceIndex"></span>
-
-                            @*<input type="radio" data-bind="name: $parent.@QuestionCreate.id, value: $data.@QuestionCreate.id, checked: $parent.@QuestionCreate.correctChoiceIndex, text: $parent.@QuestionCreate.id"> Correct </input>*@
-                             <input type="radio" data-bind="name: $parent.@QuestionCreate.id, value: $index, checked: $parent.@QuestionCreate.correctChoiceIndex, text: $parent.@QuestionCreate.id"> Correct </input>
-                            <span data-bind="html: @QuestionCreate.summaryHtml"> </span>
-                        </div>
-                    </div>
-                </div>
-            </span>
-
-            <span data-bind="if: @{QuestionCreate.choiceOrFunction}() === 'function'">
-                <div data-bind="foreach: @QuestionCreate.functions">
-                    <div class="flexbox-container">
-                        <div class="flexbox-column">
-                            Function Summary: <input data-bind="value: @QuestionCreate.summaryRaw" />
-                            <a href='#' data-bind='click: removeThisPart' class="pure-button">Remove This Part</a>
-                        </div>
-                        <div class="flexbox-column">
-
-                            <span data-bind="text: $parent.@QuestionCreate.id"></span>
-                            <span data-bind="text: @QuestionCreate.id"></span>
-
-                            <span data-bind="html: @QuestionCreate.summaryHtml"> </span>
-                        </div>
-                    </div>
-                    <div class="flexbox-container">
-                        <div class="flexbox-column">
-                            Function func: <input data-bind="value: @QuestionCreate.functionRaw" />
-                        </div>
-                        <div class="flexbox-column">
-                            <span data-bind="attr: { 'id' : @QuestionCreate.id}, text: @QuestionCreate.id"> </span>
-                        </div>
-                    </div>
-                </div>
-            </span>
+            <!-- ko if: @{QuestionCreate.choiceOrFunction}() == 'function' -->
+                wtf function
+            <!-- ko foreach: @QuestionCreate.functions -->
+            <div class="span-section question-function">
+                <div class="item summary-input"> Function Summary: <input data-bind="value: @QuestionCreate.summaryRaw" /> </div>
+                <div class="item summary-output"> <span data-bind="html: @QuestionCreate.summaryHtml"> </span> </div>
+                <div class="item function-input"> Function func: <input data-bind="value: @QuestionCreate.functionRaw" /> </div>
+                <div class="item function-output"><span data-bind="attr: { 'id' : @QuestionCreate.id}, text: @QuestionCreate.id"> </span> </div>
+                <div class="item function-controls"><a href='#' data-bind='click: removeThisPart' class="pure-button">Remove This Part</a> </div>
+            </div>
+            <!-- /ko -->
+            <!-- /ko -->
 
         </div>
+        <!-- /ko -->
+
+
     </div>
 
     @form(action, 'id -> "questionJsonForm", 'class -> "pure-form") {
