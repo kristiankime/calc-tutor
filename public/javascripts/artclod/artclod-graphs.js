@@ -8,6 +8,7 @@ ARTC.insertGraphO = function (params) {
 };
 
 ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize, yPixSize) {
+    func      = typeof func      !== 'undefined' ? func      : function(x){return x;};
     glider    = typeof glider    !== 'undefined' ? glider    : false;
     xMin      = typeof xMin      !== 'undefined' ? xMin      : -11;
     xMax      = typeof xMax      !== 'undefined' ? xMax      :  11;
@@ -19,6 +20,19 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
     var xRange = xMax - xMin;
     var yRange = yMax - yMin;
 
+    console.log(func);
+    console.log(glider);
+    console.log(xMin);
+    console.log(xMax);
+    console.log(yMin);
+    console.log(yMax);
+    console.log(xPixSize);
+    console.log(yPixSize);
+
+    var board = JXG.JSXGraph.initBoard(id,{originX:50, originY:250, unitX:50, unitY:10, axis:true}); board.create('point',[1,5]);
+    board.create('point',[1,5]);
+
+    /*
     var board = JXG.JSXGraph.initBoard(id, {axis: true, boundingbox:[xMin,yMax,xMax,yMin], originX: xPixSize/2, originY: yPixSize/2, unitX: xPixSize / xRange, unitY: yPixSize / yRange, showCopyright: false});
     board.suspendUpdate();
     var g = board.create('functiongraph', [func, xMin, xMax], {strokeWidth: 3});
@@ -26,7 +40,7 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
     if(glider) {
         var glider = board.create('glider', [g]);
 
-        var getMouseCoords = function(e, i) { /* http://jsxgraph.uni-bayreuth.de/wiki/index.php/Browser_event_and_coordinates */
+        var getMouseCoords = function(e, i) { // http://jsxgraph.uni-bayreuth.de/wiki/index.php/Browser_event_and_coordinates
             var cPos = board.getCoordsTopLeftCorner(e, i),
                 absPos = JXG.getPosition(e, i),
                 dx = absPos[0]-cPos[0],
@@ -48,5 +62,6 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
         board.on('down', down);
     }
     board.unsuspendUpdate();
+    */
     return board;
 };
