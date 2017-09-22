@@ -25,10 +25,12 @@ if(!ARTC.mathJS){
 
 ARTC.mathJS.node2FunctionOfX = function(mathJSNode) {
     var code = mathJSNode.compile(math);
-    return function(x) {
+    var func = function(x) {
         var scope = { x : x };
         return code.eval(scope);
     };
+    func(0); // This will throw if the function string cannot be evaluated
+    return func;
 };
 
 ARTC.mathJS.text2FunctionOfX = function(mathText) {

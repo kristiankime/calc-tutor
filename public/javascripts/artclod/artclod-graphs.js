@@ -20,22 +20,29 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
     var xRange = xMax - xMin;
     var yRange = yMax - yMin;
 
-    // console.log(func);
-    // console.log(glider);
-    // console.log(xMin);
-    // console.log(xMax);
-    // console.log(yMin);
-    // console.log(yMax);
-    // console.log(xPixSize);
-    // console.log(yPixSize);
+    console.log(func);
+    console.log(glider);
+    console.log(xMin);
+    console.log(xMax);
+    console.log(yMin);
+    console.log(yMax);
+    console.log(xPixSize);
+    console.log(yPixSize);
 
-    var board = JXG.JSXGraph.initBoard(id,{originX:50, originY:250, unitX:50, unitY:10, axis:true}); board.create('point',[1,5]);
-    board.create('point',[1,5]);
+    var mathF;
+    try {
+        mathF = ARTC.mathJS.text2FunctionOfX(func);
+    } catch(e) {
+        mathF = function(x){return 0;};
+    }
+    console.log(mathF);
 
-    /*
+    // var board = JXG.JSXGraph.initBoard(id,{originX:50, originY:250, unitX:50, unitY:10, axis:true}); board.create('point',[1,5]);
+    // board.create('point',[1,5]);
+
     var board = JXG.JSXGraph.initBoard(id, {axis: true, boundingbox:[xMin,yMax,xMax,yMin], originX: xPixSize/2, originY: yPixSize/2, unitX: xPixSize / xRange, unitY: yPixSize / yRange, showCopyright: false});
     board.suspendUpdate();
-    var g = board.create('functiongraph', [func, xMin, xMax], {strokeWidth: 3});
+    var g = board.create('functiongraph', [mathF, xMin, xMax], {strokeWidth: 3});
 
     if(glider) {
         var glider = board.create('glider', [g]);
@@ -62,6 +69,6 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
         board.on('down', down);
     }
     board.unsuspendUpdate();
-    */
+
     return board;
 };

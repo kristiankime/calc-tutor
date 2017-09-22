@@ -48,7 +48,17 @@ ARTC.markdown = function (text) {
             try {
                 var value = JSON.parse(valueRaw);
                 var id = 'insert_' + key.substr(1, key.length - 2);
-                var rep = "<div id='" + id + "' class='inline-block' style='width:100px; height:100px;'/> <script> ARTC.insertGraph('" + id + "') </script>";
+                value["id"] = id;
+
+                var width = value.xPixSize;
+                width  = typeof width  !== 'undefined' ? width  : 200;
+                value.xPixSize = width;
+
+                var height = value.yPixSize;
+                height  = typeof height  !== 'undefined' ? height  : 200;
+                value.yPixSize = height;
+
+                var rep = "<div id='" + id + "' class='inline-block' style='width:" + width + "px; height:" + height + "px;'/> <script> ARTC.insertGraphO(" + JSON.stringify(value) + ") </script>";
                 ret = ret.replace(key, rep);
             } catch(e) {
                 ret = ret.replace(key, "Could not parse [" + valueRaw + "] as graph data json");
