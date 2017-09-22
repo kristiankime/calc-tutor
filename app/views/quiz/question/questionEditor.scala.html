@@ -29,7 +29,6 @@
             </div>
 
             <!-- ko if: @{QuestionCreate.choiceOrFunction}() == 'choice' -->
-                wtf choice
             <!-- ko foreach: @QuestionCreate.choices -->
             <div class="span-section question-choice">
                 <div class="item summary-input"> Choice Summary: <input data-bind="value: @QuestionCreate.summaryRaw" /> </div>
@@ -41,7 +40,6 @@
             <!-- /ko -->
 
             <!-- ko if: @{QuestionCreate.choiceOrFunction}() == 'function' -->
-                wtf function
             <!-- ko foreach: @QuestionCreate.functions -->
             <div class="span-section question-function">
                 <div class="item summary-input"> Function Summary: <input data-bind="value: @QuestionCreate.summaryRaw" /> </div>
