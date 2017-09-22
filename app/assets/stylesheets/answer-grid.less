@@ -1,0 +1,93 @@
+@import "colors.less";
+
+/* ========== HEADER CSS ========== */
+.answer-header {
+  display: grid;
+  grid-gap: 5px;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+
+  grid-template-areas:
+          "answer-title"
+          "answer-description";
+
+  grid-auto-rows: auto;
+
+  background-color: @dark;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.answer-title { grid-area: answer-title; }
+.answer-description { grid-area: answer-description; }
+
+.span-answer-header {
+  grid-column: 1 / span 1
+}
+
+/* ========== SECTIONS CSS ========== */
+.answer-section {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  grid-gap: 5px;
+
+  grid-template-areas:
+          "answer-explanation";
+
+  grid-auto-rows: auto;
+
+  background-color: @medium;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.answer-explanation { grid-area: answer-explanation; }
+
+.span-answer-section {
+  grid-column: 1 / span 1
+}
+
+/* ========== CHOICES CSS ========== */
+
+.answer-choice {
+  display: grid;
+  grid-template-columns:  1fr 4fr;
+  grid-template-rows: auto auto;
+  grid-gap: 5px;
+
+  grid-template-areas:
+          "answer-choice-select answer-choice-summary";
+
+  grid-auto-rows: auto;
+
+  background-color: @light;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.answer-choice-select { grid-area: answer-choice-select; }
+.answer-choice-summary { grid-area: answer-choice-summary; }
+
+/* ========== FUNCTIONS CSS ========== */
+.answer-function {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  grid-template-rows: auto;
+  grid-gap: 5px;
+
+  grid-template-areas:
+          "answer-function-summary answer-function-input";
+
+  grid-auto-rows: auto;
+
+  background-color: @light;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.answer-function-summary { grid-area: answer-function-summary; }
+.answer-function-input { grid-area: answer-function-input; }
+
+/* ========== GENERAL ========== */
+/* see question-grid */

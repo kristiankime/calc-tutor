@@ -11,64 +11,65 @@
 @import controllers.quiz.AnswerJson.correctNo
 @import controllers.quiz.AnswerJson.correctBlank
 
-<section id="answer-editor">
+<section id="answer-editor" xmlns="http://www.w3.org/1999/html">
 
     <h4> Answer the question section@s(questionFrame.sections). When you are done hit the "Answer" Button: </h4>
 
-    <h5> @questionFrame.question.title </h5>
+    <div class="answer-header">
+        <div class="item answer-title"> <h5> @questionFrame.question.title </h5> </div>
+        <div class="item answer-description"> @questionFrame.question.descriptionHtml </div>
 
-    <section id="answer-editor">
-    @questionFrame.question.descriptionHtml
+        @* ===== START SECTION ==== *@
+        @for(sectionFrame <- questionFrame.sections.zipWithIndex) {
+        @defining("$root." + AnswerCreate.sections + "()[" + sectionFrame._2 + "]") { viewModelSec =>
+        <div class="span-answer-header answer-section">
 
-    @* ===== START SECTION ==== *@
-    @for(sectionFrame <- questionFrame.sections.zipWithIndex) {
-    @defining("$root." + AnswerCreate.sections + "()[" + sectionFrame._2 + "]") { viewModelSec =>
-    <section>
-    @sectionFrame._1.section.explanationRaw
+            <div class="item answer-explanation"> @sectionFrame._1.section.explanationHtml <br />
+                correct: <div data-bind="text: @{viewModelSec}.@{correct}"> </div>
+                <div data-bind="visible : @{viewModelSec}.@{correct}() == @{correctUnknown}"> This was unknown</div>
+                <div data-bind="visible : @{viewModelSec}.@{correct}() == @{correctNo}"> This was wrong</div>
+                <div data-bind="visible : @{viewModelSec}.@{correct}() == @{correctBlank}"> This was blank</div>
+            </div>
+            @* ===== START PARTS ==== *@
+            @sectionFrame._1.parts match {
 
-    correct: <div data-bind="text: @{viewModelSec}.@{correct}"> </div>
+            case Left(parts) => { @for(part <- parts.zipWithIndex) {
+            <div class="span-section answer-choice">
+                <div class="item answer-choice-select"> <input type="radio" name="@{"s"+sectionFrame._2}" id="@{"s"+sectionFrame._2+"c"+part._2}" value="@part._2" data-bind="checked: @{viewModelSec}.@{choiceIndex}"> </div>
+                <div class="item answer-choice-summary"> @part._1.descriptionHtml </div>
+            </div>
+            } }
 
-    <div data-bind="visible : @{viewModelSec}.@{correct}() == @{correctUnknown}"> This is section is unknown</div>
-    <div data-bind="visible : @{viewModelSec}.@{correct}() == @{correctNo}"> This is section is wrong</div>
-    <div data-bind="visible : @{viewModelSec}.@{correct}() == @{correctBlank}"> This is section is blank</div>
+            case Right(parts) => { @for(part <- parts.zipWithIndex) {
+            @defining(viewModelSec + "." + AnswerCreate.functions + "()[" + part._2 + "]") { viewModelFunc =>
+            <div class="span-section answer-function">
+                <div class="item answer-function-summary"> @part._1.descriptionHtml </div>
+                <div class="item answer-function-input">
+                    <input data-bind="value: @{viewModelFunc}.@{functionRaw}" /> <br/>
+                    <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"> not updated yet</span>
+                    <div data-bind="visible : @{viewModelFunc}.@{correct}() == @{correctUnknown}">  This was unknown</div>
+                    <div data-bind="visible : @{viewModelFunc}.@{correct}() == @{correctNo}"> This was wrong</div>
+                    <div data-bind="visible : @{viewModelFunc}.@{correct}() == @{correctBlank}"> This was blank</div>
+                </div>
+            </div>
+            } } }
 
-        @* ===== START PARTS ==== *@
-        @sectionFrame._1.parts match {
-
-        case Left(parts) => { @for(part <- parts.zipWithIndex) {
-
-        <div>
-            <input type="radio" name="@{"s"+sectionFrame._2}" id="@{"s"+sectionFrame._2+"c"+part._2}" value="@part._2" data-bind="checked: @{viewModelSec}.@{choiceIndex}"> @{part._1.descriptionHtml} </input>
+            }
+            @* ===== END PARTS ==== *@
         </div>
         } }
+        @* ===== END SECTION ==== *@
+    </div>
+</div>
 
-        case Right(parts) => { @for(part <- parts.zipWithIndex) {
-        @defining(viewModelSec + "." + AnswerCreate.functions + "()[" + part._2 + "]") { viewModelFunc =>
-        <div>
-            @part._1.descriptionHtml
-            <input data-bind="value: @{viewModelFunc}.@{functionRaw}" />
-            <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"> not updated yet</span>
-
-            <div data-bind="visible : @{viewModelFunc}.@{correct}() == @{correctUnknown}"> This is function is unknown</div>
-            <div data-bind="visible : @{viewModelFunc}.@{correct}() == @{correctNo}"> This is function is wrong</div>
-            <div data-bind="visible : @{viewModelFunc}.@{correct}() == @{correctBlank}"> This is function is blank</div>
-        </div>
-        } } }
-
-        }
-        @* ===== END PARTS ==== *@
-    </section>
-    } }
-    @* ===== END SECTION ==== *@
 
     @form(action, 'id -> "answerJsonForm", 'class -> "pure-form") {
-        <fieldset>
-            <input type="hidden" name="@AnswerCreate.answerJson" id="answerJson">
-            <input type="button" class="pure-button" value="Answer" onclick="answerJsonFormSubmit()">
-            @views.html.helper.CSRF.formField
-        </fieldset>
+    <fieldset>
+        <input type="hidden" name="@AnswerCreate.answerJson" id="answerJson">
+        <input type="button" class="pure-button" value="Answer" onclick="answerJsonFormSubmit()">
+        @views.html.helper.CSRF.formField
+    </fieldset>
     }
-    </section>
 
     <script>
         answerJsonFormSubmit = function() {

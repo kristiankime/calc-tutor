@@ -89,8 +89,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
       case Right((course, quiz, question, answerOp)) =>
         val answerJson : AnswerJson = answerOp.map(a => AnswerJson(a)).getOrElse(controllers.quiz.AnswerJson.blank(question))
         Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, answerJson ))
-    }
-    }
+    } }
 
   }
 

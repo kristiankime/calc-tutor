@@ -58,7 +58,7 @@ ARTC.markdown = function (text) {
                 height  = typeof height  !== 'undefined' ? height  : 200;
                 value.yPixSize = height;
 
-                var rep = "<div id='" + id + "' class='inline-block' style='width:" + width + "px; height:" + height + "px;'/> <script> ARTC.insertGraphO(" + JSON.stringify(value) + ") </script>";
+                var rep = "<div id='" + id + "' class='inline-block' style='width:" + width + "px; height:" + height + "px;'></div> <script> ARTC.insertGraphO(" + JSON.stringify(value) + ") </script>";
                 ret = ret.replace(key, rep);
             } catch(e) {
                 ret = ret.replace(key, "Could not parse [" + valueRaw + "] as graph data json");
