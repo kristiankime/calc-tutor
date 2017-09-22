@@ -25,28 +25,38 @@ ARTC.markdown = function (text) {
         // We have a match so update matches
         replaces[index] = match;
 
+        // update the index
+        i = i+1;
+        index = "$g" + i + "$";
+
         // Find the next potential match
         match = text.match(pattern, index);
         match = (match == null ? null : match[0]); // we only want the first match (if it exists)
         text = text.replace(pattern, index);
-
-        // update the index
-        i++;
-        index = "$g" + i + "$";
     }
+
+    // console.log(replaces);
+    // console.log(text);
 
     var markdown = converter.makeHtml(text);
     var ret = markdown;
 
     for (var key in replaces) {
         if (replaces.hasOwnProperty(key)) {
-            var value = replaces[key];
-            var id = 'insert_' + key.substr(1, key.length-2);
-            var rep = "<div id='" + id + "' style='width:100px; height:100px;'/> " + value + " <script> ARTC.insertGraph('" + id + "') </script>";
-            ret = ret.replace(key, rep);
+            var valueRaw = replaces[key];
+            var valueRaw = "{" + valueRaw.substr(3, valueRaw.length - 6) + "}"
+            try {
+                var value = JSON.parse(valueRaw);
+                var id = 'insert_' + key.substr(1, key.length - 2);
+                var rep = "<div id='" + id + "' class='inline-block' style='width:100px; height:100px;'/> <script> ARTC.insertGraph('" + id + "') </script>";
+                ret = ret.replace(key, rep);
+            } catch(e) {
+                ret = ret.replace(key, "Could not parse [" + valueRaw + "] as graph data json");
+            }
         }
     }
 
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
     console.log(ret);
     return ret;
 }
