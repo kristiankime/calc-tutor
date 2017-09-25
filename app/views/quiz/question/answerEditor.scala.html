@@ -86,34 +86,60 @@
     // Turn it into a view model
     var viewModel = ko.mapping.fromJS(data);
 
-    // Enhance with the MathJAX computations/displays
-    for(var si=0; si<viewModel.@{AnswerCreate.sections}().length; si++) {
-        var sectionModel = viewModel.@{AnswerCreate.sections}()[si];
-
-        // Create an id for this section
-        sectionModel.id = "s"+si;
-
-        // Radio buttons use strings but we want the value as a number
-        sectionModel.choiceIndexString = ko.pureComputed({
-            read: function () { return sectionModel.@{choiceIndex}().toString(); },
-            write: function (value) { sectionModel.@{choiceIndex}( parseInt(value) ); }
-        });
-
-        for(var pi=0; pi<sectionModel.@{AnswerCreate.functions}().length; pi++) {
-            var partModel = sectionModel.@{AnswerCreate.functions}()[pi];
-
+    // === The Answer Enhance Module ===
+    // it knows how to enhance the view model with the MathJAX computations/displays etc
+    var AE = function() {
+        var enhancePart = function(partModel, si, pi) {
             // Create an id for this part
-            partModel.id = "s"+si+"f"+pi;
+            partModel.id = "s" + si + "f" + pi;
 
             // Set up the mathjax updates
             var func = partModel.@{AnswerCreate.functionRaw};
             func.subscribe(function (newValue) {
+                console.log(partModel.id);
                 var mathResult = @{mathJsParser}(newValue);
                 ARTC.mathJax.updateById(partModel.id, ARTC.mathJax.tex(mathResult.node.toTex()));
                 partModel.@{AnswerCreate.functionMath}(mathResult.content);
             });
         }
-    }
+
+        var enhanceSection = function(sectionModel, si) {
+            // Create an id for this section
+            sectionModel.id = "s" + si;
+
+            console.log(sectionModel.id);
+
+            // Radio buttons use strings but we want the value as a number
+            sectionModel.choiceIndexString = ko.pureComputed({
+                read: function () {
+                    return sectionModel.@{choiceIndex}().toString();
+                },
+                write: function (value) {
+                    sectionModel.@{choiceIndex}(parseInt(value));
+                }
+            });
+
+            for (var pi = 0; pi < sectionModel.@{AnswerCreate.functions}().length; pi++) {
+                var partModel = sectionModel.@{AnswerCreate.functions}()[pi];
+                enhancePart(partModel, si, pi);
+            }
+        }
+
+        var enhanceMain = function(viewModel) {
+            for (var si = 0; si < viewModel.@{AnswerCreate.sections}().length; si++) {
+                var sectionModel = viewModel.@{AnswerCreate.sections}()[si];
+                enhanceSection(sectionModel, si);
+            }
+        }
+
+        var AE = {};
+        AE.enhanceMain = enhanceMain;
+        return AE;
+    }();
+
+    // Enhance
+    AE.enhanceMain(viewModel);
+
     // then applying bindings
     ko.applyBindings(viewModel, document.getElementById("answer-editor"));
 </script>
