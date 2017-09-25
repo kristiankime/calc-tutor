@@ -47,9 +47,9 @@ object AnswerFrame {
     if(questionFrame.sections.size != answerJson.sections.size){throw new IllegalArgumentException("sections were not the same size")}
 
     val sections = questionFrame.sections.zip(answerJson.sections).zipWithIndex.map(s => sectionFrame(s._1._1, s._1._2, s._2.toShort))
-    val allCorrect : Short = sections.map(s => s.answerSection.correctNum).reduce(math.min(_, _).toShort)
-    val answer = Answer(id=null, ownerId=userId, questionId=questionFrame.question.id, correctNum=allCorrect, creationDate=JodaUTC.now)
-    val correctUnknown = allCorrect <= NumericBoolean.Unknown
+    val correct : Short = sections.map(s => s.answerSection.correctNum).reduce(math.min(_, _).toShort)
+    val answer = Answer(id=null, ownerId=userId, questionId=questionFrame.question.id, correctNum=correct, creationDate=JodaUTC.now)
+    val correctUnknown = correct <= NumericBoolean.Unknown
     AnswerFrame(answer, sections, correctUnknown)
   }
 

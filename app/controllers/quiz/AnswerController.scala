@@ -132,7 +132,7 @@ object AnswerJson {
 
   // === Filled in from previous answer
   def apply(answerFrame: AnswerFrame) : AnswerJson =
-    AnswerJson(answerFrame.sections.map(s => AnswerSectionJson(s)) , answerFrame.answer.correctNum)
+    AnswerJson(answerFrame.sections.map(s => AnswerSectionJson(s)), answerFrame.answer.correctNum)
 }
 
 // === AnswerSectionJson
