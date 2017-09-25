@@ -13,13 +13,8 @@ case class AnswerFrame(answer: Answer, sections: Vector[AnswerSectionFrame], cor
   def id(answerId: AnswerId) = AnswerFrame(
     answer = answer.copy(id = answerId),
     sections = sections.map(s => s.answerId(answerId)),
-   correctUnknown = correctUnknown
+    correctUnknown = correctUnknown
   )
-
-//  def questionId(questionId: QuestionId) = AnswerFrame(
-//    answer = answer.copy(questionId = questionId),
-//    sections = sections.map(s => s.questionId(questionId))
-//  )
 
 }
 
@@ -44,29 +39,21 @@ case class AnswerSectionFrame(answerSection: AnswerSection, parts: Vector[Answer
     correctUnknown = correctUnknown
   )
 
-//  def questionSectionId(sectionId: QuestionSectionId) = AnswerSectionFrame(
-//    answerSection = answerSection.copy(sectionId = sectionId),
-//    parts = parts.map(p => p.copy(sectionId=sectionId))
-//  )
-//
-//  def questionId(questionId: QuestionId) = AnswerSectionFrame(
-//    answerSection = answerSection.copy(questionId = questionId),
-//    parts = parts.map(p => p.copy(questionId=questionId))
-//  )
-
 }
 
 object AnswerFrame {
-  def apply(questionFrame: QuestionFrame, answerJson: AnswerJson, userId: UserId): AnswerFrame = {
-    if(questionFrame.sections != answerJson.sections){throw new IllegalArgumentException("sections were not the same size")}
+
+  def apply(questionFrame: QuestionFrame, answerJson: AnswerJson, userId: UserId, creationDate: DateTime = JodaUTC.now): AnswerFrame = {
+    if(questionFrame.sections.size != answerJson.sections.size){throw new IllegalArgumentException("sections were not the same size")}
 
     val sections = questionFrame.sections.zip(answerJson.sections).zipWithIndex.map(s => sectionFrame(s._1._1, s._1._2, s._2.toShort))
     val allCorrect : Short = sections.map(s => s.answerSection.correctNum).reduce(math.min(_, _).toShort)
-    val answer = Answer(id=null, ownerId=userId, questionId=questionFrame.question.id, allCorrectNum=allCorrect, creationDate=JodaUTC.now)
-    AnswerFrame(answer, sections, allCorrect <= NumericBoolean.Unknown)
+    val answer = Answer(id=null, ownerId=userId, questionId=questionFrame.question.id, correctNum=allCorrect, creationDate=JodaUTC.now)
+    val correctUnknown = allCorrect <= NumericBoolean.Unknown
+    AnswerFrame(answer, sections, correctUnknown)
   }
 
-  def sectionFrame(sectionFrame: QuestionSectionFrame, answerSectionJson: AnswerSectionJson, index: Short) =  {
+  private def sectionFrame(sectionFrame: QuestionSectionFrame, answerSectionJson: AnswerSectionJson, index: Short) =  {
     val questionSection = sectionFrame.section
     sectionFrame.parts match {
       case Left(choices) => {
@@ -82,12 +69,13 @@ object AnswerFrame {
         val parts = answerSectionJson.functions.zip(functions).zipWithIndex.map(fs => answerPart(fs._1._1, fs._1._2, fs._2.toShort))
         val correct = parts.map(p => p.correctNum).reduce(math.min(_, _).toShort)
         val answerSection = AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, choice=None, correctNum=correct, order=index)
-        AnswerSectionFrame(answerSection, parts, correct <= NumericBoolean.Unknown)
+        val correctUnknown = correct <= NumericBoolean.Unknown
+        AnswerSectionFrame(answerSection, parts, correctUnknown)
       }
     }
   }
 
-  def answerPart(answerPartFunctionJson: AnswerPartFunctionJson, questionPartFunction: QuestionPartFunction, order: Short) : AnswerPart = {
+  private def answerPart(answerPartFunctionJson: AnswerPartFunctionJson, questionPartFunction: QuestionPartFunction, order: Short) : AnswerPart = {
     val functionMath = MathML(answerPartFunctionJson.functionMath).get
 
     val correct = (questionPartFunction.functionMath ?= functionMath) match {
@@ -101,6 +89,5 @@ object AnswerFrame {
       functionRaw=answerPartFunctionJson.functionRaw, functionMath = functionMath, correctNum = correct, order = order
     )
   }
-
 
 }

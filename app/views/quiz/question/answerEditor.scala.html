@@ -35,15 +35,15 @@
 
             case Left(parts) => { @for(part <- parts.zipWithIndex) {
             <div class="span-section answer-choice">
-                <div class="item answer-choice-select"> <input type="radio" name="@{"s"+sectionFrame._2}" id="@{"s"+sectionFrame._2+"c"+part._2}" value="@part._2" data-bind="checked: @{viewModelSec}.@{choiceIndex}"> </div>
-                <div class="item answer-choice-summary"> @part._1.descriptionHtml </div>
+                <div class="item answer-choice-select"> <input type="radio" name="@{"s"+sectionFrame._2}" id="@{"s"+sectionFrame._2+"c"+part._2}" value="@part._2" data-bind="checked: @{viewModelSec}.choiceIndexString"> </div>
+                <div class="item answer-choice-summary"> @part._1.summaryHtml </div>
             </div>
             } }
 
             case Right(parts) => { @for(part <- parts.zipWithIndex) {
             @defining(viewModelSec + "." + AnswerCreate.functions + "()[" + part._2 + "]") { viewModelFunc =>
             <div class="span-section answer-function">
-                <div class="item answer-function-summary"> @part._1.descriptionHtml </div>
+                <div class="item answer-function-summary"> @part._1.summaryHtml </div>
                 <div class="item answer-function-input">
                     <input data-bind="value: @{viewModelFunc}.@{functionRaw}" /> <br/>
                     <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"> not updated yet</span>
@@ -92,6 +92,12 @@
 
         // Create an id for this section
         sectionModel.id = "s"+si;
+
+        // Radio buttons use strings but we want the value as a number
+        sectionModel.choiceIndexString = ko.pureComputed({
+            read: function () { return sectionModel.@{choiceIndex}().toString(); },
+            write: function (value) { sectionModel.@{choiceIndex}( parseInt(value) ); }
+        });
 
         for(var pi=0; pi<sectionModel.@{AnswerCreate.functions}().length; pi++) {
             var partModel = sectionModel.@{AnswerCreate.functions}()[pi];

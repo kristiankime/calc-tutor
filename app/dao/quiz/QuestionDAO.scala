@@ -149,23 +149,23 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     def id = column[QuestionPartId]("id", O.PrimaryKey, O.AutoInc)
     def sectionId = column[QuestionSectionId]("section_id")
     def questionId = column[QuestionId]("question_id")
-    def explanationRaw = column[String]("explanation_raw")
-    def explanationHtml = column[Html]("explanation_html")
+    def summaryRaw = column[String]("summary_raw")
+    def summaryHtml = column[Html]("summary_html")
     def correctChoice = column[Short]("correct_choice")
     def order = column[Short]("part_order")
 
     def sectionIdFK = foreignKey("question_part_choice_fk__section_id", sectionId, QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
     def questionIdFK = foreignKey("question_part_choice_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, sectionId, questionId, explanationRaw, explanationHtml, correctChoice, order) <> (QuestionPartChoice.tupled, QuestionPartChoice.unapply)
+    def * = (id, sectionId, questionId, summaryRaw, summaryHtml, correctChoice, order) <> (QuestionPartChoice.tupled, QuestionPartChoice.unapply)
   }
 
   class QuestionPartFunctionTable(tag: Tag) extends Table[QuestionPartFunction](tag, "question_part_function") {
     def id = column[QuestionPartId]("id", O.PrimaryKey, O.AutoInc)
     def sectionId = column[QuestionSectionId]("section_id")
     def questionId = column[QuestionId]("question_id")
-    def explanationRaw = column[String]("explanation_raw")
-    def explanationHtml = column[Html]("explanation_html")
+    def summaryRaw = column[String]("summary_raw")
+    def summaryHtml = column[Html]("summary_html")
     def functionRaw = column[String]("function_raw")
     def functionMath = column[MathMLElem]("function_math")
     def order = column[Short]("part_order")
@@ -173,7 +173,7 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     def sectionIdFK = foreignKey("question_part_function_fk__section_id", sectionId, QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
     def questionIdFK = foreignKey("question_part_function_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, sectionId, questionId, explanationRaw, explanationHtml, functionRaw, functionMath, order) <> (QuestionPartFunction.tupled, QuestionPartFunction.unapply)
+    def * = (id, sectionId, questionId, summaryRaw, summaryHtml, functionRaw, functionMath, order) <> (QuestionPartFunction.tupled, QuestionPartFunction.unapply)
   }
 
 }

@@ -1,17 +1,18 @@
 package models.quiz
 
 import com.artclod.mathml.MathML
-import com.artclod.slick.JodaUTC
+import com.artclod.slick.{JodaUTC, NumericBoolean}
+import controllers.quiz
 import controllers.quiz.{QuestionJson, QuestionPartChoiceJson, QuestionPartFunctionJson, QuestionSectionJson}
-import models.{QuestionPartId, QuestionId, QuestionSectionId, UserId}
+import dao.TestData
+import models.UserId
 import org.scalatestplus.play._
 import play.twirl.api.Html
-
-import scala.collection.mutable
+import dao.TestData._
 
 class QuestionFrameSpec extends PlaySpec {
 
-	"convert to model" should {
+	"convert JSON to model" should {
 
 		"throw with no sections" in {
       // Scala
@@ -36,7 +37,6 @@ class QuestionFrameSpec extends PlaySpec {
       QuestionFrame(questionJson, UserId(0), JodaUTC.zero) mustBe(questionFrame)
     }
 
-
     "convert successfully with one function section" in {
       // Json
       val questionPartFunctionJson = QuestionPartFunctionJson("summaryRaw", "summaryHtml", "1", "<cn>1</cn>")
@@ -52,6 +52,46 @@ class QuestionFrameSpec extends PlaySpec {
       // Test
       QuestionFrame(questionJson, UserId(0), JodaUTC.zero) mustBe(questionFrame)
     }
+
+    "convert successfully with one multiple sections" in {
+      // Json
+      val questionJson =
+        QuestionJson("title", "description",
+          QuestionSectionJson("explanation 1", 0)(QuestionPartChoiceJson("summary 1-1"))(),
+          QuestionSectionJson("explanation 2")()(QuestionPartFunctionJson("summary 2-1", "<cn>1</cn>")),
+          QuestionSectionJson("explanation 3", 1)(QuestionPartChoiceJson("summary 3-1"), QuestionPartChoiceJson("summary 3-2"))(),
+          QuestionSectionJson("explanation 4")()(QuestionPartFunctionJson("summary 4-1", "<cn>2</cn>"), QuestionPartFunctionJson("summary 4-2", "<cn>3</cn>"))
+        )
+
+      // Scala
+      val questionFrame = TestData.questionFrame("title", "description", UserId(0))(
+        questionSectionFrame("explanation 1")(questionPartChoice("summary 1-1", NumericBoolean.T))(),
+        questionSectionFrame("explanation 2")()(questionPartFunction("summary 2-1", "<cn>1</cn>")),
+        questionSectionFrame("explanation 3")(questionPartChoice("summary 3-1", NumericBoolean.F), questionPartChoice("summary 3-2", NumericBoolean.T))(),
+        questionSectionFrame("explanation 4")()(questionPartFunction("summary 4-1", "<cn>2</cn>"), (questionPartFunction("summary 4-2", "<cn>3</cn>")))
+      )
+
+      // Test
+      QuestionFrame(questionJson, UserId(0), JodaUTC.zero) mustBe(questionFrame)
+    }
 	}
+
+  "json roundtrip" should {
+
+    "return to initial Json" in {
+      val questionJson =
+        QuestionJson("title", "description",
+          QuestionSectionJson("explanation 1", 0)(QuestionPartChoiceJson("summary 1-1"))(),
+          QuestionSectionJson("explanation 2")()(QuestionPartFunctionJson("summary 2-1", "<cn>1</cn>")),
+          QuestionSectionJson("explanation 3", 1)(QuestionPartChoiceJson("summary 3-1"), QuestionPartChoiceJson("summary 3-2"))(),
+          QuestionSectionJson("explanation 4")()(QuestionPartFunctionJson("summary 4-1", "<cn>2</cn>"), QuestionPartFunctionJson("summary 4-2", "<cn>3</cn>"))
+        )
+
+      val questionFrame = QuestionFrame(questionJson, UserId(0), JodaUTC.zero)
+
+      QuestionJson(questionFrame) mustEqual(questionJson)
+    }
+
+  }
 
 }

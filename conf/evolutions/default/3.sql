@@ -29,6 +29,7 @@ CREATE TABLE app_user_2_course
 );
 
 # --- !Downs
+
 DROP TABLE app_user_2_course CASCADE;
 DROP TABLE course CASCADE;
 DROP TABLE organization CASCADE;

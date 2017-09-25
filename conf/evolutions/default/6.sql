@@ -1,13 +1,11 @@
 # --- !Ups
 
-
-
 CREATE TABLE answer
 (
   id SERIAL NOT NULL PRIMARY KEY,
   owner_id INT NOT NULL REFERENCES app_user(id),
   question_id INT NOT NULL REFERENCES question(id),
-  all_correct SMALLINT NOT NULL,
+  correct SMALLINT NOT NULL,
   creation_date TIMESTAMP NOT NULL
 );
 
@@ -36,15 +34,8 @@ CREATE TABLE answer_part
   part_order SMALLINT NOT NULL
 );
 
-
-
-
-
-
-
 # --- !Downs
 
-DROP TABLE question_part_choice CASCADE;
+DROP TABLE answer_part CASCADE;
 DROP TABLE answer_section CASCADE;
 DROP TABLE answer CASCADE;
-

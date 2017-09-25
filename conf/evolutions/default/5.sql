@@ -24,8 +24,8 @@ CREATE TABLE question_part_choice
   id SERIAL NOT NULL PRIMARY KEY,
   section_id INT NOT NULL REFERENCES question_section(id),
   question_id INT NOT NULL REFERENCES question(id),
-  explanation_raw VARCHAR NOT NULL,
-  explanation_html VARCHAR NOT NULL,
+  summary_raw VARCHAR NOT NULL,
+  summary_html VARCHAR NOT NULL,
   correct_choice SMALLINT NOT NULL,
   part_order SMALLINT NOT NULL
 );
@@ -35,8 +35,8 @@ CREATE TABLE question_part_function
   id SERIAL NOT NULL PRIMARY KEY,
   section_id INT NOT NULL REFERENCES question_section(id),
   question_id INT NOT NULL REFERENCES question(id),
-  explanation_raw VARCHAR NOT NULL,
-  explanation_html VARCHAR NOT NULL,
+  summary_raw VARCHAR NOT NULL,
+  summary_html VARCHAR NOT NULL,
   function_raw VARCHAR NOT NULL,
   function_math VARCHAR NOT NULL,
   part_order SMALLINT NOT NULL

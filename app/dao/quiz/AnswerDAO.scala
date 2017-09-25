@@ -125,13 +125,13 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     def id = column[AnswerId]("id", O.PrimaryKey, O.AutoInc)
     def ownerId = column[UserId]("owner_id")
     def questionId = column[QuestionId]("question_id")
-    def allCorrectNum = column[Short]("all_correct")
+    def correct = column[Short]("correct")
     def creationDate = column[DateTime]("creation_date")
 
     def ownerIdFK = foreignKey("answer_fk__owner_id", ownerId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
     def questionIdFK = foreignKey("answer_section_fk__question_id", questionId, questionDAO.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, ownerId, questionId, allCorrectNum, creationDate) <> (Answer.tupled, Answer.unapply)
+    def * = (id, ownerId, questionId, correct, creationDate) <> (Answer.tupled, Answer.unapply)
   }
 
   class AnswerSectionTable(tag: Tag) extends Table[AnswerSection](tag, "answer_section") {

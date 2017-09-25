@@ -3,6 +3,8 @@ package controllers.quiz
 import javax.inject._
 
 import _root_.controllers.support.{Consented, RequireAccess}
+import com.artclod.markup.Markdowner
+import com.artclod.mathml.MathML
 import com.artclod.slick.JodaUTC
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
@@ -17,7 +19,7 @@ import com.artclod.util._
 import controllers.organization.CourseCreate
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO}
 import models.organization.Course
-import models.quiz.{QuestionFrame, Quiz}
+import models.quiz._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{JsError, JsSuccess, Json}
@@ -96,13 +98,86 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
 }
 
-case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson])
+// === QuestionJson
+case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson]) {
+  if(sections.size == 0) { throw new IllegalArgumentException("Questions must have at least one section")}
+}
 
-case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, choiceOrFunction: String, correctChoiceIndex: Int, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson])
+object QuestionJson {
 
+  def apply(title: String, description: String, sections: QuestionSectionJson*) : QuestionJson = QuestionJson(title, description, Markdowner.string(description), Vector(sections:_*))
+
+  def apply(questionFrame: QuestionFrame) : QuestionJson = {
+    val sections = questionFrame.sections.map(s => QuestionSectionJson(s))
+    QuestionJson(questionFrame.question.title, questionFrame.question.descriptionRaw, questionFrame.question.descriptionHtml.toString, sections)
+  }
+
+}
+
+// === QuestionSectionJson
+case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, choiceOrFunction: String, correctChoiceIndex: Int, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson]) {
+  choiceOrFunction match {
+    case QuestionCreate.choice => {
+      if(correctChoiceIndex < 0 || correctChoiceIndex >= choices.size){ throw new IllegalArgumentException("Choice index was no in correct range")}
+      if(choices.size == 0) {throw new IllegalArgumentException() }
+    }
+    case QuestionCreate.function => null
+    case _ => throw new IllegalArgumentException("choiceOrFunction was not recognized type [" + choiceOrFunction + "]")
+  }
+}
+
+object QuestionSectionJson {
+
+  def apply(explanation: String, correctChoiceIndex : Int = -1)(choices: QuestionPartChoiceJson*)(functions: QuestionPartFunctionJson*) : QuestionSectionJson = {
+    (correctChoiceIndex, choices.nonEmpty, functions.nonEmpty) match {
+     case(i,  true,  false) if i >= 0 && i < choices.size => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice,   correctChoiceIndex, Vector(choices:_*), Vector())
+     case(-1, false, true )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector(functions:_*))
+     case _ => throw new IllegalArgumentException("Not a valid QuestionSectionJson combo")
+    }
+  }
+
+  def apply(questionSectionFrame: QuestionSectionFrame) : QuestionSectionJson = {
+    val choices : Vector[QuestionPartChoiceJson] = questionSectionFrame.parts.left.getOrElse(Vector()).map(c => QuestionPartChoiceJson(c))
+    val functions : Vector[QuestionPartFunctionJson] = questionSectionFrame.parts.right.getOrElse(Vector()).map(f => QuestionPartFunctionJson(f))
+    QuestionSectionJson(
+      questionSectionFrame.section.explanationRaw,
+      questionSectionFrame.section.explanationHtml.toString,
+      if(questionSectionFrame.parts.isLeft){QuestionCreate.choice}else{QuestionCreate.function},
+      questionSectionFrame.correctIndex.getOrElse(-1),
+      choices,
+      functions)
+  }
+
+}
+
+// === QuestionPartChoiceJson
 case class QuestionPartChoiceJson(summaryRaw: String, summaryHtml: String)
 
+object QuestionPartChoiceJson {
+
+  def apply(summary: String) : QuestionPartChoiceJson = QuestionPartChoiceJson(summary, Markdowner.string(summary))
+
+  def apply(questionPartChoice: QuestionPartChoice) : QuestionPartChoiceJson =
+    QuestionPartChoiceJson(
+      questionPartChoice.summaryRaw,
+      questionPartChoice.summaryHtml.toString)
+}
+
+// === QuestionPartFunctionJson
 case class QuestionPartFunctionJson(summaryRaw: String, summaryHtml: String, functionRaw: String, functionMath: String)
+
+object QuestionPartFunctionJson {
+
+  def apply(summary: String, function: String) : QuestionPartFunctionJson = QuestionPartFunctionJson(summary, Markdowner.string(summary), function, MathML(function).get.toString)
+
+  def apply(questionPartFunction: QuestionPartFunction) : QuestionPartFunctionJson =
+    QuestionPartFunctionJson(
+      questionPartFunction.summaryRaw,
+      questionPartFunction.summaryHtml.toString,
+      questionPartFunction.functionRaw,
+      questionPartFunction.functionMath.toString)
+
+}
 
 object QuestionCreate {
   val questionJson = "question-json"
