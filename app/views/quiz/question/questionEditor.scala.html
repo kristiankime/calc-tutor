@@ -181,30 +181,10 @@
                 section.explanationInvalid = ko.computed(function () {
                     return section.@{QuestionCreate.explanationRaw}() == "";
                 });
-
-                @*section.invalid = ko.computed(function () {
+                
+                section.invalid = ko.computed(function () {
                     var explanationInvalid = section.explanationInvalid();
                     var choicesInvalid   = _.map(section.@{QuestionCreate.choices}(),   function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
-                    var functionsInvalid = _.map(section.@{QuestionCreate.functions}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
-                    if(section.@{QuestionCreate.choiceOrFunction}() == "@QuestionCreate.choice") {
-                        return choicesInvalid;
-                    } else {
-                        return functionsInvalid;
-                    }
-                });*@
-
-                section.invalid = function () {
-                    var explanationInvalid = section.explanationInvalid();
-                    var choicesInvalid   = _.map(section.@{QuestionCreate.choices}(),   function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
-
-                    var tmp1 = _.map(section.@{QuestionCreate.functions}(), function(a){
-                        return a.invalid();
-                        })
-                    var tmp2 = tmp1.reduce(function(a,b){
-                        return a || b;
-                        }, explanationInvalid);
-
-
                     var functionsInvalid = _.map(section.@{QuestionCreate.functions}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
 
                     if(section.@{QuestionCreate.choiceOrFunction}() == "@QuestionCreate.choice") {
@@ -212,7 +192,7 @@
                     } else {
                         return functionsInvalid;
                     }
-                };
+                });
 
                 // --- Start Add new parts ----
                 // add new choice part
@@ -280,13 +260,9 @@
                     return main.@{QuestionCreate.title}() == "";
                 });
 
-                @*main.invalid = ko.computed(function () {
+                main.invalid = ko.computed(function () {
                     return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid()) );
-                });*@
-
-                main.invalid = function () {
-                    return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid()) );
-                };
+                });
 
                 // Function to create a new section
                 main.addSection = function () {
