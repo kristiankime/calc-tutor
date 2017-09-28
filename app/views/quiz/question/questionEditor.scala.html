@@ -9,16 +9,15 @@
 
     <div class="question-header">
 
-        <div class="item title-input"> Question Title: <input data-bind="textInput: @QuestionCreate.title" /> </div>
+        <div class="item title-input"> Question Title @tag.isValid("titleInvalid") : <input data-bind="textInput: @QuestionCreate.title" /> </div>
         <div class="item title-output"> <span data-bind="html: @QuestionCreate.title"> </span> </div>
-        <div class="item description-input"> Question Description: <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.descriptionRaw"></textarea> </div>
+        <div class="item description-input"> Question Description @tag.isValid("descriptionInvalid") : <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.descriptionRaw"></textarea> </div>
         <div class="item description-output"> <span data-bind="html: @QuestionCreate.descriptionHtml"> </span> </div>
         <div class="item add-section"> <a href='#' data-bind='click: addSection' class="pure-button">Add Section</a> </div>
 
-
         <!-- ko foreach: @QuestionCreate.sections -->
         <div class="span-header question-section">
-            <div class="item explanation-input"> Section Descripton: <input data-bind="value: @QuestionCreate.explanationRaw" /> </div>
+            <div class="item explanation-input"> Explanation @tag.isValid("explanationInvalid") : <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.explanationRaw"></textarea> </div>
             <div class="item explanation-output"> <span data-bind="html: @QuestionCreate.explanationHtml"> </span> </div>
             <div class="item section-controls">
                 <a href='#' data-bind='click: removeThisSection' class="pure-button">Remove This Section</a>
@@ -31,7 +30,7 @@
             <!-- ko if: @{QuestionCreate.choiceOrFunction}() == 'choice' -->
             <!-- ko foreach: @QuestionCreate.choices -->
             <div class="span-section question-choice">
-                <div class="item summary-input"> Choice Summary: <input data-bind="value: @QuestionCreate.summaryRaw" /> </div>
+                <div class="item summary-input"> Summary @tag.isValid("invalid"): <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
                 <div class="item summary-output"> <span data-bind="html: @QuestionCreate.summaryHtml"> </span> </div>
                 <div class="item choice-correct"> <input type="radio" data-bind="name: $parent.@QuestionCreate.id, value: $index, checked: $parent.@QuestionCreate.correctChoiceIndex, text: $parent.@QuestionCreate.id"> Correct </input> </div>
                 <div class="item choice-controls"> <a href='#' data-bind='click: removeThisPart' class="pure-button">Remove This Part</a> </div>
@@ -42,9 +41,9 @@
             <!-- ko if: @{QuestionCreate.choiceOrFunction}() == 'function' -->
             <!-- ko foreach: @QuestionCreate.functions -->
             <div class="span-section question-function">
-                <div class="item summary-input"> Function Summary: <input data-bind="value: @QuestionCreate.summaryRaw" /> </div>
+                <div class="item summary-input"> Summary @tag.isValid("summaryInvalid"): <br> <textarea type="text" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
                 <div class="item summary-output"> <span data-bind="html: @QuestionCreate.summaryHtml"> </span> </div>
-                <div class="item function-input"> Function func: <input data-bind="value: @QuestionCreate.functionRaw" /> </div>
+                <div class="item function-input"> Function @tag.isValid("functionInvalid") : <input data-bind="textInput: @QuestionCreate.functionRaw" /> </div>
                 <div class="item function-output"><span data-bind="attr: { 'id' : @QuestionCreate.id}, text: @QuestionCreate.id"> </span> </div>
                 <div class="item function-controls"><a href='#' data-bind='click: removeThisPart' class="pure-button">Remove This Part</a> </div>
             </div>
@@ -53,7 +52,6 @@
 
         </div>
         <!-- /ko -->
-
 
     </div>
 
@@ -66,14 +64,19 @@
     }
     <script>
         questionJsonFormSubmit = function() {
-            $("#questionJson").val(ko.mapping.toJSON(viewModel));
-            $("#questionJsonForm").submit();
+            if(viewModel.invalid()) {
+                window.alert("There are errors in the inputs, look for red *");
+            } else {
+                $("#questionJson").val(ko.mapping.toJSON(viewModel));
+                $("#questionJsonForm").submit();
+            }
         }
     </script>
 </section>
 
 <script type="text/javascript">
         var QE = function() { // The Question Editor Knockoutjs support Module
+
             // ============ Choice Part Enhancement ============
             var choicePartId = function (section, num) {
                 return section.@QuestionCreate.id + "c" + num;
@@ -94,6 +97,11 @@
                         return p.id === part.id;
                     });
                 }
+
+                // Do we have a summary?
+                part.invalid = ko.computed(function () {
+                    return part.@{QuestionCreate.summaryRaw}() == "";
+                });
             }
 
             // ============ Function Part Enhancement ============
@@ -109,12 +117,25 @@
                     return ARTC.markdown(part.@{QuestionCreate.summaryRaw}());
                 }, part);
 
-                // Update the math display & value
+                // Do we have a summary?
+                part.summaryInvalid = ko.computed(function () {
+                    return part.@{QuestionCreate.summaryRaw}() == "";
+                });
+
+                // Update the math display & value (and validity)
+                part.functionInvalid = ko.observable(true); // This will be updated manually by subscribe below
                 var func = part.@{QuestionCreate.functionRaw};
                 func.subscribe(function (newValue) {
                     var mathResult = @{mathJsParser}(newValue);
-                    ARTC.mathJax.updateById(part.@QuestionCreate.id, ARTC.mathJax.tex(mathResult.node.toTex()));
-                    part.@{QuestionCreate.functionMath}(mathResult.content);
+                    if(mathResult.success) {
+                        ARTC.mathJax.updateById(part.@QuestionCreate.id, ARTC.mathJax.tex(mathResult.node.toTex()));
+                        part.@{QuestionCreate.functionMath}(mathResult.content);
+                    }
+                    part.functionInvalid(!mathResult.success);
+                });
+
+                part.invalid = ko.computed(function () {
+                    return part.summaryInvalid() || part.functionInvalid()  ;
                 });
 
                 // Remove this part
@@ -139,25 +160,68 @@
                 // Set the id for consistency
                 section.@QuestionCreate.id = sectionId(num); // Note here we overwrite the id
 
-                // Overwrite/Bind the html explanation
-                section.@QuestionCreate.explanationHtml = ko.computed(function () {
-                    return ARTC.markdown(section.@{QuestionCreate.explanationRaw}());
-                }, section);
-
-                // --- Choice Part ----
+                // --- Start Update Parts ---
                 // Update any existing Choice Parts (ie make sure they are enhanced)
                 for (var i = 0; i < section.@{QuestionCreate.choices}().length; i++) {
                     enhanceChoicePart(section, section.@{QuestionCreate.choices}()[i], i);
                 }
 
-                // add new choice function
+                // Update any existing Function Parts (ie make sure they are enhanced)
+                for (var i = 0; i < section.@{QuestionCreate.functions}().length; i++) {
+                    enhanceFunctionPart(section, section.@{QuestionCreate.functions}()[i], i);
+                }
+                // --- End Update Parts ---
+
+                // Overwrite/Bind the html explanation
+                section.@QuestionCreate.explanationHtml = ko.computed(function () {
+                    return ARTC.markdown(section.@{QuestionCreate.explanationRaw}());
+                }, section);
+
+
+                section.explanationInvalid = ko.computed(function () {
+                    return section.@{QuestionCreate.explanationRaw}() == "";
+                });
+
+                @*section.invalid = ko.computed(function () {
+                    var explanationInvalid = section.explanationInvalid();
+                    var choicesInvalid   = _.map(section.@{QuestionCreate.choices}(),   function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
+                    var functionsInvalid = _.map(section.@{QuestionCreate.functions}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
+                    if(section.@{QuestionCreate.choiceOrFunction}() == "@QuestionCreate.choice") {
+                        return choicesInvalid;
+                    } else {
+                        return functionsInvalid;
+                    }
+                });*@
+
+                section.invalid = function () {
+                    var explanationInvalid = section.explanationInvalid();
+                    var choicesInvalid   = _.map(section.@{QuestionCreate.choices}(),   function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
+
+                    var tmp1 = _.map(section.@{QuestionCreate.functions}(), function(a){
+                        return a.invalid();
+                        })
+                    var tmp2 = tmp1.reduce(function(a,b){
+                        return a || b;
+                        }, explanationInvalid);
+
+
+                    var functionsInvalid = _.map(section.@{QuestionCreate.functions}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
+
+                    if(section.@{QuestionCreate.choiceOrFunction}() == "@QuestionCreate.choice") {
+                        return choicesInvalid;
+                    } else {
+                        return functionsInvalid;
+                    }
+                };
+
+                // --- Start Add new parts ----
+                // add new choice part
                 section.addChoice = function () {
-                    var choiceId = choicePartId(section, choiceIdGenerator++);
+                    var choiceId = choicePartId(section, choiceIdGenerator++); // note this increments the idGenerator
 
                     var newChoice = ko.mapping.fromJS({
-                        @* @QuestionCreate.id          : choiceId,*@
-                        @QuestionCreate.summaryRaw  : "new choice " + choiceIdGenerator,
-                        @QuestionCreate.summaryHtml : ARTC.markdown("new choice " + choiceIdGenerator)
+                        @QuestionCreate.summaryRaw  : "",
+                        @QuestionCreate.summaryHtml : ARTC.markdown("")
                     } );
 
                     enhanceChoicePart(section, newChoice, choiceIdGenerator);
@@ -165,20 +229,13 @@
                     var chs = section.@{QuestionCreate.choices};
                     chs.push(newChoice);
                 }
-                // -----------------------
-
-                // --- Function Part ----
-                // Update any existing Function Parts (ie make sure they are enhanced)
-                for (var i = 0; i < section.@{QuestionCreate.functions}().length; i++) {
-                    enhanceFunctionPart(section, section.@{QuestionCreate.functions}()[i], i);
-                }
-
+                // add new function part
                 section.addFunction = function () {
-                    var functionId = functionPartId(section, functionIdGenerator++);
+                    var functionId = functionPartId(section, functionIdGenerator++); // note this increments the idGenerator
                     var newFunction = ko.mapping.fromJS({
                         @* @QuestionCreate.id           : functionId,*@
-                        @QuestionCreate.summaryRaw   : "new function " + functionIdGenerator,
-                        @QuestionCreate.summaryHtml  : ARTC.markdown("new function " + functionIdGenerator),
+                        @QuestionCreate.summaryRaw   : "",
+                        @QuestionCreate.summaryHtml  : ARTC.markdown(""),
                         @QuestionCreate.functionRaw  : "",
                         @QuestionCreate.functionMath : ""
                     } );
@@ -188,7 +245,7 @@
                     var funcs = section.@{QuestionCreate.functions};
                     funcs.push(newFunction);
                 }
-                // -----------------------
+                // --- End Add new parts ----
 
                 // Remove this section
                 section.removeThisSection = function () {
@@ -205,23 +262,38 @@
                 // Each sections needs a unique id
                 var idGenerator = main.@{QuestionCreate.sections}.length;
 
+                // Enhance any existing Sections
+                for (var i = 0; i < main.@{QuestionCreate.sections}().length; i++) {
+                    enhanceSection(main, main.@{QuestionCreate.sections}()[i], i);
+                }
+
                 // Create the computed Description Html from the raw
                 main.@QuestionCreate.descriptionHtml = ko.computed(function () {
                     return ARTC.markdown(main.@{QuestionCreate.descriptionRaw}());
                 }, main);
 
-                // Update any existing Sections
-                for (var i = 0; i < main.@{QuestionCreate.sections}().length; i++) {
-                    enhanceSection(main, main.@{QuestionCreate.sections}()[i], i);
-                }
+                main.descriptionInvalid = ko.computed(function () {
+                    return main.@{QuestionCreate.descriptionRaw}() == "";
+                });
+
+                main.titleInvalid = ko.computed(function () {
+                    return main.@{QuestionCreate.title}() == "";
+                });
+
+                @*main.invalid = ko.computed(function () {
+                    return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid()) );
+                });*@
+
+                main.invalid = function () {
+                    return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid()) );
+                };
 
                 // Function to create a new section
                 main.addSection = function () {
-                    var secId = sectionId(idGenerator++);
+                    var secId = sectionId(idGenerator++); // note this increments the idGenerator
                     var newSection = ko.mapping.fromJS({
-                        @* @QuestionCreate.id                 : secId, // Note this is also set in enhanceSection*@
-                        @QuestionCreate.explanationRaw     : "new section " + idGenerator,
-                        @QuestionCreate.explanationHtml    : ARTC.markdown("new section " + idGenerator),
+                        @QuestionCreate.explanationRaw     : "",
+                        @QuestionCreate.explanationHtml    : ARTC.markdown(""),
                         @QuestionCreate.choiceOrFunction   : "choice",
                         @QuestionCreate.correctChoiceIndex : 0,
                         @QuestionCreate.choices            : [],
@@ -238,18 +310,11 @@
             return QE;
         }();
 
-        var dataOld = @initialDataModel.getOrElse(Html("""{
-            title : "",
-            descriptionRaw : "",
-            descriptionHtml : ARTC.markdown(""),
-            sections : []
-        }"""))
-
         var data = @initialDataModel.getOrElse(Html("{ " +
-            QuestionCreate.title +           """ : "", """ +
-            QuestionCreate.descriptionRaw +  """ : "", """ +
+            QuestionCreate.title + """           : "", """ +
+            QuestionCreate.descriptionRaw + """  : "", """ +
             QuestionCreate.descriptionHtml + """ : ARTC.markdown(""), """ +
-            "sections : []" +
+            QuestionCreate.sections + """        : []""" +
         "}"))
 
         var viewModel = ko.mapping.fromJS(data);
