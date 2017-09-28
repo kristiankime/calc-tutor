@@ -21,15 +21,10 @@
 
         @* ===== START SECTION ==== *@
         @for(sectionFrame <- questionFrame.sections.zipWithIndex) {
-        @defining("$root." + AnswerCreate.sections + "()[" + sectionFrame._2 + "]") { viewModelSec =>
+        @defining("$root." + AnswerCreate.sections + "()[" + sectionFrame._2 + "]") { viewModelSec : String =>
         <div class="span-answer-header answer-section">
 
-            <div class="item answer-explanation"> @sectionFrame._1.section.explanationHtml <br />
-                correct: <div data-bind="text: @{viewModelSec}.@{correct}"> </div>
-                <div data-bind="visible : @{viewModelSec}.@{correct}() == @{correctUnknown}"> This was unknown</div>
-                <div data-bind="visible : @{viewModelSec}.@{correct}() == @{correctNo}"> This was wrong</div>
-                <div data-bind="visible : @{viewModelSec}.@{correct}() == @{correctBlank}"> This was blank</div>
-            </div>
+            <div class="item answer-explanation"> @sectionFrame._1.section.explanationHtml @tag.lastAnswerWas(viewModelSec + "." + correct + "()") </div>
             @* ===== START PARTS ==== *@
             @sectionFrame._1.parts match {
 
@@ -41,15 +36,11 @@
             } }
 
             case Right(parts) => { @for(part <- parts.zipWithIndex) {
-            @defining(viewModelSec + "." + AnswerCreate.functions + "()[" + part._2 + "]") { viewModelFunc =>
+            @defining(viewModelSec + "." + AnswerCreate.functions + "()[" + part._2 + "]") { viewModelFunc : String =>
             <div class="span-section answer-function">
                 <div class="item answer-function-summary"> @part._1.summaryHtml </div>
                 <div class="item answer-function-input">
-                    <input data-bind="value: @{viewModelFunc}.@{functionRaw}" /> <br/>
-                    <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"> not updated yet</span>
-                    <div data-bind="visible : @{viewModelFunc}.@{correct}() == @{correctUnknown}">  This was unknown</div>
-                    <div data-bind="visible : @{viewModelFunc}.@{correct}() == @{correctNo}"> This was wrong</div>
-                    <div data-bind="visible : @{viewModelFunc}.@{correct}() == @{correctBlank}"> This was blank</div>
+                    @{tag.isValid(viewModelFunc + ".invalid()")} <input data-bind="textInput: @{viewModelFunc}.@{functionRaw}" /> <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"></span> @tag.lastAnswerWas(viewModelFunc + "." + correct + "()")
                 </div>
             </div>
             } } }
@@ -73,8 +64,12 @@
 
     <script>
         answerJsonFormSubmit = function() {
-            $("#answerJson").val(ko.mapping.toJSON(viewModel));
-            $("#answerJsonForm").submit();
+            if(viewModel.invalid()) {
+                window.alert("There are errors in the inputs, look for red *");
+            } else {
+                $("#answerJson").val(ko.mapping.toJSON(viewModel));
+                $("#answerJsonForm").submit();
+            }
         }
     </script>
 </section>
@@ -89,47 +84,59 @@
     // === The Answer Enhance Module ===
     // it knows how to enhance the view model with the MathJAX computations/displays etc
     var AE = function() {
-        var enhancePart = function(partModel, si, pi) {
+        var enhancePart = function(part, si, pi) {
             // Create an id for this part
-            partModel.id = "s" + si + "f" + pi;
+            part.id = "s" + si + "f" + pi;
 
+            part.invalid = ko.observable(true); // will be updated by subscribe below
             // Set up the mathjax updates
-            var func = partModel.@{AnswerCreate.functionRaw};
+            var func = part.@{AnswerCreate.functionRaw};
             func.subscribe(function (newValue) {
-                console.log(partModel.id);
                 var mathResult = @{mathJsParser}(newValue);
-                ARTC.mathJax.updateById(partModel.id, ARTC.mathJax.tex(mathResult.node.toTex()));
-                partModel.@{AnswerCreate.functionMath}(mathResult.content);
+                if(mathResult.success) {
+                    ARTC.mathJax.updateById(part.id, ARTC.mathJax.tex(mathResult.node.toTex()));
+                    part.@{AnswerCreate.functionMath}(mathResult.content);
+                }
+                part.invalid(!mathResult.success);
             });
+
+            // Force an update for part.invalid
+            func.valueHasMutated();
         }
 
-        var enhanceSection = function(sectionModel, si) {
+        var enhanceSection = function(section, si) {
             // Create an id for this section
-            sectionModel.id = "s" + si;
-
-            console.log(sectionModel.id);
+            section.id = "s" + si;
 
             // Radio buttons use strings but we want the value as a number
-            sectionModel.choiceIndexString = ko.pureComputed({
+            section.choiceIndexString = ko.pureComputed({
                 read: function () {
-                    return sectionModel.@{choiceIndex}().toString();
+                    return section.@{choiceIndex}().toString();
                 },
                 write: function (value) {
-                    sectionModel.@{choiceIndex}(parseInt(value));
+                    section.@{choiceIndex}(parseInt(value));
                 }
             });
 
-            for (var pi = 0; pi < sectionModel.@{AnswerCreate.functions}().length; pi++) {
-                var partModel = sectionModel.@{AnswerCreate.functions}()[pi];
+            for (var pi = 0; pi < section.@{AnswerCreate.functions}().length; pi++) {
+                var partModel = section.@{AnswerCreate.functions}()[pi];
                 enhancePart(partModel, si, pi);
             }
+
+            section.invalid = ko.computed(function () {
+                return _.map(section.@{AnswerCreate.functions}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, false);
+            });
         }
 
-        var enhanceMain = function(viewModel) {
-            for (var si = 0; si < viewModel.@{AnswerCreate.sections}().length; si++) {
-                var sectionModel = viewModel.@{AnswerCreate.sections}()[si];
+        var enhanceMain = function(main) {
+            for (var si = 0; si < main.@{AnswerCreate.sections}().length; si++) {
+                var sectionModel = main.@{AnswerCreate.sections}()[si];
                 enhanceSection(sectionModel, si);
             }
+
+            main.invalid = ko.computed(function () {
+                return _.map(main.@{AnswerCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, false);
+            });
         }
 
         var AE = {};

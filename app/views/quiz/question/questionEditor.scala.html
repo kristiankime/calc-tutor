@@ -44,7 +44,7 @@
                 <div class="item summary-input"> Summary @tag.isValid("summaryInvalid"): <br> <textarea type="text" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
                 <div class="item summary-output"> <span data-bind="html: @QuestionCreate.summaryHtml"> </span> </div>
                 <div class="item function-input"> Function @tag.isValid("functionInvalid") : <input data-bind="textInput: @QuestionCreate.functionRaw" /> </div>
-                <div class="item function-output"><span data-bind="attr: { 'id' : @QuestionCreate.id}, text: @QuestionCreate.id"> </span> </div>
+                <div class="item function-output"><span data-bind="attr: { 'id' : @QuestionCreate.id }"> </span> </div>
                 <div class="item function-controls"><a href='#' data-bind='click: removeThisPart' class="pure-button">Remove This Part</a> </div>
             </div>
             <!-- /ko -->
@@ -123,7 +123,7 @@
                 });
 
                 // Update the math display & value (and validity)
-                part.functionInvalid = ko.observable(true); // This will be updated manually by subscribe below
+                part.functionInvalid = ko.observable( true ); // This will be updated manually by subscribe below
                 var func = part.@{QuestionCreate.functionRaw};
                 func.subscribe(function (newValue) {
                     var mathResult = @{mathJsParser}(newValue);
@@ -137,6 +137,9 @@
                 part.invalid = ko.computed(function () {
                     return part.summaryInvalid() || part.functionInvalid()  ;
                 });
+
+                // Force an update for part.functionInvalid
+                func.valueHasMutated();
 
                 // Remove this part
                 part.removeThisPart = function () {
@@ -181,7 +184,7 @@
                 section.explanationInvalid = ko.computed(function () {
                     return section.@{QuestionCreate.explanationRaw}() == "";
                 });
-                
+
                 section.invalid = ko.computed(function () {
                     var explanationInvalid = section.explanationInvalid();
                     var choicesInvalid   = _.map(section.@{QuestionCreate.choices}(),   function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
@@ -212,8 +215,8 @@
                 // add new function part
                 section.addFunction = function () {
                     var functionId = functionPartId(section, functionIdGenerator++); // note this increments the idGenerator
+
                     var newFunction = ko.mapping.fromJS({
-                        @* @QuestionCreate.id           : functionId,*@
                         @QuestionCreate.summaryRaw   : "",
                         @QuestionCreate.summaryHtml  : ARTC.markdown(""),
                         @QuestionCreate.functionRaw  : "",
@@ -270,7 +273,7 @@
                     var newSection = ko.mapping.fromJS({
                         @QuestionCreate.explanationRaw     : "",
                         @QuestionCreate.explanationHtml    : ARTC.markdown(""),
-                        @QuestionCreate.choiceOrFunction   : "choice",
+                        @QuestionCreate.choiceOrFunction   : "@QuestionCreate.choice",
                         @QuestionCreate.correctChoiceIndex : 0,
                         @QuestionCreate.choices            : [],
                         @QuestionCreate.functions          : []

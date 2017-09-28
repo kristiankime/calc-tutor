@@ -1,0 +1,5 @@
+@(value: String)
+correct: <span data-bind="text: @{value}"> </span>
+<span class="warning" data-bind="visible : @{value} == @{controllers.quiz.AnswerJson.correctUnknown}"> Unknown</span>
+<span class="warning" data-bind="visible : @{value} == @{controllers.quiz.AnswerJson.correctNo}"> Incorrect</span>
+<span class="warning" data-bind="visible : @{value} == @{controllers.quiz.AnswerJson.correctBlank}"> Debug Blank</span>
