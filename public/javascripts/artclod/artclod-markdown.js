@@ -3,9 +3,8 @@ if (!ARTC) {
 }
 
 // https://github.com/showdownjs/showdown
-ARTC.markdown = function (text) {
+ARTC.markdown = function (idPrefix, text) {
     var converter = new showdown.Converter();
-
 
     // store all the matches we find here
     var replaces = {};
@@ -47,7 +46,7 @@ ARTC.markdown = function (text) {
             var valueRaw = "{" + valueRaw.substr(3, valueRaw.length - 6) + "}"
             try {
                 var value = JSON.parse(valueRaw);
-                var id = 'insert_' + key.substr(1, key.length - 2);
+                var id = idPrefix + '_' + key.substr(1, key.length - 2);
                 value["id"] = id;
 
                 var width = value.xPixSize;
@@ -67,6 +66,6 @@ ARTC.markdown = function (text) {
     }
 
     MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-    console.log(ret);
+    // console.log(ret);
     return ret;
 }

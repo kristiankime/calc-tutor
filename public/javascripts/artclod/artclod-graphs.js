@@ -20,14 +20,14 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
     var xRange = xMax - xMin;
     var yRange = yMax - yMin;
 
-    console.log(func);
-    console.log(glider);
-    console.log(xMin);
-    console.log(xMax);
-    console.log(yMin);
-    console.log(yMax);
-    console.log(xPixSize);
-    console.log(yPixSize);
+    // console.log(func);
+    // console.log(glider);
+    // console.log(xMin);
+    // console.log(xMax);
+    // console.log(yMin);
+    // console.log(yMax);
+    // console.log(xPixSize);
+    // console.log(yPixSize);
 
     var mathF;
     try {
@@ -35,7 +35,7 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
     } catch(e) {
         mathF = function(x){return 0;};
     }
-    console.log(mathF);
+    // console.log(mathF);
 
     // var board = JXG.JSXGraph.initBoard(id,{originX:50, originY:250, unitX:50, unitY:10, axis:true}); board.create('point',[1,5]);
     // board.create('point',[1,5]);
