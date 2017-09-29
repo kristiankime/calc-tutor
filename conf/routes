@@ -54,3 +54,5 @@ GET         /auth/loginForm                                           controller
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                             controllers.Assets.versioned(path="/public", file: Asset)
+GET         /googleaea4ea0f93c23f36.html                              controllers.Assets.at(path="/public/google", file="googleaea4ea0f93c23f36.html")
+
