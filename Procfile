@@ -1,0 +1,1 @@
+web: target/universal/stage/bin/calc-tutor -Dhttp.port=${PORT} -DapplyEvolutions.default=true
