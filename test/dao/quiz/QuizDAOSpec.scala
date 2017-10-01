@@ -1,9 +1,9 @@
-package dao.organization
+package dao.quiz
 
 import dao.TestData
-import dao.quiz.QuizDAO
+import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
-import models.{Non, Own, View}
+import models.{Non, Own, View, Edit}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import support.EnhancedInjector
@@ -54,6 +54,24 @@ class QuizDAOSpec extends PlaySpec with GuiceOneAppPerTest {
 
       TestData.await(quizDAO.access(owner.id, quiz.id)) mustBe(Own)
     }
+
+    "return Edit if user has Edit access to a course that the question has been added to" in {
+      val (userDAO, quizDAO, organizationDAO, courseDAO) = app.injector.instanceOf4[UserDAO, QuizDAO, OrganizationDAO, CourseDAO]
+
+      // Create a quiz attached to a course
+      val owner = TestData.await(userDAO.insert(TestData.user(0)))
+      val org = TestData.await(organizationDAO.insert(TestData.organization(0)))
+      val course = TestData.await(courseDAO.insert(TestData.course(0, org, owner) ))
+      val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
+      TestData.await(quizDAO.attach(course, quiz))
+
+      // Grant a user Edit access to the course
+      val user = TestData.await(userDAO.insert(TestData.user(1)))
+      TestData.await(courseDAO.grantAccess(user, course, Edit))
+
+      TestData.await(quizDAO.access(user.id, quiz.id)) mustBe(Edit)
+    }
+
   }
 
 

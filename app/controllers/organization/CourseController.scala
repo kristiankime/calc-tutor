@@ -6,7 +6,7 @@ import _root_.controllers.support.{Consented, RequireAccess}
 import com.artclod.slick.JodaUTC
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
-import models.{CourseId, Edit, OrganizationId, View}
+import models._
 import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.play.scala.Security
@@ -72,7 +72,7 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
 
     (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ quizDAO.quizzesFor(courseId)).map{ _ match {
        case Left(notFoundResult) => notFoundResult
-       case Right((organization, course, accesss, quizzes)) => Ok(views.html.organization.courseView(organization, course, accesss, quizzes))
+       case Right((organization, course, access, quizzes)) => Ok(views.html.organization.courseView(organization, course, access, quizzes))
       }
     }
 
@@ -86,9 +86,9 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
           CourseJoin.form.bindFromRequest.fold(
               errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
               form => {
-                val granted = if (course.editCode == form) { courseDAO.grantAccess(user, course, Edit) }
-                else if (course.viewCode == None || course.viewCode.get == form) { courseDAO.grantAccess(user, course, View) }
-                else { Future.successful()}
+                val granted = if (course.editCode == form) { courseDAO.grantAccess(user, course, Edit); Future.successful(Edit) }
+                else if (course.viewCode == None || course.viewCode.get == form) { courseDAO.grantAccess(user, course, View); Future.successful(View) }
+                else { Future.successful(Non) }
                 granted.map( na => Redirect(controllers.organization.routes.CourseController.view(organizationId, courseId)) ) // TODO indicate access was not granted in a better fashion
               })
     }

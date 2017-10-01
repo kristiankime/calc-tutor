@@ -8,7 +8,7 @@ import dao.ColumnTypeMappings
 import dao.organization.CourseDAO
 import dao.user.UserDAO
 import models.quiz.{User2Quiz, _}
-import models._
+import models.{organization, _}
 import models.organization.{Course, Course2Quiz, User2Course}
 import models.user.User
 import org.joda.time.DateTime
@@ -65,7 +65,9 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   def access(userId: UserId, quizId : QuizId): Future[Access] = db.run {
     val ownerAccess = (for(z <- Quizzes if z.ownerId === userId && z.id === quizId) yield z).result.headOption.map(_ match { case Some(_) => Own case None => Non})
     val directAccess = (for(u2z <- User2Quizzes if u2z.userId === userId && u2z.quizId === quizId) yield u2z.access).result.headOption.map(_.getOrElse(Non))
-    ownerAccess.flatMap(oa => directAccess.map( da => oa max da))
+    val courseAccess = (for(u2c <- courseDAO.User2Courses; c2z <- Courses2Quizzes if u2c.userId === userId && u2c.courseId === c2z.courseId && c2z.quizId === quizId) yield u2c.access).result.headOption.map(_.getOrElse(Non));
+
+    ownerAccess.flatMap(owner => directAccess.flatMap(direct => courseAccess.map(course => owner max direct max course)))
   }
 
   def attach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, None, None)).map { _ => () }
