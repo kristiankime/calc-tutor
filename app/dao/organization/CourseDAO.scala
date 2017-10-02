@@ -67,6 +67,8 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   def grantAccess(user: User, course: Course, access: Access) = db.run(User2Courses += User2Course(user.id, course.id, access)).map { _ => () }
 
+  def revokeAccess(user: User, course: Course) = db.run(User2Courses.filter(u2c => u2c.userId === user.id && u2c.courseId === course.id).delete)
+
   // ====== Create ======
   def insert(course: Course): Future[Course] = db.run(
     (Courses returning Courses.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += course
