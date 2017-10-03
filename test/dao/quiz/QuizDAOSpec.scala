@@ -10,6 +10,34 @@ import support.EnhancedInjector
 
 class QuizDAOSpec extends PlaySpec with GuiceOneAppPerTest {
 
+  "byIds (course, quiz)" should {
+
+    "return quiz if it's assocated with the course" in {
+      val (userDAO, quizDAO, organizationDAO, courseDAO) = app.injector.instanceOf4[UserDAO, QuizDAO, OrganizationDAO, CourseDAO]
+
+      // Create a quiz attached to a course
+      val owner = TestData.await(userDAO.insert(TestData.user(0)))
+      val org = TestData.await(organizationDAO.insert(TestData.organization(0)))
+      val course = TestData.await(courseDAO.insert(TestData.course(0, org, owner) ))
+      val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
+      TestData.await(quizDAO.attach(course, quiz))
+
+      TestData.await(quizDAO.byIds(course.id, quiz.id)) mustBe(Some(quiz))
+    }
+
+    "return None if quiz is not assocated with the course" in {
+      val (userDAO, quizDAO, organizationDAO, courseDAO) = app.injector.instanceOf4[UserDAO, QuizDAO, OrganizationDAO, CourseDAO]
+
+      // Create a quiz attached to a course
+      val owner = TestData.await(userDAO.insert(TestData.user(0)))
+      val org = TestData.await(organizationDAO.insert(TestData.organization(0)))
+      val course = TestData.await(courseDAO.insert(TestData.course(0, org, owner) ))
+      val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
+
+      TestData.await(quizDAO.byIds(course.id, quiz.id)) mustBe(None)
+    }
+  }
+
   "access" should {
 
     "return Non if no access has been granted" in {

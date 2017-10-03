@@ -50,12 +50,12 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   } }
 
   def byIds(courseId: CourseId, quizId: QuizId): Future[Option[Quiz]] = db.run{
-    (for(z <- Quizzes; c2z <- Courses2Quizzes if c2z.courseId === courseId && c2z.quizId === quizId ) yield z).result.headOption
+    (for(z <- Quizzes; c2z <- Courses2Quizzes if c2z.courseId === courseId && c2z.quizId === quizId && z.id === quizId ) yield z).result.headOption
   }
 
   def apply(courseId: CourseId, quizId: QuizId): Future[Either[Result, Quiz]] = byIds(courseId, quizId).map { _ match {
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no Quiz for id=["+quizId+"] which also had Course Id [" + courseId + "]")))
-    case Some(course) => Right(course)
+    case Some(quiz) => Right(quiz)
   } }
 
   def quizzesFor(courseId: CourseId) : Future[Seq[Quiz]] = db.run {
