@@ -14,20 +14,19 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
     xMax      = typeof xMax      !== 'undefined' ? xMax      :  11;
     yMin      = typeof yMin      !== 'undefined' ? yMin      : -11;
     yMax      = typeof yMax      !== 'undefined' ? yMax      :  11;
-    xPixSize  = typeof xPixSize  !== 'undefined' ? xPixSize  : 300;
-    yPixSize  = typeof yPixSize  !== 'undefined' ? yPixSize  : 300;
+    // xPixSize  = typeof xPixSize  !== 'undefined' ? xPixSize  : 300;
+    // yPixSize  = typeof yPixSize  !== 'undefined' ? yPixSize  : 300;
+
+    if(xMin > xMax) { xMin = xMax -1; }
+    if(yMin > yMax) { yMin = yMax -1; }
+    // if(xPixSize < 1) { xPixSize = 1; }
+    // if(yPixSize < 1) { yPixSize = 1; }
 
     var xRange = xMax - xMin;
     var yRange = yMax - yMin;
 
-    // console.log(func);
-    // console.log(glider);
-    // console.log(xMin);
-    // console.log(xMax);
-    // console.log(yMin);
-    // console.log(yMax);
-    // console.log(xPixSize);
-    // console.log(yPixSize);
+    // console.log("ARTC.insertGraph");
+    // console.log("func=" + func + " glider=" + glider + " xMin=" + xMin + " xMax" + xMax + " yMin=" + yMin + " yMax=" + yMax + " xPixSize=" + xPixSize + " yPixSize=" + yPixSize);
 
     var mathF;
     try {
@@ -40,9 +39,25 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
     // var board = JXG.JSXGraph.initBoard(id,{originX:50, originY:250, unitX:50, unitY:10, axis:true}); board.create('point',[1,5]);
     // board.create('point',[1,5]);
 
-    var board = JXG.JSXGraph.initBoard(id, {axis: true, boundingbox:[xMin,yMax,xMax,yMin], originX: xPixSize/2, originY: yPixSize/2, unitX: xPixSize / xRange, unitY: yPixSize / yRange, showCopyright: false});
+        // originX: xPixSize/2, originY: yPixSize/2,
+
+    // https://www.intmath.com/cg3/jsxgraph-coding-summary.php
+    // http://www.onemathematicalcat.org/JSXGraphDocs/generalAttributes.htm
+    var board = JXG.JSXGraph.initBoard(id, {
+        axis: true,
+        boundingbox:[xMin,yMax,xMax,yMin],
+        // originX: xPixSize/2,
+        // originY: yPixSize/2,
+        // unitX: xPixSize / xRange,
+        // unitY: yPixSize / yRange,
+        zoom :  { factorX: 1.25, factorY: 1.25, wheel: true, needshift: true, eps: 0.1 },
+        pan : { enabled:true, needshift: false}, // shift panning
+        showNavigation : true,
+        showCopyright : false});
+
     board.suspendUpdate();
-    var g = board.create('functiongraph', [mathF, xMin, xMax], {strokeWidth: 3});
+
+    var g = board.create('functiongraph', [mathF, xMin, xMax], {strokeWidth: 3}); // http://jsxgraph.uni-bayreuth.de/docs/symbols/Functiongraph.html
 
     if(glider) {
         var glider = board.create('glider', [g]);
