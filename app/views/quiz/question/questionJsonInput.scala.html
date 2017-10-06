@@ -1,0 +1,17 @@
+@(action: play.api.mvc.Call, initialJson: Option[String] = None)(implicit request: Request[AnyContent])
+
+@import helper._
+@import controllers.quiz.QuestionCreate
+
+<section id="question-json-input">
+
+    <h4> Input the Json for a question. When you are done hit "Save Question": </h4>
+
+    @form(action, 'id -> "questionInputJsonForm", 'class -> "pure-form") {
+        <fieldset>
+            <textarea type="text" class="expanding" name="@QuestionCreate.questionJson">@for(v <- initialJson){v}</textarea>
+            <input type="submit" class="pure-button" value="Save Question">
+            @views.html.helper.CSRF.formField
+        </fieldset>
+    }
+</section>

@@ -30,7 +30,6 @@ POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/create        controller
 # view question json
 GET         /questions/:q/json                                        controllers.quiz.QuestionController.questionJson(q: QuestionId)
 
-
 # ===== Start auth routes ======
 GET         /auth/signIn                                              controllers.auth.AuthController.signIn
 GET         /auth/signUp                                              controllers.auth.AuthController.signUp

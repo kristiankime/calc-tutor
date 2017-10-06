@@ -31,7 +31,7 @@ import scala.util.Right
 @Singleton
 class QuestionController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
-  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -95,6 +95,11 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   }
 
+  /**
+    * Get the Question as JSON
+    * @param questionId id of the question
+    * @return HTTP OK with question JSON as the body
+    */
   def questionJson(questionId: QuestionId) = Action.async { implicit request =>
 
     ( questionDAO.frameByIdEither(questionId) ).map{ _ match {
