@@ -27,6 +27,8 @@ POST        /orgs/:o/courses/:c/quizzes/:z/rename                     controller
 POST        /orgs/:o/courses/:c/quizzes/:z/questions/create           controllers.quiz.QuestionController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q               controllers.quiz.QuestionController.view(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId, a: Option[AnswerId])
 POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/create        controllers.quiz.AnswerController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
+# view question json
+GET         /questions/:q/json                                        controllers.quiz.QuestionController.questionJson(q: QuestionId)
 
 
 # ===== Start auth routes ======

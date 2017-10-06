@@ -95,6 +95,16 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   }
 
+  def questionJson(questionId: QuestionId) = Action.async { implicit request =>
+
+    ( questionDAO.frameByIdEither(questionId) ).map{ _ match {
+      case Left(notFoundResult) => notFoundResult
+      case Right(question) =>
+        Ok(QuestionCreate.questionFormat.writes(QuestionJson(question)))
+    } }
+
+  }
+
 
 }
 
