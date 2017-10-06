@@ -29,6 +29,7 @@ GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q               controller
 POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/create        controllers.quiz.AnswerController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 # view question json
 GET         /questions/:q/json                                        controllers.quiz.QuestionController.questionJson(q: QuestionId)
+GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q/json          controllers.quiz.QuestionController.questionJsonCourse(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 
 # ===== Start auth routes ======
 GET         /auth/signIn                                              controllers.auth.AuthController.signIn
