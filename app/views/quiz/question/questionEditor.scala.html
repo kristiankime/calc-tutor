@@ -13,7 +13,7 @@
         <div class="item title-output"> <span data-bind="html: @QuestionCreate.title"> </span> </div>
         <div class="item description-input"> Question Description @tag.isValid("descriptionInvalid") : <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.descriptionRaw"></textarea> </div>
         <div class="item description-output"> <span data-bind="html: @QuestionCreate.descriptionHtml"> </span> </div>
-        <div class="item add-section"> <a href='#' data-bind='click: addSection' class="pure-button">Add Section</a> </div>
+        <div class="item add-section"> <a href='#' data-bind='click: QE.addSection' class="pure-button">Add Section</a> </div>
 
         <!-- ko foreach: @QuestionCreate.sections -->
         <div class="span-header question-section">
@@ -77,6 +77,7 @@
 <script type="text/javascript">
 
         var QE = function() { // The Question Editor Knockoutjs support Module
+            var QE = {}; // Public functions/fields will be added to this
 
             var callIfValid = function(obj, func) {
                 return (func in obj) ? obj[func]() : true;
@@ -253,15 +254,30 @@
             // ==========================================
             // ============ Root Enhancement ============
             // ==========================================
+            QE.addSection = function(main, event) {
+                var secId = sectionId(main.idGenerator++); // note this increments the idGenerator
+                var newSection = ko.mapping.fromJS({
+                    @QuestionCreate.explanationRaw     : "",
+                    @QuestionCreate.explanationHtml    : ARTC.markdown(secId, ""),
+                    @QuestionCreate.choiceOrFunction   : "@QuestionCreate.choice",
+                    @QuestionCreate.correctChoiceIndex : 0,
+                    @QuestionCreate.choices            : [],
+                    @QuestionCreate.functions          : []
+                });
+                enhanceSection(main, newSection, main.idGenerator);
+                var secs = main.@{QuestionCreate.sections}
+                secs.push(newSection);
+            }
+
             // Adds functions to the Root of the Question View Model
             var enhanceMain = function (main) {
                 // Each sections needs a unique id
-                var idGenerator = main.@{QuestionCreate.sections}.length;
+                main.idGenerator = main.@{QuestionCreate.sections}.length;
 
                 // Enhance any existing Sections
                 for (var i = 0; i < main.@{QuestionCreate.sections}().length; i++) {
                     enhanceSection(main, main.@{QuestionCreate.sections}()[i], i);
-                }
+                };
 
                 // Create the computed Description Html from the raw
                 main.@QuestionCreate.descriptionHtml = ko.computed(function () {
@@ -281,6 +297,7 @@
                 });
 
                 // Function to create a new section
+                @*
                 main.addSection = function () {
                     var secId = sectionId(idGenerator++); // note this increments the idGenerator
                     var newSection = ko.mapping.fromJS({
@@ -295,13 +312,21 @@
                     var secs = main.@{QuestionCreate.sections}
                     secs.push(newSection);
                 }
+                *@
             }
 
 
             // === Initialize View Model
-            var QE = {};
 
-            var initializeViewModel = function(data) {
+
+            QE.initializeViewModel = function() {
+                var data = @initialDataModel.getOrElse(Html("{ " +
+                    QuestionCreate.title + """ : "", """ +
+                    QuestionCreate.descriptionRaw + """ : "", """ +
+                    QuestionCreate.descriptionHtml + """ : ARTC.markdown("main", ""), """ +
+                    QuestionCreate.sections + """ : []""" +
+                "}"))
+
                 // Create the basic form
                 var model = ko.mapping.fromJS(data);
                 // Bootstrap by adding all functions etc
@@ -311,16 +336,6 @@
                 // then applying bindings
                 ko.applyBindings(QE.viewModel, document.getElementById("question-editor"));
             }
-
-            var initialData = @initialDataModel.getOrElse(Html("{ " +
-                QuestionCreate.title + """ : "", """ +
-                QuestionCreate.descriptionRaw + """ : "", """ +
-                QuestionCreate.descriptionHtml + """ : ARTC.markdown("main", ""), """ +
-                QuestionCreate.sections + """ : []""" +
-            "}"))
-
-            initializeViewModel(initialData);
-
 
             // === Exposed update method
             var clearSections = function() {
@@ -343,4 +358,5 @@
             return QE;
         }();
 
+        QE.initializeViewModel();
 </script>
