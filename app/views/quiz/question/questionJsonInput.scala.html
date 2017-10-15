@@ -1,4 +1,4 @@
-@(action: play.api.mvc.Call, initialJson: Option[String] = None)(implicit request: Request[AnyContent])
+@(action: play.api.mvc.Call, initialJson: Option[String] = None, setOnModel: Option[String] = None)(implicit request: Request[AnyContent])
 
 @import helper._
 @import controllers.quiz.QuestionCreate
@@ -9,9 +9,21 @@
 
     @form(action, 'id -> "questionInputJsonForm", 'class -> "pure-form") {
         <fieldset>
-            <textarea type="text" class="expanding" name="@QuestionCreate.questionJson">@for(v <- initialJson){v}</textarea>
+            <textarea id="questionInputJsonTextArea" type="text" class="expanding" name="@QuestionCreate.questionJson">@for(v <- initialJson){v}</textarea>
             <input type="submit" class="pure-button" value="Save Question">
+            @for(model <- setOnModel){<input type="button" class="pure-button" value="Use Json" onclick="updateModelFromJson()">}
             @views.html.helper.CSRF.formField
         </fieldset>
     }
+    @for(model <- setOnModel){
+    <script>
+        var updateModelFromJson = function() {
+            console.log("updateModelFromJson");
+            var text = document.getElementById('questionInputJsonTextArea').value;
+            var json = JSON.parse(text);
+            QE.updateViewModel(json);
+        };
+    </script>
+    }
+
 </section>

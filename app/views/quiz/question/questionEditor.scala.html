@@ -64,10 +64,10 @@
     }
     <script>
         questionJsonFormSubmit = function() {
-            if(viewModel.invalid()) {
+            if(QE.viewModel.invalid()) {
                 window.alert("There are errors in the inputs, look for red *");
             } else {
-                $("#questionJson").val(ko.mapping.toJSON(viewModel));
+                $("#questionJson").val(ko.mapping.toJSON(QE.viewModel));
                 $("#questionJsonForm").submit();
             }
         }
@@ -77,6 +77,10 @@
 <script type="text/javascript">
 
         var QE = function() { // The Question Editor Knockoutjs support Module
+
+            var callIfValid = function(obj, func) {
+                return (func in obj) ? obj[func]() : true;
+            }
 
             // =================================================
             // ============ Choice Part Enhancement ============
@@ -288,28 +292,55 @@
                         @QuestionCreate.functions          : []
                     });
                     enhanceSection(main, newSection, idGenerator);
-                    var secs = viewModel.@{QuestionCreate.sections}
+                    var secs = main.@{QuestionCreate.sections}
                     secs.push(newSection);
                 }
-           }
+            }
 
+
+            // === Initialize View Model
             var QE = {};
-            QE.enhanceMain = enhanceMain;
+
+            var initializeViewModel = function(data) {
+                // Create the basic form
+                var model = ko.mapping.fromJS(data);
+                // Bootstrap by adding all functions etc
+                enhanceMain(model);
+                // Expose viewModel for debugging
+                QE.viewModel = model;
+                // then applying bindings
+                ko.applyBindings(QE.viewModel, document.getElementById("question-editor"));
+            }
+
+            var initialData = @initialDataModel.getOrElse(Html("{ " +
+                QuestionCreate.title + """ : "", """ +
+                QuestionCreate.descriptionRaw + """ : "", """ +
+                QuestionCreate.descriptionHtml + """ : ARTC.markdown("main", ""), """ +
+                QuestionCreate.sections + """ : []""" +
+            "}"))
+
+            initializeViewModel(initialData);
+
+
+            // === Exposed update method
+            var clearSections = function() {
+                QE.viewModel.@{QuestionCreate.sections}.removeAll();
+            }
+
+            QE.updateViewModel = function(data) {
+                // Create the basic form
+                var model = ko.mapping.fromJS(data);
+                // Bootstrap by adding all functions etc
+                enhanceMain(model);
+                // Overlay new model ignoring computed observables
+                var mapping = { 'ignore': ["invalid", "descriptionInvalid", "titleInvalid", "descriptionHtml", "explanationHtml", "summaryHtml", "functionMath"] };
+
+                clearSections();
+
+                ko.mapping.fromJS(model, mapping, QE.viewModel);
+            }
+
             return QE;
         }();
 
-        var data = @initialDataModel.getOrElse(Html("{ " +
-            QuestionCreate.title + """           : "", """ +
-            QuestionCreate.descriptionRaw + """  : "", """ +
-            QuestionCreate.descriptionHtml + """ : ARTC.markdown("main", ""), """ +
-            QuestionCreate.sections + """        : []""" +
-        "}"))
-
-        var viewModel = ko.mapping.fromJS(data);
-
-        // Bootstrap by adding all functions etc
-        QE.enhanceMain(viewModel);
-
-        // then applying bindings
-        ko.applyBindings(viewModel, document.getElementById("question-editor"));
 </script>

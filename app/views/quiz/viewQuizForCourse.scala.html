@@ -39,6 +39,6 @@
     }
 
     @if(access.write){
-        @views.html.quiz.question.questionJsonInput(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id))
+        @views.html.quiz.question.questionJsonInput(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), setOnModel=Some("viewModel"))
     }
 }
