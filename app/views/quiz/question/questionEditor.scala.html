@@ -21,13 +21,13 @@
             <div class="item explanation-output"> <span data-bind="html: @QuestionCreate.explanationHtml"> </span> </div>
             <div class="item section-controls">
                 <a href='#' data-bind='click: function(data, event) { QE.removeSection($parent, data) }' class="pure-button">Remove This Section</a>
-                <input type="radio" value="choice"  data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> choice </input>
-                <input type="radio" value="function" data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> function </input>
+                <input type="radio" value="choice"  data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> @QuestionCreate.choice </input>
+                <input type="radio" value="function" data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> @QuestionCreate.function </input>
                 <a href='#' data-bind='click: QE.addChoicePart' class="pure-button">Add Choice</a>
                 <a href='#' data-bind='click: QE.addFunctionPart' class="pure-button">Add Function</a>
             </div>
 
-            <!-- ko if: @{QuestionCreate.choiceOrFunction}() == 'choice' -->
+            <!-- ko if: @{QuestionCreate.choiceOrFunction}() == '@QuestionCreate.choice' -->
             <!-- ko foreach: @QuestionCreate.choices -->
             <div class="span-section question-choice">
                 <div class="item summary-input"> Summary @tag.isValid("invalid"): <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
@@ -38,7 +38,7 @@
             <!-- /ko -->
             <!-- /ko -->
 
-            <!-- ko if: @{QuestionCreate.choiceOrFunction}() == 'function' -->
+            <!-- ko if: @{QuestionCreate.choiceOrFunction}() == '@QuestionCreate.function' -->
             <!-- ko foreach: @QuestionCreate.functions -->
             <div class="span-section question-function">
                 <div class="item summary-input"> Summary @tag.isValid("summaryInvalid"): <br> <textarea type="text" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
