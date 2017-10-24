@@ -86,6 +86,9 @@ https://www.playframework.com/documentation/2.5.x/ConfiguringHttps
 https://stackoverflow.com/questions/10748305/how-to-config-playframework2-to-support-ssl
 for dev mode just add -Dhttps.port=9443
 
+"host not allowed" make sure url is allowed by play.filters.hosts.allowed
+https://stackoverflow.com/questions/45070168/host-not-allowed-error-when-deploying-a-play-framework-application-to-amazon-a
+
 ### Google Account
 https://console.developers.google.com
 https://console.developers.google.com/iam-admin/settings/project?project=xxxx
