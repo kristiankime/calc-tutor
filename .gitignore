@@ -1,8 +1,5 @@
 # Ignore Play! working directory #
-
-
 /lib
-
 /bin
 /db
 /logs
@@ -45,3 +42,5 @@
 /local_environment_variables_secure_social.sh
 /heroku_environment_variables.sh
 
+# SSL
+/conf/generated.keystore
