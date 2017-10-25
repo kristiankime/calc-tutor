@@ -33,6 +33,23 @@ Heroku is a web hosting company that greatly simplifies deployment, maintenance 
 
 * http://www.playframework.com/documentation/2.5.x/ProductionHeroku * 
 
+##### Start a project on Heroku
+
+set the environment variables for heroku
+
+* look in heroku_environment_variables_EXAMPLE.sh
+* repace all the "put_xxx_here" with your values (found on the auth websites)
+* rename the script to heroku_environment_variables.sh (this should be git ignored)
+* run the script
+
+You will also need to add shared memory cached. memcachier seems to be the default choice. Here's how to add it to heroku:
+* https://devcenter.heroku.com/articles/memcachier
+
+And information about using it with play2
+* https://github.com/mumoshu/play2-memcached
+* http://stackoverflow.com/questions/23632722/shared-cache-for-play-framework-on-heroku
+
+
 ### [Slick](http://slick.lightbend.com/) 
 
 

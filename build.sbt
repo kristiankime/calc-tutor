@@ -47,10 +47,14 @@ libraryDependencies += "org.planet42" %% "laika-core"          % "0.6.0" withSou
 // === End Mail libraries
 
 
-// === Less Filters ====
+// === memcache ===
+libraryDependencies += "com.github.mumoshu" %% "play2-memcached-play25" % "0.8.0" // memcache for Play 2.5
+resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" // required to resolve `spymemcached`, the plugin's dependency.
+
+// === Less Filters ===
 includeFilter in (Assets, LessKeys.less) := "*.less"
 excludeFilter in (Assets, LessKeys.less) := "_*.less"
 
-//
+// Routing support
 routesImport += "dao.binders._"
 routesImport += "models._"
