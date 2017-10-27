@@ -115,6 +115,14 @@ trait ColumnTypeMappings extends HasDatabaseConfigProvider[JdbcProfile] {
     long => AlertId(long))
 
   // ==========================
+  // AlertId
+  // ==========================
+  implicit def long2SkillId = MappedColumnType.base[SkillId, Long](
+    id => id.v,
+    long => SkillId(long))
+
+
+  // ==========================
   // Vector of Ints
   // ==========================
   implicit def string2VectorInt = MappedColumnType.base[Vector[Int], String](

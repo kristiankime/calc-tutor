@@ -4,6 +4,7 @@ import javax.inject._
 
 import _root_.controllers.support.{Consented, RequireAccess}
 import dao.organization.{CourseDAO, OrganizationDAO}
+import dao.quiz.{QuizDAO, SkillDAO}
 import dao.user.UserDAO
 import models.organization.Organization
 import models.{Non, OrganizationId}
@@ -19,7 +20,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 @Singleton
-class OrganizationController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class OrganizationController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
   def view(organizationId: OrganizationId) = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { user => Action.async { request =>
     organizationDAO(organizationId).flatMap{ organizationEither =>
@@ -31,7 +32,8 @@ class OrganizationController @Inject()(val config: Config, val playSessionStore:
   } } }
 
   def list() = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { user => Action.async { request =>
-    organizationDAO.allEnsureAnOrg().map{ organizations => Ok(views.html.organization.organizationList(organizations)) }
+    // TODO here we ensure various things that need to be there are created in the system, this is a temporary hack
+    skillDAO.defaultSkills.flatMap(_ => organizationDAO.allEnsureAnOrg().map{ organizations => Ok(views.html.organization.organizationList(organizations)) } )
   } } }
 
 }

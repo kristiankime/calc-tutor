@@ -54,6 +54,11 @@ case class AlertId(v: Long) {
   override def toString = "Al"+v
 }
 
+case class SkillId(v: Long) extends AccessibleId {
+  override def toString = "Sk"+v
+}
+
+
 object AccessibleId {
   val organizationPrefix = "Or"
   val coursePrefix = "Co"
