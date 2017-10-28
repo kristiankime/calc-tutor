@@ -1,19 +1,19 @@
-//http://stackoverflow.com/questions/6525538/convert-utc-date-time-to-local-date-time-using-javascript
 if (!ARTC) {
     var ARTC = {};
 }
 
 ARTC.insertGraphO = function (params) {
-    ARTC.insertGraph(params.id, params.func, params.glider, params.xMin, params.xMax, params.yMin, params.yMax, params.xPixSize, params.yPixSize);
+    ARTC.insertGraph(params.id, params.func, params.glider, params.xMin, params.xMax, params.yMin, params.yMax, params.xPixSize, params.yPixSize, params.axis);
 };
 
-ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize, yPixSize) {
+ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize, yPixSize, axis) {
     func      = typeof func      !== 'undefined' ? func      : function(x){return x;};
     glider    = typeof glider    !== 'undefined' ? glider    : false;
     xMin      = typeof xMin      !== 'undefined' ? xMin      : -11;
     xMax      = typeof xMax      !== 'undefined' ? xMax      :  11;
     yMin      = typeof yMin      !== 'undefined' ? yMin      : -11;
     yMax      = typeof yMax      !== 'undefined' ? yMax      :  11;
+    axis      = typeof axis      !== 'undefined' ? axis      : true; // https://www.intmath.com/cg3/jsxgraph-axes-ticks-grids.php
     // xPixSize  = typeof xPixSize  !== 'undefined' ? xPixSize  : 300;
     // yPixSize  = typeof yPixSize  !== 'undefined' ? yPixSize  : 300;
 
@@ -26,7 +26,16 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
     var yRange = yMax - yMin;
 
     // console.log("ARTC.insertGraph");
-    // console.log("func=" + func + " glider=" + glider + " xMin=" + xMin + " xMax" + xMax + " yMin=" + yMin + " yMax=" + yMax + " xPixSize=" + xPixSize + " yPixSize=" + yPixSize);
+    // console.log("func=" + func
+    //     + " glider=" + glider
+    //     + " xMin=" + xMin
+    //     + " xMax" + xMax
+    //     + " yMin=" + yMin
+    //     + " yMax=" + yMax
+    //     + " xPixSize=" + xPixSize
+    //     + " yPixSize=" + yPixSize
+    //     + " axis=" + axis
+    // );
 
     var mathF;
     try {
@@ -43,8 +52,9 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
 
     // https://www.intmath.com/cg3/jsxgraph-coding-summary.php
     // http://www.onemathematicalcat.org/JSXGraphDocs/generalAttributes.htm
-    var board = JXG.JSXGraph.initBoard(id, {
-        axis: true,
+
+    var boardSettings = {
+        axis: axis,
         boundingbox:[xMin,yMax,xMax,yMin],
         // originX: xPixSize/2,
         // originY: yPixSize/2,
@@ -53,7 +63,12 @@ ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize,
         zoom :  { factorX: 1.25, factorY: 1.25, wheel: true, needshift: true, eps: 0.1 },
         pan : { enabled:true, needshift: false}, // shift panning
         showNavigation : true,
-        showCopyright : false});
+        showCopyright : false};
+
+    // console.log("ARTC.insertGraph");
+    // console.log(boardSettings);
+
+    var board = JXG.JSXGraph.initBoard(id, boardSettings);
 
     board.suspendUpdate();
 

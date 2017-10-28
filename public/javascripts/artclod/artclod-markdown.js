@@ -4,7 +4,7 @@ if (!ARTC) {
 
 // https://github.com/showdownjs/showdown
 ARTC.markdown = function (idPrefix, text) {
-    var converter = new showdown.Converter();
+    var converter = new showdown.Converter({"tables" : true});
 
     // store all the matches we find here
     var replaces = {};
