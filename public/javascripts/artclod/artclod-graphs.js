@@ -2,73 +2,88 @@ if (!ARTC) {
     var ARTC = {};
 }
 
-ARTC.insertGraphO = function (params) {
-    ARTC.insertGraph(params.id, params.func, params.glider, params.xMin, params.xMax, params.yMin, params.yMax, params.xPixSize, params.yPixSize, params.axis);
-};
+ARTC.insertGraph = function (inParams) {
+    var params = Object.create(inParams);
+    // ========================================================
+    // Setup parameters for the board
+    // ========================================================
+    // Helpful links for JSX graph settings
+    // https://www.intmath.com/cg3/jsxgraph-coding-summary.php
+    // http://www.onemathematicalcat.org/JSXGraphDocs/generalAttributes.htm
+    // https://www.intmath.com/cg3/jsxgraph-axes-ticks-grids.php
 
-ARTC.insertGraph = function (id, func, glider, xMin, xMax, yMin, yMax, xPixSize, yPixSize, axis) {
-    func      = typeof func      !== 'undefined' ? func      : function(x){return x;};
-    glider    = typeof glider    !== 'undefined' ? glider    : false;
-    xMin      = typeof xMin      !== 'undefined' ? xMin      : -11;
-    xMax      = typeof xMax      !== 'undefined' ? xMax      :  11;
-    yMin      = typeof yMin      !== 'undefined' ? yMin      : -11;
-    yMax      = typeof yMax      !== 'undefined' ? yMax      :  11;
-    axis      = typeof axis      !== 'undefined' ? axis      : true; // https://www.intmath.com/cg3/jsxgraph-axes-ticks-grids.php
-    // xPixSize  = typeof xPixSize  !== 'undefined' ? xPixSize  : 300;
-    // yPixSize  = typeof yPixSize  !== 'undefined' ? yPixSize  : 300;
+    // ==============
+    // Params that are external to JSXGraph
+    // ==============
 
-    if(xMin > xMax) { xMin = xMax -1; }
-    if(yMin > yMax) { yMin = yMax -1; }
-    // if(xPixSize < 1) { xPixSize = 1; }
-    // if(yPixSize < 1) { yPixSize = 1; }
+    // html element id to use
+    var id = params.id;
+    if(typeof id === 'undefined') { throw "id was not defined" }
 
-    var xRange = xMax - xMin;
-    var yRange = yMax - yMin;
+    // Should we add a glider
+    var glider = typeof params.glider !== 'undefined' ? params.glider : false;
 
-    // console.log("ARTC.insertGraph");
-    // console.log("func=" + func
-    //     + " glider=" + glider
-    //     + " xMin=" + xMin
-    //     + " xMax" + xMax
-    //     + " yMin=" + yMin
-    //     + " yMax=" + yMax
-    //     + " xPixSize=" + xPixSize
-    //     + " yPixSize=" + yPixSize
-    //     + " axis=" + axis
-    // );
-
+    // Function (of x) to display
+    var func = typeof params.func !== 'undefined' ? params.func : "1";
     var mathF;
     try {
         mathF = ARTC.mathJS.text2FunctionOfX(func);
     } catch(e) {
         mathF = function(x){return 0;};
     }
-    // console.log(mathF);
 
-    // var board = JXG.JSXGraph.initBoard(id,{originX:50, originY:250, unitX:50, unitY:10, axis:true}); board.create('point',[1,5]);
-    // board.create('point',[1,5]);
+    // ==============
+    // Params that overwrite JSXGraph settings
+    // ==============
 
-        // originX: xPixSize/2, originY: yPixSize/2,
+    // Here we have a nicer way to do boundingbox
+    var useMinMax = false;
+    var xMin      = typeof params.xMin === 'undefined' ? -11 : useMinMax=true; params.xMin;
+    var xMax      = typeof params.xMax === 'undefined' ?  11 : useMinMax=true; params.xMax;
+    var yMin      = typeof params.yMin === 'undefined' ? -11 : useMinMax=true; params.yMin;
+    var yMax      = typeof params.yMax === 'undefined' ?  11 : useMinMax=true; params.yMax;
+    if(xMin > xMax) { xMin = xMax -1; }
+    if(yMin > yMax) { yMin = yMax -1; }
+    if(useMinMax) { // Create boundingbox from minmax
+        params.boundingbox = [xMin, yMax, xMax, yMin];
+    }
 
-    // https://www.intmath.com/cg3/jsxgraph-coding-summary.php
-    // http://www.onemathematicalcat.org/JSXGraphDocs/generalAttributes.htm
+    // Set up a reasonable default zoom
+    var zoom = typeof params.zoom !== 'undefined' ? params.zoom : { factorX: 1.25, factorY: 1.25, wheel: true, needshift: true, eps: 0.1 };
+    params.zoom = zoom;
 
-    var boardSettings = {
-        axis: axis,
-        boundingbox:[xMin,yMax,xMax,yMin],
-        // originX: xPixSize/2,
-        // originY: yPixSize/2,
-        // unitX: xPixSize / xRange,
-        // unitY: yPixSize / yRange,
-        zoom :  { factorX: 1.25, factorY: 1.25, wheel: true, needshift: true, eps: 0.1 },
-        pan : { enabled:true, needshift: false}, // shift panning
-        showNavigation : true,
-        showCopyright : false};
+    // Set up a reasonable default pan
+    var pan = typeof params.pan !== 'undefined' ? params.pan : { enabled:true, needshift: false}; // shift panning
+    params.pan = pan;
 
-    // console.log("ARTC.insertGraph");
-    // console.log(boardSettings);
+    // default to showNavigation on
+    var showNavigation = typeof params.showNavigation !== 'undefined' ? params.showNavigation : true;
+    params.showNavigation = showNavigation;
 
-    var board = JXG.JSXGraph.initBoard(id, boardSettings);
+    var showCopyright = typeof params.showCopyright !== 'undefined' ? params.showCopyright : false;
+    params.showCopyright = showCopyright;
+
+    // var boardSettings = {
+    //     axis: axis,
+    //     boundingbox:[xMin,yMax,xMax,yMin],
+    //     // originX: xPixSize/2,
+    //     // originY: yPixSize/2,
+    //     // unitX: xPixSize / xRange,
+    //     // unitY: yPixSize / yRange,
+    //     zoom :  { factorX: 1.25, factorY: 1.25, wheel: true, needshift: true, eps: 0.1 },
+    //     pan : { enabled:true, needshift: false}, // shift panning
+    //     showNavigation : true,
+    //     showCopyright : false
+    // };
+
+    console.log("ARTC.insertGraph");
+    console.log(params);
+
+
+    // ========================================================
+    // Actually create the board
+    // ========================================================
+    var board = JXG.JSXGraph.initBoard(id, params);
 
     board.suspendUpdate();
 
