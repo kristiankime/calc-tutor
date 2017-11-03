@@ -330,9 +330,8 @@
                 // Bootstrap by adding all functions etc
                 enhanceMain(model);
                 // Overlay new model ignoring computed observables
-                var mapping = { 'ignore': ["invalid", "descriptionInvalid", "titleInvalid", "descriptionHtml", "explanationHtml", "summaryHtml", "functionMath"] };
-
-                clearSections();
+//                var mapping = { 'ignore': ["invalid", "descriptionInvalid", "titleInvalid", "descriptionHtml", "explanationHtml", "summaryHtml", "functionMath"] };
+                var mapping = { 'ignore': ["invalid", "descriptionInvalid", "titleInvalid"] };
 
                 ko.mapping.fromJS(model, mapping, QE.viewModel);
             }
