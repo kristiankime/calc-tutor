@@ -64,28 +64,28 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   def defaultSkills = {
     allSkills.map(skills =>
       if(skills.isEmpty) { insertAll(
-          //                                   intercept correct incorrect
-          //                                        β      γ       ρ
-          Skill(null, "Numerical",               -0.297, 0.025, -0.021),
-          Skill(null, "Verbal",                  -0.177, 0.000, -0.147),
-          Skill(null, "Algebraic",               -0.115, 0.093,  0.013),
-          Skill(null, "Precalc",                  0.487, 0.013, -0.047),
-          Skill(null, "Trig",                    -0.148, 0.009, -0.007),
-          Skill(null, "Logs",                     0.763, 0.000, -0.104),
-          Skill(null, "Exponents",               -0.693, 0.028,  0.001),
-          Skill(null, "Alt.Var.Names",            0.196, 0.000, -0.023),
-          Skill(null, "Abstract.Constants",       0.137, 0.000, -0.042),
-          Skill(null, "Limits...Continuity",     -0.021, 0.016, -0.012),
-          Skill(null, "Continuity..Definition",   0.544, 0.000, -0.183),
-          Skill(null, "Derivative..Definition",   0.548, 0.000, -0.045),
-          Skill(null, "Derivative..Shortcuts",    0.866, 0.003, -0.025),
-          Skill(null, "Product.Rule",            -0.295, 0.011,  0.014),
-          Skill(null, "Quotient.Rule",           -0.308, 0.002, -0.032),
-          Skill(null, "Chain.Rule",              -0.092, 0.000, -0.006),
-          Skill(null, "Implicit.Differentiation", 0.112, 0.000, -0.200),
-          Skill(null, "Function.Analysis",       -0.138, 0.012, -0.025),
-          Skill(null, "Applications",            -0.430, 0.014,  0.001),
-          Skill(null, "Antiderivatives",          0.177, 0.043, -0.023)
+          //                                            intercept correct incorrect
+          //                                                 β      γ       ρ
+          Skill(null, "Numerical",                "Num",      -0.297, 0.025, -0.021),
+          Skill(null, "Verbal",                   "Ver",      -0.177, 0.000, -0.147),
+          Skill(null, "Algebraic",                "Alg",      -0.115, 0.093,  0.013),
+          Skill(null, "Precalc",                  "PrC",       0.487, 0.013, -0.047),
+          Skill(null, "Trig",                     "Trg",      -0.148, 0.009, -0.007),
+          Skill(null, "Logs",                     "Log",       0.763, 0.000, -0.104),
+          Skill(null, "Exponents",                "Exp",      -0.693, 0.028,  0.001),
+          Skill(null, "Alt.Var.Names",            "VaN",       0.196, 0.000, -0.023),
+          Skill(null, "Abstract.Constants",       "AbC",       0.137, 0.000, -0.042),
+          Skill(null, "Limits...Continuity",      "Lim",      -0.021, 0.016, -0.012),
+          Skill(null, "Continuity..Definition",   "CnD",       0.544, 0.000, -0.183),
+          Skill(null, "Derivative..Definition",   "DeD",       0.548, 0.000, -0.045),
+          Skill(null, "Derivative..Shortcuts",    "DeS",       0.866, 0.003, -0.025),
+          Skill(null, "Product.Rule",             "PrR",      -0.295, 0.011,  0.014),
+          Skill(null, "Quotient.Rule",            "QuR",      -0.308, 0.002, -0.032),
+          Skill(null, "Chain.Rule",               "ChR",      -0.092, 0.000, -0.006),
+          Skill(null, "Implicit.Differentiation", "IpD",       0.112, 0.000, -0.200),
+          Skill(null, "Function.Analysis",        "FAn",      -0.138, 0.012, -0.025),
+          Skill(null, "Applications",             "App",      -0.430, 0.014,  0.001),
+          Skill(null, "Antiderivatives",          "Ant",       0.177, 0.043, -0.023)
       )}
     )
   }
@@ -96,13 +96,14 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   class SkillTable(tag: Tag) extends Table[Skill](tag, "skill") {
     def id = column[SkillId]("id", O.AutoInc)
     def name = column[String]("name", O.PrimaryKey)
+    def shortName = column[String]("short_name")
     def intercept = column[Double]("intercept")
     def correct = column[Double]("correct")
     def incorrect = column[Double]("incorrect")
 
     def idIdx = index("id_idx", id, unique = true)
 
-    def * = (id, name, intercept, correct, incorrect) <> (Skill.tupled, Skill.unapply)
+    def * = (id, name, shortName, intercept, correct, incorrect) <> (Skill.tupled, Skill.unapply)
   }
 
   class Skill2QuestionTable(tag: Tag) extends Table[Skill2Question](tag, "skill_2_question") {
