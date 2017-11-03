@@ -101,7 +101,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
     def correct = column[Double]("correct")
     def incorrect = column[Double]("incorrect")
 
-    def idIdx = index("id_idx", id, unique = true)
+    def idIdx = index("skill_idx__id", id, unique = true)
 
     def * = (id, name, shortName, intercept, correct, incorrect) <> (Skill.tupled, Skill.unapply)
   }

@@ -13,7 +13,7 @@ CREATE TABLE app_user
   last_access TIMESTAMP NOT NULL
 );
 
-CREATE INDEX app_user_idx__login_id ON app_user(login_id);
+CREATE UNIQUE INDEX app_user_idx__login_id ON app_user(login_id);
 
 # --- !Downs
 

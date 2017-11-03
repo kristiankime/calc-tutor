@@ -7,9 +7,10 @@ CREATE TABLE skill
   short_name VARCHAR NOT NULL,
   intercept DOUBLE PRECISION NOT NULL,
   correct DOUBLE PRECISION NOT NULL,
-  incorrect DOUBLE PRECISION NOT NULL,
-  UNIQUE(name)
+  incorrect DOUBLE PRECISION NOT NULL
 );
+
+CREATE UNIQUE INDEX skill_idx__id ON skill(id);
 
 CREATE TABLE skill_2_question
 (
