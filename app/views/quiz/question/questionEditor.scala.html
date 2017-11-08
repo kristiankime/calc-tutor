@@ -83,6 +83,17 @@
                 return (func in obj) ? obj[func]() : true;
             }
 
+            var setupDetails = function(model, raw, idPrefix, html) {
+                // don't allow questionable characters in raw
+                var toEnhance = model[raw];
+                model[raw] = toEnhance.extend({ substitute : {} });
+
+                // Create the computed Description Html from the raw
+                model[html] = ko.computed(function () {
+                    return ARTC.markdown(idPrefix, model[raw]());
+                }, model);
+            }
+            
             // =================================================
             // ============ Choice Part Enhancement ============
             // =================================================
@@ -281,10 +292,7 @@
                     enhanceSection(main, main.@{QuestionCreate.sections}()[i], i);
                 };
 
-                // Create the computed Description Html from the raw
-                main.@QuestionCreate.descriptionHtml = ko.computed(function () {
-                    return ARTC.markdown("main", main.@{QuestionCreate.descriptionRaw}());
-                }, main);
+                setupDetails(main, "@QuestionCreate.descriptionRaw", "main", "@QuestionCreate.descriptionHtml");
 
                 main.descriptionInvalid = ko.computed(function () {
                     return main.@{QuestionCreate.descriptionRaw}() == "";
