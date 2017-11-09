@@ -83,7 +83,7 @@
                 return (func in obj) ? obj[func]() : true;
             }
 
-            var setupDetails = function(model, raw, idPrefix, html) {
+            var setupDetails = function(model, idPrefix, raw, html) {
                 // don't allow questionable characters in raw
                 var toEnhance = model[raw];
                 model[raw] = toEnhance.extend({ substitute : {} });
@@ -93,7 +93,7 @@
                     return ARTC.markdown(idPrefix, model[raw]());
                 }, model);
             }
-            
+
             // =================================================
             // ============ Choice Part Enhancement ============
             // =================================================
@@ -104,10 +104,7 @@
             var enhanceChoicePart = function (section, part, num) {
                 part.@QuestionCreate.id = choicePartId(section, num); // Note here we overwrite the id
 
-                // Overwrite/Bind the html summary
-                part.@QuestionCreate.summaryHtml = ko.computed(function () {
-                    return ARTC.markdown(part.@QuestionCreate.id, part.@{QuestionCreate.summaryRaw}());
-                }, part);
+                setupDetails(part, part.@QuestionCreate.id, "@QuestionCreate.summaryRaw", "@QuestionCreate.summaryHtml");
 
                 // Do we have a summary?
                 part.invalid = ko.computed(function () {
@@ -132,10 +129,7 @@
             var enhanceFunctionPart = function (section, part, num) {
                 part.@QuestionCreate.id = functionPartId(section, num); // Note here we overwrite the id
 
-                // Overwrite/Bind the html summary
-                part.@QuestionCreate.summaryHtml = ko.computed(function () {
-                    return ARTC.markdown(part.@QuestionCreate.id, part.@{QuestionCreate.summaryRaw}());
-                }, part);
+                setupDetails(part, part.@QuestionCreate.id, "@QuestionCreate.summaryRaw", "@QuestionCreate.summaryHtml");
 
                 // Do we have a summary?
                 part.summaryInvalid = ko.computed(function () {
@@ -195,13 +189,9 @@
                 for (var i = 0; i < section.@{QuestionCreate.functions}().length; i++) {
                     enhanceFunctionPart(section, section.@{QuestionCreate.functions}()[i], i);
                 }
+
                 // --- End Update Parts ---
-
-                // Overwrite/Bind the html explanation
-                section.@QuestionCreate.explanationHtml = ko.computed(function () {
-                    return ARTC.markdown(section.@QuestionCreate.id, section.@{QuestionCreate.explanationRaw}());
-                }, section);
-
+                setupDetails(section, section.@QuestionCreate.id, "@QuestionCreate.explanationRaw", "@QuestionCreate.explanationHtml");
 
                 section.explanationInvalid = ko.computed(function () {
                     return section.@{QuestionCreate.explanationRaw}() == "";
@@ -292,7 +282,7 @@
                     enhanceSection(main, main.@{QuestionCreate.sections}()[i], i);
                 };
 
-                setupDetails(main, "@QuestionCreate.descriptionRaw", "main", "@QuestionCreate.descriptionHtml");
+                setupDetails(main, "main", "@QuestionCreate.descriptionRaw", "@QuestionCreate.descriptionHtml");
 
                 main.descriptionInvalid = ko.computed(function () {
                     return main.@{QuestionCreate.descriptionRaw}() == "";
@@ -306,7 +296,6 @@
                     return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid()) );
                 });
             }
-
 
             // === Initialize View Model
             QE.initializeViewModel = function() {
