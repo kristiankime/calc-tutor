@@ -1,4 +1,4 @@
-@(action: play.api.mvc.Call, initialDataModel: Option[String] = None, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
+@(action: play.api.mvc.Call, allSkills: Seq[String], initialDataModel: Option[String] = None, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
 
 @import helper._
 @import controllers.quiz.QuestionCreate
@@ -13,6 +13,16 @@
         <div class="item title-output"> <span data-bind="html: @QuestionCreate.title"> </span> </div>
         <div class="item description-input"> Question Description @tag.isValid("descriptionInvalid") : <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.descriptionRaw"></textarea> </div>
         <div class="item description-output"> <span data-bind="html: @QuestionCreate.descriptionHtml"> </span> </div>
+
+        @*https://stackoverflow.com/questions/10559759/binding-checkboxes-to-array-with-knockout-js-mvc-razor*@
+
+        <div class="item question-skills">
+            @for(skill <- allSkills){
+                <label for="skill_@skill"> <input checked="checked" data-bind="checked: skills" type="checkbox" value="@skill" id="skill_@skill" > </input> @skill </label>
+            }
+        </div>
+
+
         <div class="item add-section"> <a href='#' data-bind='click: QE.addSection' class="pure-button">Add Section</a> </div>
 
         <!-- ko foreach: @QuestionCreate.sections -->
@@ -303,7 +313,8 @@
                     QuestionCreate.title + """ : "", """ +
                     QuestionCreate.descriptionRaw + """ : "", """ +
                     QuestionCreate.descriptionHtml + """ : ARTC.markdown("main", ""), """ +
-                    QuestionCreate.sections + """ : []""" +
+                    QuestionCreate.sections + """ : [],""" +
+                    QuestionCreate.skills + """ : []""" +
                 "}"))
 
                 // Create the basic form
@@ -327,7 +338,6 @@
                 // Bootstrap by adding all functions etc
                 enhanceMain(model);
                 // Overlay new model ignoring computed observables
-//                var mapping = { 'ignore': ["invalid", "descriptionInvalid", "titleInvalid", "descriptionHtml", "explanationHtml", "summaryHtml", "functionMath"] };
                 var mapping = { 'ignore': ["invalid", "descriptionInvalid", "titleInvalid"] };
 
                 ko.mapping.fromJS(model, mapping, QE.viewModel);

@@ -2,6 +2,8 @@ package dao.auth
 
 import javax.inject.Inject
 import javax.inject.Singleton
+
+import dao.auth.table.NamePassTable
 import models.auth.NamePassLogin
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.lifted
@@ -14,13 +16,13 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class NamePassDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
+class NamePassDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val namePassTable: NamePassTable)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
   // ====
 
-  val Logins = lifted.TableQuery[LoginTable]
+  val Logins = namePassTable.Logins
 
   def all(): Future[Seq[NamePassLogin]] = db.run(Logins.result)
 
@@ -28,14 +30,5 @@ class NamePassDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def byId(id : String): Future[Option[NamePassLogin]] = db.run(Logins.filter(_.id === id).result.headOption)
 
-  class LoginTable(tag: Tag) extends Table[NamePassLogin](tag, "name_pass_login") {
-    def id = column[String]("id", O.PrimaryKey)
-    def userName = column[String]("user_name")
-    def password = column[String]("password")
-    def linkedId = column[Option[String]]("linkedid")
-    def serializedprofile = column[Option[String]]("serializedprofile")
-
-    def * = (id, userName, password, linkedId, serializedprofile) <> (NamePassLogin.tupled, NamePassLogin.unapply)
-  }
 }
 

@@ -4,7 +4,9 @@ import javax.inject.{Inject, Singleton}
 
 import com.artclod.mathml.scalar.MathMLElem
 import dao.ColumnTypeMappings
+import dao.quiz.table.SkillTables
 import dao.user.UserDAO
+import dao.user.table.UserTables
 import models._
 import models.organization.{Course, Course2Quiz}
 import models.quiz.{AnswerPart, _}
@@ -22,27 +24,29 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO, protected val questionDAO: QuestionDAO, protected val answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val skillTables: SkillTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
 
   // * ====== TABLE INSTANCES ====== *
-  val Skills = lifted.TableQuery[SkillTable]
-  val Skills2Questions = lifted.TableQuery[Skill2QuestionTable]
-  val UserAnswerCounts = lifted.TableQuery[UserAnswerCountTable]
+  import skillTables.{Skills, Skills2Questions, UserAnswerCounts }
 
   // * ====== QUERIES ====== *
 
   // ====== FIND ======
   def allSkills: Future[Seq[Skill]] = db.run(Skills.result)
 
-  def skillsFor(questionId: QuestionId) = db.run(Skills2Questions.filter(_.questionId === questionId).result)
+  def skillsFor(questionId: QuestionId): Future[Seq[Skill]] = db.run {
+    (for (s2q <- Skills2Questions; s <- Skills if s2q.questionId === questionId && s2q.skillId === s.id) yield s).result
+  }
 
   def byId(id : SkillId): Future[Option[Skill]] = db.run(Skills.filter(_.id === id).result.headOption)
 
   def byName(name : String): Future[Option[Skill]] = db.run(Skills.filter(_.name === name).result.headOption)
 
+  def skillsMap: Future[Map[String, Skill]] = db.run(Skills.result).map(_.groupBy(_.name).mapValues(_.head) )
 
   // ====== Create ======
   def insert(skill: Skill): Future[Skill] = db.run(
@@ -61,11 +65,18 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
     (Skills returning Skills.map(_.id) into ((needsId, id) => needsId.copy(id = id))) insertOrUpdate skill
   )
 
+  def addSkills(question: Question, skills: Vector[Skill]) = db.run({
+    val s2Qs = skills.map(s => Skill2Question(s.id, question.id))
+    Skills2Questions ++= s2Qs
+  })
+
+  // ====== DEFAULT SKILLS ======
+  // For now we have a default set of skills (and coef) that are hard coded and inserted into the db
   def defaultSkills = {
     allSkills.map(skills =>
       if(skills.isEmpty) { insertAll(
-          //                                            intercept correct incorrect
-          //                                                 β      γ       ρ
+          //                                                intercept correct incorrect
+          //                                                   β      γ       ρ
           Skill(null, "Numerical",                "Num",      -0.297, 0.025, -0.021),
           Skill(null, "Verbal",                   "Ver",      -0.177, 0.000, -0.147),
           Skill(null, "Algebraic",                "Alg",      -0.115, 0.093,  0.013),
@@ -88,48 +99,6 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
           Skill(null, "Antiderivatives",          "Ant",       0.177, 0.043, -0.023)
       )}
     )
-  }
-
-  // === Support ===
-
-  // * ====== TABLE CLASSES ====== *
-  class SkillTable(tag: Tag) extends Table[Skill](tag, "skill") {
-    def id = column[SkillId]("id", O.AutoInc)
-    def name = column[String]("name", O.PrimaryKey)
-    def shortName = column[String]("short_name")
-    def intercept = column[Double]("intercept")
-    def correct = column[Double]("correct")
-    def incorrect = column[Double]("incorrect")
-
-    def idIdx = index("skill_idx__id", id, unique = true)
-
-    def * = (id, name, shortName, intercept, correct, incorrect) <> (Skill.tupled, Skill.unapply)
-  }
-
-  class Skill2QuestionTable(tag: Tag) extends Table[Skill2Question](tag, "skill_2_question") {
-    def skillId = column[SkillId]("skill_id")
-    def questionId = column[QuestionId]("question_id")
-
-    def pk = primaryKey("skill_2_question_pk", (skillId, questionId))
-
-    def skillIdFK = foreignKey("skill_2_question_fk__skill_id", skillId, Skills)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionIdFK = foreignKey("skill_2_question_fk__question_id", questionId, questionDAO.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (skillId, questionId) <> (Skill2Question.tupled, Skill2Question.unapply)
-  }
-
-  class UserAnswerCountTable(tag: Tag) extends Table[UserAnswerCount](tag, "user_answer_count") {
-    def userId = column[UserId]("user_id")
-    def skillId = column[SkillId]("skill_id")
-    def correct = column[Int]("correct")
-    def incorrect = column[Int]("incorrect")
-
-    def pk = primaryKey("skill_2_question_pk", (userId, skillId))
-
-    def userIdFK = foreignKey("skill_2_question_fk__user_id", userId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def skillIdFK = foreignKey("skill_2_question_fk__skill_id", skillId, Skills)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (userId, skillId, correct, incorrect) <> (UserAnswerCount.tupled, UserAnswerCount.unapply)
   }
 
 }

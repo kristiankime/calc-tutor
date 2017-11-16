@@ -16,8 +16,8 @@ class SkillDAOSpec extends PlaySpec with GuiceOneAppPerTest {
     "insert skills based on name" in {
       val (userDAO, quizDAO, organizationDAO, courseDAO, skillDAO) = app.injector.instanceOf5[UserDAO, QuizDAO, OrganizationDAO, CourseDAO, SkillDAO]
 
-      val skill0 = Skill(null, "0", 0, 0, 0)
-      val skill1 = Skill(null, "1", 1, 1, 1)
+      val skill0 = Skill(null, "0", "s0", 0, 0, 0)
+      val skill1 = Skill(null, "1", "s1", 1, 1, 1)
       skillDAO.insertAll(skill0, skill1)
 
       val skill0ByName = TestData.await(skillDAO.byName("0")).get

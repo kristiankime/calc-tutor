@@ -31,13 +31,16 @@ object TestData {
 
   def quiz(id: Int, owner : User) = Quiz(id = null, ownerId = owner.id, name = "name"+id, creationDate = JodaUTC(0), updateDate = JodaUTC(0))
 
+  def skill(name: String) = Skill(null, name, name.substring(0,1), 1d, 1d, 1d)
+
   // ===== Question Frame =====
-  def questionFrame(title: String, description: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero)(questionSectionFrames: QuestionSectionFrame*) =
+  def questionFrame(title: String, description: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill], questionSectionFrames: Seq[QuestionSectionFrame]) : QuestionFrame =
     QuestionFrame(
       Question(null, userId, title, description, Markdowner.html(description), creationDate),
       Vector(questionSectionFrames:_*).zipWithIndex.map(s =>
         if(s._1.order != -1){s._1}
-        else{s._1.copy( section = s._1.section.copy(order = s._2.toShort), parts = s._1.parts)})
+        else{s._1.copy( section = s._1.section.copy(order = s._2.toShort), parts = s._1.parts)}),
+      Vector(skills:_*)
     )
 
   def questionSectionFrame(explanation: String, order: Short = -1)(choices: QuestionPartChoice*)(functions: QuestionPartFunction*) =

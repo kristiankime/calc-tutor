@@ -3,13 +3,15 @@ package dao.organization
 import com.artclod.slick.JodaUTC
 import dao.TestData
 import dao.user.UserDAO
-import models.{Own, Non, View, Edit}
+import models.{Edit, Non, Own, View}
 import models.organization.{Course, Organization}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import support.EnhancedInjector
+import support.{CleanDatabaseAfterEach, EnhancedInjector}
 
-class CourseDAOSpec extends PlaySpec with GuiceOneAppPerTest {
+class CourseDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
+
 
   "access" should {
 

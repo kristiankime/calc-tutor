@@ -2,7 +2,8 @@
         course: models.organization.Course,
         quiz: models.quiz.Quiz,
         questions: Seq[models.quiz.Question],
-        answerOp: Option[models.quiz.Answer])(implicit request: Request[AnyContent])
+        answerOp: Option[models.quiz.Answer],
+        allSkills: Seq[String])(implicit request: Request[AnyContent])
 
 @import helper._
 @import com.artclod.play._
@@ -35,7 +36,7 @@
     }
 
     @if(access.write){
-        @views.html.quiz.question.questionEditor(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id))
+        @views.html.quiz.question.questionEditor(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), allSkills)
     }
 
     @if(access.write){

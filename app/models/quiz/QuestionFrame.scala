@@ -12,20 +12,19 @@ import play.twirl.api.Html
 
 
 // ======= QuestionFrame
-case class QuestionFrame(question: Question, sections: Vector[QuestionSectionFrame]) {
-  def id(questionId: QuestionId) = QuestionFrame(question.copy(id = questionId), sections.map(s => s.questionId(questionId)))
+case class QuestionFrame(question: Question, sections: Vector[QuestionSectionFrame], skills: Vector[Skill]) {
+  def id(questionId: QuestionId) = QuestionFrame(question.copy(id = questionId), sections.map(s => s.questionId(questionId)), skills)
 
   // ==== throw errors for bad formulation
-  if(sections.isEmpty) {
-    throw new IllegalArgumentException("There were no sections");
-  }
+  if(sections.isEmpty) { throw new IllegalArgumentException("There were no sections"); }
+  if(skills.isEmpty) { throw new IllegalArgumentException("There were no skills"); }
 
 }
 
 object QuestionFrame {
 
   // ==== JSON to Frame ====
-  def  apply(questionJson: QuestionJson, ownerId: UserId, now : DateTime = JodaUTC.now) : QuestionFrame = {
+  def  apply(questionJson: QuestionJson, ownerId: UserId, skillMap: Map[String, Skill], now : DateTime = JodaUTC.now) : QuestionFrame = {
     val question : Question = Question(id = null,
       ownerId = ownerId,
       title = questionJson.title,
@@ -35,7 +34,7 @@ object QuestionFrame {
 
     val sections : Vector[QuestionSectionFrame] = questionJson.sections.zipWithIndex.map(s => sectionFrame(s._1, s._2))
 
-    QuestionFrame(question=question, sections=sections)
+    QuestionFrame(question=question, sections=sections, skills = questionJson.skills.map(s => skillMap.getOrElse(s, throw new IllegalArgumentException("Skill not found for " + s)) ))
   }
 
   private def sectionFrame(section: QuestionSectionJson, index: Int) : QuestionSectionFrame = {

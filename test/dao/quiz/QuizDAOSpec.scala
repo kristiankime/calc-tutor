@@ -3,12 +3,12 @@ package dao.quiz
 import dao.TestData
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
-import models.{Non, Own, View, Edit}
+import models.{Edit, Non, Own, View}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import support.EnhancedInjector
+import support.{CleanDatabaseAfterEach, EnhancedInjector}
 
-class QuizDAOSpec extends PlaySpec with GuiceOneAppPerTest {
+class QuizDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
 
   "byIds (course, quiz)" should {
 

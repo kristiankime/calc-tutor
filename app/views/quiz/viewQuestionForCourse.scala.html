@@ -16,4 +16,12 @@
         controllers.quiz.routes.AnswerController.createCourseSubmit(course.organizationId, course.id, quiz.id, questionFrame.question.id),
         questionFrame,
         answer)
+
+    @if(access >= models.Edit) {
+        <ul>
+        @for(skill <- questionFrame.skills){
+            <li>@skill.name</li>
+        }
+        </ul>
+    }
 }

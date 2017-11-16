@@ -6,7 +6,10 @@ import com.artclod.mathml.scalar.MathMLElem
 import com.artclod.slick.JodaUTC
 import dao.ColumnTypeMappings
 import dao.organization.CourseDAO
+import dao.organization.table.CourseTables
+import dao.quiz.table.{QuestionTables, QuizTables}
 import dao.user.UserDAO
+import dao.user.table.UserTables
 import models.quiz.{User2Quiz, _}
 import models.{organization, _}
 import models.organization.{Course, Course2Quiz, User2Course}
@@ -26,16 +29,16 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO, protected val courseDAO: CourseDAO, protected val questionDAO: QuestionDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val courseTables: CourseTables, protected val quizTables: QuizTables, protected val questionTables: QuestionTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
 
   // * ====== TABLE INSTANCES ====== *
-  val Quizzes = lifted.TableQuery[QuizTable]
-  val User2Quizzes = lifted.TableQuery[User2QuizTable]
-  val Courses2Quizzes = lifted.TableQuery[Course2QuizTable]
-  val Question2Quizzes = lifted.TableQuery[Question2QuizTable]
+  val Quizzes = quizTables.Quizzes
+  val User2Quizzes = quizTables.User2Quizzes
+  val Courses2Quizzes = quizTables.Courses2Quizzes
+  val Question2Quizzes = quizTables.Question2Quizzes
 
   // * ====== QUERIES ====== *
 
@@ -65,7 +68,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   def access(userId: UserId, quizId : QuizId): Future[Access] = db.run {
     val ownerAccess = (for(z <- Quizzes if z.ownerId === userId && z.id === quizId) yield z).result.headOption.map(_ match { case Some(_) => Own case None => Non})
     val directAccess = (for(u2z <- User2Quizzes if u2z.userId === userId && u2z.quizId === quizId) yield u2z.access).result.headOption.map(_.getOrElse(Non))
-    val courseAccess = (for(u2c <- courseDAO.User2Courses; c2z <- Courses2Quizzes if u2c.userId === userId && u2c.courseId === c2z.courseId && c2z.quizId === quizId) yield u2c.access).result.headOption.map(_.getOrElse(Non));
+    val courseAccess = (for(u2c <- courseTables.User2Courses; c2z <- Courses2Quizzes if u2c.userId === userId && u2c.courseId === c2z.courseId && c2z.quizId === quizId) yield u2c.access).result.headOption.map(_.getOrElse(Non));
 
     ownerAccess.flatMap(owner => directAccess.flatMap(direct => courseAccess.map(course => owner max direct max course)))
   }
@@ -92,62 +95,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   }
 
   def questionSummariesFor(quiz: Quiz): Future[Seq[Question]] = db.run {
-    (for(q2z <- Question2Quizzes; q <- questionDAO.Questions if q2z.quizId === quiz.id && q2z.questionId === q.id) yield q).result
-  }
-
-  // * ====== TABLE CLASSES ====== *
-  class QuizTable(tag: Tag) extends Table[Quiz](tag, "quiz") {
-    def id = column[QuizId]("id", O.PrimaryKey, O.AutoInc)
-    def ownerId = column[UserId]("owner_id")
-    def name = column[String]("name")
-    def creationDate = column[DateTime]("creation_date")
-    def updateDate = column[DateTime]("update_date")
-
-    def ownerIdFK = foreignKey("quiz_fk__owner_id", ownerId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (id, ownerId, name, creationDate, updateDate) <> (Quiz.tupled, Quiz.unapply)
-  }
-
-  class User2QuizTable(tag: Tag) extends Table[User2Quiz](tag, "app_user_2_quiz") {
-    def userId = column[UserId]("user_id")
-    def quizId = column[QuizId]("quiz_id")
-    def access = column[Access]("access")
-
-    def pk = primaryKey("course_2_quiz_pk", (userId, quizId))
-
-    def userIdFK = foreignKey("app_user_2_quiz_fk__user_id", userId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def quizIdFK = foreignKey("app_user_2_quiz_fk__quiz_id", quizId, Quizzes)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (userId, quizId, access) <> (User2Quiz.tupled, User2Quiz.unapply)
-  }
-
-  class Course2QuizTable(tag: Tag) extends Table[Course2Quiz](tag, "course_2_quiz") {
-    def courseId = column[CourseId]("course_id")
-    def quizId = column[QuizId]("quiz_id")
-    def startDate = column[Option[DateTime]]("start_date")
-    def endDate = column[Option[DateTime]]("end_date")
-
-    def pk = primaryKey("course_2_quiz_pk", (courseId, quizId))
-
-    def quizIdFK = foreignKey("course_2_quiz_fk__user_id", quizId, Quizzes)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def courseIdFK = foreignKey("course_2_quiz_fk__course_id", courseId, courseDAO.Courses)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (courseId, quizId, startDate, endDate) <> (Course2Quiz.tupled, Course2Quiz.unapply)
-  }
-
-  class Question2QuizTable(tag: Tag) extends Table[Question2Quiz](tag, "question_2_quiz") {
-    def questionId = column[QuestionId]("question_id")
-    def quizId = column[QuizId]("quiz_id")
-    def ownerId = column[UserId]("owner_id")
-    def creationDate = column[DateTime]("creation_date")
-    def order = column[Int]("question_order")
-
-    def pk = primaryKey("course_2_quiz_pk", (questionId, quizId))
-
-    def questionIdFK = foreignKey("question_2_quiz_fk__question_id", questionId, questionDAO.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def quizIdFK = foreignKey("question_2_quiz_fk__quiz_id", quizId, Quizzes)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (questionId, quizId, ownerId, creationDate, order) <> (Question2Quiz.tupled, Question2Quiz.unapply)
+    (for(q2z <- Question2Quizzes; q <- questionTables.Questions if q2z.quizId === quiz.id && q2z.questionId === q.id) yield q).result
   }
 
 }

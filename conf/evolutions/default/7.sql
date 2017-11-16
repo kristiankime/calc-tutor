@@ -11,6 +11,7 @@ CREATE TABLE skill
 );
 
 CREATE UNIQUE INDEX skill_idx__id ON skill(id);
+CREATE UNIQUE INDEX skill_idx__short_name ON skill(short_name);
 
 CREATE TABLE skill_2_question
 (

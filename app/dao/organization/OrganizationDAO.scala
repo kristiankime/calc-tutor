@@ -5,7 +5,9 @@ import javax.inject.Singleton
 
 import com.artclod.slick.JodaUTC
 import dao.ColumnTypeMappings
+import dao.organization.table.OrganizationTables
 import dao.user.UserDAO
+import dao.user.table.UserTables
 import models._
 import models.organization.{Course, Organization}
 import models.user.User
@@ -24,13 +26,13 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class OrganizationDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class OrganizationDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val organizationTables: OrganizationTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
 
   // * ====== TABLE INSTANCES ====== *
-  val Organizations = lifted.TableQuery[OrganizationTable]
+  val Organizations = organizationTables.Organizations
 
   // * ====== QUERIES ====== *
 

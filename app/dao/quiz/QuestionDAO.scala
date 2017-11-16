@@ -5,7 +5,9 @@ import javax.inject.{Inject, Singleton}
 import com.artclod.mathml.scalar.MathMLElem
 import controllers.quiz.{QuestionPartChoiceJson, QuestionPartFunctionJson}
 import dao.ColumnTypeMappings
+import dao.quiz.table.QuestionTables
 import dao.user.UserDAO
+import dao.user.table.UserTables
 import models._
 import models.quiz.{User2Quiz, _}
 import models.user.User
@@ -25,16 +27,16 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val questionTables: QuestionTables, protected val skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
 
   // * ====== TABLE INSTANCES ====== *
-  val Questions = lifted.TableQuery[QuestionTable]
-  val QuestionSections = lifted.TableQuery[QuestionSectionTable]
-  val QuestionPartChoices = lifted.TableQuery[QuestionPartChoiceTable]
-  val QuestionPartFunctions = lifted.TableQuery[QuestionPartFunctionTable]
+  val Questions = questionTables.Questions
+  val QuestionSections = questionTables.QuestionSections
+  val QuestionPartChoices = questionTables.QuestionPartChoices
+  val QuestionPartFunctions = questionTables.QuestionPartFunctions
 
   // * ====== QUERIES ====== *
 
@@ -52,21 +54,24 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     val sectionsFuture = sectionsById(id)
     val choicePartsFuture = choicePartsId(id)
     val functionPartsFuture = functionPartsId(id)
+    val skillsFuture = skillDAO.skillsFor(id)
 
-    questionFuture.flatMap(questionOp => { sectionsFuture.flatMap(sections => { choicePartsFuture.flatMap( choiceParts => { functionPartsFuture.map( functionParts => {
+    questionFuture.flatMap(questionOp => { sectionsFuture.flatMap(sections => { choicePartsFuture.flatMap( choiceParts => { functionPartsFuture.flatMap( functionParts => { skillsFuture.map( skills => {
       val secId2Fp = functionParts.groupBy(p => p.sectionId)
       val secId2Cp = choiceParts.groupBy(p => p.sectionId)
 
       val sectionFrames = sections.map(section => QuestionSectionFrame(section, secId2Cp.getOrElse(section.id, Seq()), secId2Fp.getOrElse(section.id, Seq())))
 
-      questionOp.map(question => {
+      val questionFrameOp : Option[QuestionFrame] = questionOp.map(question => {
         sectionFrames.nonEmpty match {
           case false => throw new IllegalArgumentException("There were no sections for id = " + id)
-          case true => QuestionFrame(question, Vector(sectionFrames:_*).sorted)
+          case true => QuestionFrame(question, Vector(sectionFrames:_*).sorted, Vector(skills:_*))
         }
       })
 
-    }) }) }) })
+      questionFrameOp
+
+    }) }) }) }) })
  }
 
   // ---
@@ -83,10 +88,15 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   // ====== Create ======
   def insert(questionFrame: QuestionFrame) : Future[QuestionFrame] = {
     insert(questionFrame.question).flatMap{ question => {
+
+        skillDAO.addSkills(question, questionFrame.skills)
+
+      //        TODO insert skills here
+
         val sectionsFutures : Seq[Future[QuestionSectionFrame]] = questionFrame.id(question.id).sections.map(section => insert(section))
 //        val futureOfSections : Future[Vector[SectionFrame]] = sectionsFutures.foldLeft(Future.successful(Vector[SectionFrame]()))((cur, add) => cur.flatMap(c => add.map(a => c :+ a)) ).map(_.sorted)
         val futureOfSections : Future[Vector[QuestionSectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
-        futureOfSections.map(sections => QuestionFrame(question, sections))
+        futureOfSections.map(sections => QuestionFrame(question, sections, questionFrame.skills))
       }
     }
   }
@@ -114,66 +124,6 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def insertFunctions(questionPartFunctions: Seq[QuestionPartFunction]): Future[Seq[QuestionPartFunction]] = db.run {
     (QuestionPartFunctions returning QuestionPartFunctions.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= questionPartFunctions
-  }
-
-  // === Support ===
-
-
-  // * ====== TABLE CLASSES ====== *
-  class QuestionTable(tag: Tag) extends Table[Question](tag, "question") {
-    def id = column[QuestionId]("id", O.PrimaryKey, O.AutoInc)
-    def ownerId = column[UserId]("owner_id")
-    def title = column[String]("title")
-    def descriptionRaw = column[String]("description_raw")
-    def descriptionHtml = column[Html]("description_html")
-    def creationDate = column[DateTime]("creation_date")
-
-    def ownerIdFK = foreignKey("question_fk__owner_id", ownerId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (id, ownerId, title, descriptionRaw, descriptionHtml, creationDate) <> (Question.tupled, Question.unapply)
-  }
-
-  class QuestionSectionTable(tag: Tag) extends Table[QuestionSection](tag, "question_section") {
-    def id = column[QuestionSectionId]("id", O.PrimaryKey, O.AutoInc)
-    def questionId = column[QuestionId]("question_id")
-    def explanationRaw = column[String]("explanation_raw")
-    def explanationHtml = column[Html]("explanation_html")
-    def order = column[Short]("section_order")
-
-    def questionIdFK = foreignKey("question_section_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (id, questionId, explanationRaw, explanationHtml, order) <> (QuestionSection.tupled, QuestionSection.unapply)
-  }
-
-  class QuestionPartChoiceTable(tag: Tag) extends Table[QuestionPartChoice](tag, "question_part_choice") {
-    def id = column[QuestionPartId]("id", O.PrimaryKey, O.AutoInc)
-    def sectionId = column[QuestionSectionId]("section_id")
-    def questionId = column[QuestionId]("question_id")
-    def summaryRaw = column[String]("summary_raw")
-    def summaryHtml = column[Html]("summary_html")
-    def correctChoice = column[Short]("correct_choice")
-    def order = column[Short]("part_order")
-
-    def sectionIdFK = foreignKey("question_part_choice_fk__section_id", sectionId, QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionIdFK = foreignKey("question_part_choice_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (id, sectionId, questionId, summaryRaw, summaryHtml, correctChoice, order) <> (QuestionPartChoice.tupled, QuestionPartChoice.unapply)
-  }
-
-  class QuestionPartFunctionTable(tag: Tag) extends Table[QuestionPartFunction](tag, "question_part_function") {
-    def id = column[QuestionPartId]("id", O.PrimaryKey, O.AutoInc)
-    def sectionId = column[QuestionSectionId]("section_id")
-    def questionId = column[QuestionId]("question_id")
-    def summaryRaw = column[String]("summary_raw")
-    def summaryHtml = column[Html]("summary_html")
-    def functionRaw = column[String]("function_raw")
-    def functionMath = column[MathMLElem]("function_math")
-    def order = column[Short]("part_order")
-
-    def sectionIdFK = foreignKey("question_part_function_fk__section_id", sectionId, QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionIdFK = foreignKey("question_part_function_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (id, sectionId, questionId, summaryRaw, summaryHtml, functionRaw, functionMath, order) <> (QuestionPartFunction.tupled, QuestionPartFunction.unapply)
   }
 
 }

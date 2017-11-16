@@ -17,7 +17,7 @@ import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
 import controllers.organization.CourseCreate
-import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO}
+import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
 import models.quiz._
 import play.api.data.Form
@@ -29,20 +29,20 @@ import scala.util.Right
 
 
 @Singleton
-class QuestionController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class QuestionController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
   def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId)).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ skillDAO.skillsMap).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, quiz)) =>
+      case Right((course, quiz, skillsMap)) =>
         QuestionCreate.form.bindFromRequest.fold(
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
             QuestionCreate.questionFormat.reads(Json.parse(form)) match {
               case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
               case JsSuccess(value, path) => {
-                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id))
+                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id, skillsMap))
                 questionFrameFuture.flatMap(questionFrame => {
                   quizDAO.attach(questionFrame.question, quiz, user.id).map(_ =>
                     Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
@@ -123,17 +123,19 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 }
 
 // === QuestionJson
-case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson]) {
+case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson], skills: Vector[String]) {
   if(sections.size == 0) { throw new IllegalArgumentException("Questions must have at least one section")}
+  if(skills.size == 0) { throw new IllegalArgumentException("Questions must have at least one skill")}
 }
 
 object QuestionJson {
 
-  def apply(title: String, description: String, sections: QuestionSectionJson*) : QuestionJson = QuestionJson(title, description, Markdowner.string(description), Vector(sections:_*))
+  def apply(title: String, description: String, sections: Seq[QuestionSectionJson], skills: Seq[String]) : QuestionJson = QuestionJson(title, description, Markdowner.string(description), Vector(sections:_*), Vector(skills:_*))
 
   def apply(questionFrame: QuestionFrame) : QuestionJson = {
     val sections = questionFrame.sections.map(s => QuestionSectionJson(s))
-    QuestionJson(questionFrame.question.title, questionFrame.question.descriptionRaw, questionFrame.question.descriptionHtml.toString, sections)
+    val skills = questionFrame.skills.map((s => s.name))
+    QuestionJson(questionFrame.question.title, questionFrame.question.descriptionRaw, questionFrame.question.descriptionHtml.toString, sections, skills)
   }
 
 }
@@ -216,6 +218,7 @@ object QuestionCreate {
   val descriptionRaw = "descriptionRaw"
   val descriptionHtml = "descriptionHtml"
   val sections = "sections"
+  val skills = "skills"
 
   // Section
   val explanationRaw = "explanationRaw"

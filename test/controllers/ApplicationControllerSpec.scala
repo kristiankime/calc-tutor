@@ -73,6 +73,7 @@ class ApplicationControllerSpec extends SecurityPlaySpec with GuiceOneAppPerTest
     }
 
     "render the secure page from the router when authorized" in {
+      // TODO there is no more secure page test with another page or add back?
       val page = route(app, FakeRequest(GET, "/secure").withHeaders("Host" -> "localhost").withCookies(authenticate("john", "john"))).get
 
       status(page) mustBe OK
@@ -81,6 +82,7 @@ class ApplicationControllerSpec extends SecurityPlaySpec with GuiceOneAppPerTest
     }
 
     "fail to render the secure page from the router when not authorized" in {
+      // TODO there is no more secure page test with another page or add back?
       val page = route(app, FakeRequest(GET, "/secure").withHeaders("Host" -> "localhost")).get
 
       status(page) mustBe SEE_OTHER
