@@ -88,15 +88,14 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   // ====== Create ======
   def insert(questionFrame: QuestionFrame) : Future[QuestionFrame] = {
     insert(questionFrame.question).flatMap{ question => {
-
-        skillDAO.addSkills(question, questionFrame.skills)
-
-      //        TODO insert skills here
-
+        val skillsFuture = skillDAO.addSkills(question, questionFrame.skills)
         val sectionsFutures : Seq[Future[QuestionSectionFrame]] = questionFrame.id(question.id).sections.map(section => insert(section))
 //        val futureOfSections : Future[Vector[SectionFrame]] = sectionsFutures.foldLeft(Future.successful(Vector[SectionFrame]()))((cur, add) => cur.flatMap(c => add.map(a => c :+ a)) ).map(_.sorted)
         val futureOfSections : Future[Vector[QuestionSectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
-        futureOfSections.map(sections => QuestionFrame(question, sections, questionFrame.skills))
+//        futureOfSections.map(sections => QuestionFrame(question, sections, questionFrame.skills))
+        skillsFuture.flatMap(skillCount => futureOfSections.map(sections =>
+        QuestionFrame(question, sections, questionFrame.skills)
+      ))
       }
     }
   }

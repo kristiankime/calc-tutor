@@ -95,6 +95,24 @@ class QuestionFrameSpec extends PlaySpec {
       // Test
       QuestionFrame(questionJson, UserId(0), skillMap, JodaUTC.zero) mustBe(questionFrame)
     }
+
+    "convert successfully with multiple skills" in {
+      // Json
+      val questionPartChoiceJson = QuestionPartChoiceJson("summaryRaw", "summaryHtml")
+      val questionSectionJson = QuestionSectionJson("explanationRaw", "explanationHtml", "choice", 0, Vector(questionPartChoiceJson), Vector())
+      val questionJson = QuestionJson("title", "questionRaw", "questionHtml", Vector(questionSectionJson), Vector("a", "b", "c"))
+
+      // Scala
+      val skills = Vector(TestData.skill("a"), TestData.skill("b"), TestData.skill("c"))
+      val skillMap = skills.groupBy(_.name).mapValues(_.head)
+      val questionPartChoice = QuestionPartChoice(null, null, null, "summaryRaw", Html("summaryHtml"), 1, 0)
+      val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
+      val sectionFrame = QuestionSectionFrame(questionSection, Left(Vector(questionPartChoice)))
+      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(sectionFrame), skills)
+
+      // Test
+      QuestionFrame(questionJson, UserId(0), skillMap, JodaUTC.zero) mustBe(questionFrame)
+    }
 	}
 
   "json roundtrip" should {

@@ -7,7 +7,7 @@ import com.artclod.mathml.MathML
 import com.artclod.slick.JodaUTC
 import models.{QuizId, UserId}
 import models.organization.{Course, Organization}
-import models.quiz.{QuestionPartChoice, QuestionPartFunction, _}
+import models.quiz.{QuestionFrame, QuestionPartChoice, QuestionPartFunction, _}
 import models.user.User
 import org.joda.time.DateTime
 
@@ -54,5 +54,37 @@ object TestData {
 
   def questionPartFunction(summary: String, function: String, order: Short = -1) = QuestionPartFunction(null, null, null, summary, Markdowner.html(summary), function, MathML(function).get, order)
 
+
+  // --- update ids ---
+  def copyIds(questionFrameNoIds: QuestionFrame, questionFrameWithIds: QuestionFrame) : QuestionFrame =  {
+    val questionFrame = questionFrameNoIds.id(questionFrameWithIds.question.id)
+    questionFrame.copy(sections = copyIds(questionFrame.sections, questionFrameWithIds.sections))
+  }
+
+  def copyIds(questionSectionsNoIds: Vector[QuestionSectionFrame], questionSectionWithIds: Vector[QuestionSectionFrame]) : Vector[QuestionSectionFrame] = {
+    if(questionSectionsNoIds.size != questionSectionWithIds.size) { throw new IllegalArgumentException("sections size didn't match"); }
+
+    questionSectionsNoIds.zip(questionSectionWithIds).map(e => copyIds(e._1, e._2))
+  }
+
+  def copyIds(questionSectionNoIds: QuestionSectionFrame, questionSectionWithIds: QuestionSectionFrame) : QuestionSectionFrame =  {
+    val questionSection = questionSectionNoIds.id(questionSectionWithIds.section.id)
+    val parts = (questionSection.parts.isLeft, questionSectionWithIds.parts.isLeft) match {
+      case (true, true) => Left(copyChoiceIds(questionSection.parts.left.get, questionSectionWithIds.parts.left.get))
+      case (false, false) => Right(copyFunctionIds(questionSection.parts.right.get, questionSectionWithIds.parts.right.get))
+      case (_, _) => throw new IllegalArgumentException("part types did not match")
+    }
+    questionSection.copy(parts = parts)
+  }
+
+  def copyChoiceIds(partsNoIds: Vector[QuestionPartChoice], partsWithIds: Vector[QuestionPartChoice]) : Vector[QuestionPartChoice] =  {
+    if(partsNoIds.size != partsWithIds.size) { throw new IllegalArgumentException("sections size didn't match"); }
+    partsNoIds.zip(partsWithIds).map(e => e._1.copy(id = e._2.id))
+  }
+
+  def copyFunctionIds(partsNoIds: Vector[QuestionPartFunction], partsWithIds: Vector[QuestionPartFunction]) : Vector[QuestionPartFunction] =  {
+    if(partsNoIds.size != partsWithIds.size) { throw new IllegalArgumentException("sections size didn't match"); }
+    partsNoIds.zip(partsWithIds).map(e => e._1.copy(id = e._2.id))
+  }
 
 }
