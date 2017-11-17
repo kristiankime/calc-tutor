@@ -1,11 +1,16 @@
-@import "colors.less";
-@import "flexbox/flexbox.less";
-@import "utils/css-transforms";
-@import "quiz/question-grid.less";
-@import "quiz/answer-grid.less";
+@import "_colors.less";
+@import "flexbox/_flexbox.less";
+@import "utils/_css-transforms";
+@import "quiz/_question-grid.less";
+@import "quiz/_answer-grid.less";
 
 @student-points-color: yellow;
 @teacher-points-color: orange;
+
+// changes to imported files do not seem to be forcing a recompile, this class is used to force updatess
+.change_to_force_compile {
+  background: grey;
+}
 
 .primary-content {
   padding: 1em 1em 1em 1em;
