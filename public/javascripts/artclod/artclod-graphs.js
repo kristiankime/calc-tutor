@@ -60,8 +60,14 @@ ARTC.insertGraph = function (inParams) {
     var showNavigation = typeof params.showNavigation !== 'undefined' ? params.showNavigation : true;
     params.showNavigation = showNavigation;
 
+    // default to copyright off
     var showCopyright = typeof params.showCopyright !== 'undefined' ? params.showCopyright : false;
     params.showCopyright = showCopyright;
+
+    // default to axis on
+    var axis = typeof params.axis !== 'undefined' ? params.axis : true;
+    params.axis = axis;
+
 
     // var boardSettings = {
     //     axis: axis,

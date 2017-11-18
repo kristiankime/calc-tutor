@@ -15,13 +15,11 @@
         <div class="item description-output"> <span data-bind="html: @QuestionCreate.descriptionHtml"> </span> </div>
 
         @*https://stackoverflow.com/questions/10559759/binding-checkboxes-to-array-with-knockout-js-mvc-razor*@
-
         <div class="item question-skills">
             @for(skill <- allSkills){
                 <label for="skill_@skill"> <input checked="checked" data-bind="checked: skills" type="checkbox" value="@skill" id="skill_@skill" > </input> @skill </label>
             }
         </div>
-
 
         <div class="item add-section"> <a href='#' data-bind='click: QE.addSection' class="pure-button">Add Section</a> </div>
 
@@ -99,9 +97,14 @@
                 model[raw] = toEnhance.extend({ substitute : {} });
 
                 // Create the computed Description Html from the raw
-                model[html] = ko.computed(function () {
-                    return ARTC.markdown(idPrefix, model[raw]());
-                }, model);
+                model[html] = ko.pureComputed({
+                    read: function () {
+                        return ARTC.markdown(idPrefix, model[raw]());
+                    },
+                    write: function(value) {
+                        // NOTE: this is a hack so that the call to ko.mapping.fromJS will not overwrite this observable with a string
+                    },
+                    owner: model});
             }
 
             // =================================================
