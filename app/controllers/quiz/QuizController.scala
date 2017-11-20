@@ -17,9 +17,10 @@ import com.artclod.util._
 import controllers.organization.CourseCreate
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
-import models.quiz.Quiz
+import models.quiz.{Quiz, QuizFrame}
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Right
@@ -69,18 +70,6 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   } } } }
 
-  // Use this version to switching off login for easier testing
-//  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = Action.async { implicit request =>
-//
-//    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& answerDAO(answerIdOp) ).flatMap{ _ match {
-//      case Left(notFoundResult) => Future.successful(notFoundResult)
-//      case Right((course, quiz, answerOp)) =>
-//        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(Edit, course, quiz, questions, answerOp)))
-//      }
-//    }
-//
-//  }
-
 
   def rename(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
@@ -99,16 +88,64 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   } } } }
 
+  /**
+    * Get the Quiz as JSON
+    * @param quizId id of the quiz
+    * @return HTTP OK with question JSON as the body
+    */
+  def quizJson(quizId: QuizId) = Action.async { implicit request =>
+
+    ( quizDAO.frameByIdEither(quizId) ).map{ _ match {
+      case Left(notFoundResult) => notFoundResult
+      case Right(quiz) =>
+        Ok(QuizCreate.quizFormat.writes(QuizJson(quiz)))
+    } }
+
+  }
+
+  def quizJsonCourse(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +& quizDAO.frameByIdEither(quizId)).map{ _ match {
+      case Left(notFoundResult) => notFoundResult
+      case Right((course, quiz)) =>
+        Ok(QuizCreate.quizFormat.writes(QuizJson(quiz)))
+    } }
+
+  }
 }
+
+//
+case class QuizJson(name: String, questions: Vector[QuestionJson])
+
+object QuizJson {
+
+  def apply(quizFrame: QuizFrame) : QuizJson =
+    QuizJson(
+      quizFrame.quiz.name,
+      quizFrame.questions.map(QuestionJson(_))
+    )
+
+}
+
 
 object QuizCreate {
   val name = "name"
 
   val form : Form[String] = Form(name -> nonEmptyText)
+
+
+  import QuestionCreate.questionFormat
+  implicit val quizFormat = Json.format[QuizJson]
 }
 
 object QuizRename {
   val name = "name"
 
   val form : Form[String] = Form(name -> nonEmptyText)
+}
+
+object QuizRemoveQuestion {
+  val questionId = "questonId"
+
+  val form : Form[Int] = Form(questionId -> number)
 }

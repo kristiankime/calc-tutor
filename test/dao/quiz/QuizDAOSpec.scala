@@ -1,8 +1,11 @@
 package dao.quiz
 
+import com.artclod.slick.{JodaUTC, NumericBoolean}
 import dao.TestData
+import dao.TestData.{questionPartChoice, questionPartFunction, questionSectionFrame}
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
+import models.quiz.{QuestionFrame, QuizFrame}
 import models.{Edit, Non, Own, View}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
@@ -122,5 +125,38 @@ class QuizDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
 
   }
 
+
+  "frameById" should {
+
+    "return quizFrame" in {
+      val (userDAO, quizDAO, organizationDAO, courseDAO, questionDAO, skillDAO) = app.injector.instanceOf6[UserDAO, QuizDAO, OrganizationDAO, CourseDAO, QuestionDAO, SkillDAO]
+
+      // Create a quiz
+      val owner = TestData.await(userDAO.insert(TestData.user(0)))
+      val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
+
+      // Setup the skills for use in the questions
+      val skillsNoId = Vector(TestData.skill("a"), TestData.skill("b"))
+      skillDAO.insertAll(skillsNoId:_*)
+      val skills = TestData.await(skillDAO.allSkills)
+
+      // Create a Question for the quiz
+      val questionFrame = TestData.questionFrame("title", "description", owner.id, JodaUTC.zero,
+        skills,
+        Seq(
+          questionSectionFrame("explanation 1")(questionPartChoice("summary 1-1", NumericBoolean.T))(),
+          questionSectionFrame("explanation 2")()(questionPartFunction("summary 2-1", "<cn>1</cn>")),
+          questionSectionFrame("explanation 3")(questionPartChoice("summary 3-1", NumericBoolean.F), questionPartChoice("summary 3-2", NumericBoolean.T))(),
+          questionSectionFrame("explanation 4")()(questionPartFunction("summary 4-1", "<cn>2</cn>"), (questionPartFunction("summary 4-2", "<cn>3</cn>")))
+        ))
+      val insertedQuestionFrame = TestData.await(questionDAO.insert(questionFrame))
+
+      // Add Questions to Quiz
+      TestData.await(quizDAO.attach(insertedQuestionFrame.question, quiz, owner.id))
+
+      // compare (make sure to update id)
+      TestData.await(quizDAO.frameById(quiz.id)) mustBe (Some(QuizFrame(quiz, Vector(insertedQuestionFrame))))
+    }
+  }
 
 }

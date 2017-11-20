@@ -29,7 +29,7 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val courseTables: CourseTables, protected val quizTables: QuizTables, protected val questionTables: QuestionTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val courseTables: CourseTables, protected val quizTables: QuizTables, protected val questionTables: QuestionTables, protected val questionDAO: QuestionDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
@@ -64,7 +64,28 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   def quizzesFor(courseId: CourseId) : Future[Seq[Quiz]] = db.run {
     (for(c2z <- Courses2Quizzes; z <- Quizzes if c2z.courseId === courseId && c2z.quizId === z.id) yield z).result
   }
-  // ====== Access ======
+
+  def frameById(id : QuizId): Future[Option[QuizFrame]] = {
+    val quizFuture = byId(id)
+    quizFuture.flatMap(_ match {
+      case Some(quiz) => {
+        questionSummariesFor(quiz).flatMap(questions => {
+          val questionFrameFutures: Seq[Future[QuestionFrame]] = questions.map(q => questionDAO.frameById(q.id).map(_.get) )
+          val futureQuestionFrames: Future[Vector[QuestionFrame]] = com.artclod.concurrent.raiseFuture(questionFrameFutures)
+          futureQuestionFrames.map(questionFrames =>  Some(QuizFrame(quiz, questionFrames)))
+        })
+      }
+      case None => Future(None)
+    })
+  }
+
+  // --
+  def frameByIdEither(quizId : QuizId): Future[Either[Result, QuizFrame]] = frameById(quizId).map { _ match {
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no quiz for id=["+quizId+"]")))
+    case Some(quizFrame) => Right(quizFrame)
+  } }
+
+    // ====== Access ======
   def access(userId: UserId, quizId : QuizId): Future[Access] = db.run {
     val ownerAccess = (for(z <- Quizzes if z.ownerId === userId && z.id === quizId) yield z).result.headOption.map(_ match { case Some(_) => Own case None => Non})
     val directAccess = (for(u2z <- User2Quizzes if u2z.userId === userId && u2z.quizId === quizId) yield u2z.access).result.headOption.map(_.getOrElse(Non))
@@ -75,7 +96,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
 
   def attach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, None, None)).map { _ => () }
 
-  def attach(question: Question, quiz: Quiz, userId: UserId) = {
+  def  attach(question: Question, quiz: Quiz, userId: UserId) = {
     val lastOrder = db.run( Question2Quizzes.filter(_.quizId === quiz.id).map(_.order).max.result)
     lastOrder.flatMap( lo => {
       val nextOrder = (lo.getOrElse(-1) + 1).toShort

@@ -24,7 +24,7 @@ case class QuestionFrame(question: Question, sections: Vector[QuestionSectionFra
 object QuestionFrame {
 
   // ==== JSON to Frame ====
-  def  apply(questionJson: QuestionJson, ownerId: UserId, skillMap: Map[String, Skill], now : DateTime = JodaUTC.now) : QuestionFrame = {
+  def apply(questionJson: QuestionJson, ownerId: UserId, skillMap: Map[String, Skill], now : DateTime = JodaUTC.now) : QuestionFrame = {
     val question : Question = Question(id = null,
       ownerId = ownerId,
       title = questionJson.title,

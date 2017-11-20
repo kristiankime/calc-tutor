@@ -56,34 +56,6 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  // Use this version to switching off login for easier testing
-//  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = Action.async { implicit request =>
-//
-//    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId)).flatMap{ _ match {
-//      case Left(notFoundResult) => Future.successful(notFoundResult)
-//      case Right((course, quiz)) =>
-//        QuestionCreate.form.bindFromRequest.fold(
-//          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
-//          form => {
-//            QuestionCreate.questionFormat.reads(Json.parse(form)) match {
-//              case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
-//              case JsSuccess(value, path) => {
-//                val questionFrameFuture = questionDAO.insert(QuestionFrame(value, UserId(1)))
-//                questionFrameFuture.flatMap(questionFrame => {
-//                  quizDAO.attach(questionFrame.question, quiz, UserId(1)).map(_ =>
-//                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
-//                })
-//              }
-//            }
-//          }
-//        )
-//      }
-//    }
-//
-//  }
-
-
-
   def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& answerDAO.frameByIdEither(answerIdOp)).map{ _ match {

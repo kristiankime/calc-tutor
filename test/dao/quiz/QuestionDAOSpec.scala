@@ -21,8 +21,8 @@ class QuestionDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val skillsNoId = Vector(TestData.skill("a"), TestData.skill("b"))
       skillDAO.insertAll(skillsNoId:_*)
       val skills = TestData.await(skillDAO.allSkills)
-//      val skillMap = TestData.await(skillDAO.skillsMap)
 
+      // Create the question
       val questionFrame = TestData.questionFrame("title", "description", user.id, JodaUTC.zero,
         skills,
         Seq(
@@ -31,12 +31,10 @@ class QuestionDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
           questionSectionFrame("explanation 3")(questionPartChoice("summary 3-1", NumericBoolean.F), questionPartChoice("summary 3-2", NumericBoolean.T))(),
           questionSectionFrame("explanation 4")()(questionPartFunction("summary 4-1", "<cn>2</cn>"), (questionPartFunction("summary 4-2", "<cn>3</cn>")))
         ))
-
       val insertedQuestionId = TestData.await(questionDAO.insert(questionFrame)).question.id
-
       val insertedQuestionFrame = TestData.await(questionDAO.frameById(insertedQuestionId)).get
 
-
+      // To compare we need to make sure the ids match
       val idsUpdated = TestData.copyIds(questionFrame, insertedQuestionFrame)
       idsUpdated mustBe(insertedQuestionFrame)
     }
