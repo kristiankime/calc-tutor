@@ -111,6 +111,12 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     (Quizzes returning Quizzes.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += quiz
   )
 
+  def insert(quizFrame: QuizFrame): Future[QuizFrame] = db.run(
+    null
+//    (Quizzes returning Quizzes.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += quiz
+
+  )
+
   def updateName(quiz: Quiz, name: String): Future[Int] = db.run {
     (for { z <- Quizzes if z.id === quiz.id } yield z.name ).update(name)
   }

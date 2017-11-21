@@ -17,10 +17,10 @@ import com.artclod.util._
 import controllers.organization.CourseCreate
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
-import models.quiz.{Quiz, QuizFrame}
+import models.quiz.{QuestionFrame, Quiz, QuizFrame}
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, JsSuccess, Json}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Right
@@ -98,7 +98,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
     ( quizDAO.frameByIdEither(quizId) ).map{ _ match {
       case Left(notFoundResult) => notFoundResult
       case Right(quiz) =>
-        Ok(QuizCreate.quizFormat.writes(QuizJson(quiz)))
+        Ok(QuizCreateFromJson.quizFormat.writes(QuizJson(quiz)))
     } }
 
   }
@@ -108,10 +108,55 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
     (courseDAO(organizationId, courseId) +& quizDAO.frameByIdEither(quizId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
       case Right((course, quiz)) =>
-        Ok(QuizCreate.quizFormat.writes(QuizJson(quiz)))
+        Ok(QuizCreateFromJson.quizFormat.writes(QuizJson(quiz)))
     } }
 
   }
+
+  def createSubmitJson(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +^ skillDAO.skillsMap).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, skillsMap)) =>
+        QuizCreateFromJson.form.bindFromRequest.fold(
+          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+          form => {
+            QuizCreateFromJson.quizFormat.reads(Json.parse(form)) match {
+              case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
+              case JsSuccess(value, path) => {
+                val quizFrameFuture = quizDAO.insert(QuizFrame(user.id, value, skillsMap))
+                quizFrameFuture.flatMap(quizFrame => {
+                  quizDAO.attach(course, quizFrame.quiz).map(_ =>
+                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizFrame.quiz.id, None)))
+                })
+              }
+            }
+          }
+        )
+    }
+    }
+
+  } } } }
+
+}
+
+
+object QuizCreate {
+  val name = "name"
+
+  val form : Form[String] = Form(name -> nonEmptyText)
+}
+
+object QuizRename {
+  val name = "name"
+
+  val form : Form[String] = Form(name -> nonEmptyText)
+}
+
+object QuizRemoveQuestion {
+  val questionId = "questonId"
+
+  val form : Form[Int] = Form(questionId -> number)
 }
 
 //
@@ -127,25 +172,12 @@ object QuizJson {
 
 }
 
-
-object QuizCreate {
+object QuizCreateFromJson {
   val name = "name"
 
-  val form : Form[String] = Form(name -> nonEmptyText)
-
+  val form : Form[String] =
+    Form(name -> nonEmptyText)
 
   import QuestionCreate.questionFormat
   implicit val quizFormat = Json.format[QuizJson]
-}
-
-object QuizRename {
-  val name = "name"
-
-  val form : Form[String] = Form(name -> nonEmptyText)
-}
-
-object QuizRemoveQuestion {
-  val questionId = "questonId"
-
-  val form : Form[Int] = Form(questionId -> number)
 }
