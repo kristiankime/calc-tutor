@@ -113,6 +113,16 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   }
 
+  def createJson(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId)).map{ _ match {
+      case Left(notFoundResult) => notFoundResult
+      case Right((course, access)) =>
+        Ok(views.html.quiz.inputQuizJson(access, course))
+    } }
+
+  } } } }
+
   def createSubmitJson(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +^ skillDAO.skillsMap).flatMap{ _ match {
@@ -173,10 +183,10 @@ object QuizJson {
 }
 
 object QuizCreateFromJson {
-  val name = "name"
+  val data = "data"
 
   val form : Form[String] =
-    Form(name -> nonEmptyText)
+    Form(data -> nonEmptyText)
 
   import QuestionCreate.questionFormat
   implicit val quizFormat = Json.format[QuizJson]

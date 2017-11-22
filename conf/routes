@@ -25,7 +25,8 @@ POST        /orgs/:o/courses/:c/quizzes/:z/rename                     controller
 
 GET         /quizzes/:z/json                                          controllers.quiz.QuizController.quizJson(z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/:z/json                       controllers.quiz.QuizController.quizJsonCourse(o: OrganizationId, c: CourseId, z: QuizId)
-POST        /orgs/:o/courses/:c/quizzes/json                          controllers.quiz.QuizController.createSubmitJson(o: OrganizationId, c: CourseId)
+GET         /orgs/:o/courses/:c/quizzes/json/create                   controllers.quiz.QuizController.createJson(o: OrganizationId, c: CourseId)
+POST        /orgs/:o/courses/:c/quizzes/json/create                   controllers.quiz.QuizController.createSubmitJson(o: OrganizationId, c: CourseId)
 
 # Course Quizzes Questions
 POST        /orgs/:o/courses/:c/quizzes/:z/questions/create           controllers.quiz.QuestionController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId)

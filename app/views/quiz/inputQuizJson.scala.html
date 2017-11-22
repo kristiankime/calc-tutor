@@ -1,0 +1,21 @@
+@(access: models.Access, course: models.organization.Course)(implicit request: Request[AnyContent])
+
+@import helper._
+@import com.artclod.play._
+@import controllers.organization.CourseCreate
+@import controllers.quiz.QuizRename
+@import controllers.quiz.QuizCreateFromJson
+
+@mainContent("Create Quiz", tag.courseLink(course)) {
+    <h2>Welcome to the create a quiz from Json for quiz @course.name page</h2>
+
+    @if(access.write){
+        @form(controllers.quiz.routes.QuizController.createSubmitJson(course.organizationId, course.id), 'class -> "pure-form") {
+            <h3>Input the JSON version of a quiz here</h3>
+            <textarea type="text" class="expanding" name="@QuizCreateFromJson.data"></textarea>
+            <input class="pure-button" type="submit" value="submit" >
+            @views.html.helper.CSRF.formField
+        }
+    }
+
+}
