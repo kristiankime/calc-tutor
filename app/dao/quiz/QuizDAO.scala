@@ -65,6 +65,12 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     (for(c2z <- Courses2Quizzes; z <- Quizzes if c2z.courseId === courseId && c2z.quizId === z.id) yield z).result
   }
 
+  def questionSummariesFor(quiz: Quiz): Future[Seq[Question]] = db.run {
+    (for(q2z <- Question2Quizzes; q <- questionTables.Questions if q2z.quizId === quiz.id && q2z.questionId === q.id) yield (q2z, q))
+      .sortBy(_._1.order).map(_._2) // sort and return Question
+      .result
+  }
+
   def frameById(id : QuizId): Future[Option[QuizFrame]] = {
     val quizFuture = byId(id)
     quizFuture.flatMap(_ match {
@@ -72,7 +78,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
         questionSummariesFor(quiz).flatMap(questions => {
           val questionFrameFutures: Seq[Future[QuestionFrame]] = questions.map(q => questionDAO.frameById(q.id).map(_.get) )
           val futureQuestionFrames: Future[Vector[QuestionFrame]] = com.artclod.concurrent.raiseFuture(questionFrameFutures)
-          futureQuestionFrames.map(questionFrames =>  Some(QuizFrame(quiz, questionFrames)))
+          futureQuestionFrames.map(questionFrames => Some(QuizFrame(quiz, questionFrames)))
         })
       }
       case None => Future(None)
@@ -85,7 +91,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     case Some(quizFrame) => Right(quizFrame)
   } }
 
-    // ====== Access ======
+  // ====== Access ======
   def access(userId: UserId, quizId : QuizId): Future[Access] = db.run {
     val ownerAccess = (for(z <- Quizzes if z.ownerId === userId && z.id === quizId) yield z).result.headOption.map(_ match { case Some(_) => Own case None => Non})
     val directAccess = (for(u2z <- User2Quizzes if u2z.userId === userId && u2z.quizId === quizId) yield u2z.access).result.headOption.map(_.getOrElse(Non))
@@ -96,13 +102,16 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
 
   def attach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, None, None)).map { _ => () }
 
-  def  attach(question: Question, quiz: Quiz, userId: UserId) = {
+  def attach(question: Question, quiz: Quiz, userId: UserId) = {
     val lastOrder = db.run( Question2Quizzes.filter(_.quizId === quiz.id).map(_.order).max.result)
     lastOrder.flatMap( lo => {
       val nextOrder = (lo.getOrElse(-1) + 1).toShort
       db.run(Question2Quizzes += Question2Quiz(question.id, quiz.id, userId, JodaUTC.now, nextOrder)).map { _ => () }
     })
   }
+
+  // TODO should we try to reorder?
+  def detach(question: Question, quiz: Quiz): Future[Int] = db.run(Question2Quizzes.filter(q2q => q2q.quizId === quiz.id && q2q.questionId === question.id).delete)
 
   def grantAccess(user: User, quiz: Quiz, access: Access) = db.run(User2Quizzes += User2Quiz(user.id, quiz.id, access)).map { _ => () }
 
@@ -120,10 +129,6 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
 
   def updateName(quiz: Quiz, name: String): Future[Int] = db.run {
     (for { z <- Quizzes if z.id === quiz.id } yield z.name ).update(name)
-  }
-
-  def questionSummariesFor(quiz: Quiz): Future[Seq[Question]] = db.run {
-    (for(q2z <- Question2Quizzes; q <- questionTables.Questions if q2z.quizId === quiz.id && q2z.questionId === q.id) yield q).result
   }
 
 }
