@@ -92,6 +92,27 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   }
 
+  def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, quiz, question)) =>
+
+        val detachFuture = quizDAO.detach(questionId, quiz)
+        detachFuture.map(update => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
+
+//        QuizRemoveQuestion.form.bindFromRequest.fold(
+//          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+//          form => {
+//            val detachFuture = quizDAO.detach(QuestionId(form), quiz)
+//            detachFuture.map(update => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
+//          }
+//        )
+    }
+    }
+
+  } } } }
+
 }
 
 // === QuestionJson

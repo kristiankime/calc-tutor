@@ -3,38 +3,55 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
+# =====================
+# === Main routes =====
 GET         /                                                         controllers.HomeController.index
 GET         /home                                                     controllers.HomeController.home
 
-# ----- Organization routes -----
+# =============================
+# === Organization routes =====
 GET         /orgs                                                     controllers.organization.OrganizationController.list()
 GET         /orgs/:o                                                  controllers.organization.OrganizationController.view(o: OrganizationId)
 
-# ----- Courses routes -----
+# ==========================
+# ===== Courses routes =====
 GET         /orgs/:o/courses                                          controllers.organization.CourseController.list(o: OrganizationId)
 GET         /orgs/:o/courses/create                                   controllers.organization.CourseController.createForm(o: OrganizationId)
 POST        /orgs/:o/courses                                          controllers.organization.CourseController.createSubmit(o: OrganizationId)
 GET         /orgs/:o/courses/:c                                       controllers.organization.CourseController.view(o: OrganizationId, c: CourseId)
 POST        /orgs/:o/courses/:c/join                                  controllers.organization.CourseController.join(o: OrganizationId, c: CourseId)
 
+# --------------
 # Course Quizzes
 GET         /orgs/:o/courses/:c/quizzes/create                        controllers.quiz.QuizController.createForm(o: OrganizationId, c: CourseId)
 POST        /orgs/:o/courses/:c/quizzes                               controllers.quiz.QuizController.createSubmit(o: OrganizationId, c: CourseId)
 GET         /orgs/:o/courses/:c/quizzes/:z                            controllers.quiz.QuizController.view(o: OrganizationId, c: CourseId, z: QuizId, a: Option[AnswerId])
 POST        /orgs/:o/courses/:c/quizzes/:z/rename                     controllers.quiz.QuizController.rename(o: OrganizationId, c: CourseId, z: QuizId)
-
 GET         /quizzes/:z/json                                          controllers.quiz.QuizController.quizJson(z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/:z/json                       controllers.quiz.QuizController.quizJsonCourse(o: OrganizationId, c: CourseId, z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/json/create                   controllers.quiz.QuizController.createJson(o: OrganizationId, c: CourseId)
 POST        /orgs/:o/courses/:c/quizzes/json/create                   controllers.quiz.QuizController.createSubmitJson(o: OrganizationId, c: CourseId)
 
-# Course Quizzes Questions
+# ---------------------
+# Course Quiz Questions
 POST        /orgs/:o/courses/:c/quizzes/:z/questions/create           controllers.quiz.QuestionController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q               controllers.quiz.QuestionController.view(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId, a: Option[AnswerId])
-POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/create        controllers.quiz.AnswerController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
-# view question json
+POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/remove        controllers.quiz.QuestionController.remove(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 GET         /questions/:q/json                                        controllers.quiz.QuestionController.questionJson(q: QuestionId)
 GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q/json          controllers.quiz.QuestionController.questionJsonCourse(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
+
+# ----------------------
+# Course Quiz Answers
+POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/create        controllers.quiz.AnswerController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
+
+
+
+
+
+
+
+# ==============================
+# Auxiliary routes
 
 # ===== Start auth routes ======
 GET         /auth/signIn                                              controllers.auth.AuthController.signIn

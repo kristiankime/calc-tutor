@@ -111,7 +111,8 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   }
 
   // TODO should we try to reorder?
-  def detach(question: Question, quiz: Quiz): Future[Int] = db.run(Question2Quizzes.filter(q2q => q2q.quizId === quiz.id && q2q.questionId === question.id).delete)
+  def detach(question: Question, quiz: Quiz): Future[Int] = detach(question.id, quiz)
+  def detach(questionId: QuestionId, quiz: Quiz): Future[Int] = db.run(Question2Quizzes.filter(q2q => q2q.quizId === quiz.id && q2q.questionId === questionId).delete)
 
   def grantAccess(user: User, quiz: Quiz, access: Access) = db.run(User2Quizzes += User2Quiz(user.id, quiz.id, access)).map { _ => () }
 

@@ -163,11 +163,11 @@ object QuizRename {
   val form : Form[String] = Form(name -> nonEmptyText)
 }
 
-object QuizRemoveQuestion {
-  val questionId = "questonId"
-
-  val form : Form[Int] = Form(questionId -> number)
-}
+//object QuizRemoveQuestion {
+//  val questionId = "questonId"
+//
+//  val form : Form[Int] = Form(questionId -> number)
+//}
 
 //
 case class QuizJson(name: String, questions: Vector[QuestionJson])

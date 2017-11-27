@@ -19,10 +19,24 @@
         <tr>
             <th>Question</th>
             @for(answer <- answerOp){<th>Correct</th>}
+            @if(access.write){<th>Remove</th>}
         </tr>
         @for(question <- questions){<tr>
-            <td> @tag.courseQuestionLink(course, quiz, question, None) </td>
-            @for(answer <- answerOp){<td> @tag.maybeIndicateCorrect(question, answer)</td>}
+            <td>
+                @tag.courseQuestionLink(course, quiz, question, None)
+            </td>
+            @for(answer <- answerOp){
+            <td>
+                @tag.maybeIndicateCorrect(question, answer)
+            </td>
+            }
+            @if(access.write){
+            <td>
+                @form(controllers.quiz.routes.QuestionController.remove(course.organizationId, course.id, quiz.id, question.id), 'class -> "pure-form") {
+                    <input class="pure-button" type="submit" value="remove" > @views.html.helper.CSRF.formField
+                }
+            </td>
+            }
         </tr>}
     </table>
 
