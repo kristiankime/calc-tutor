@@ -77,6 +77,10 @@ Using H2 with play
 * https://devcenter.heroku.com/articles/heroku-postgresql#local-setup
 * http://postgresapp.com/
 
+Do a backup: https://devcenter.heroku.com/articles/heroku-postgres-backups
+heroku pg:backups:capture --app app_name
+heroku pg:backups:download --app app_name
+
 ### [Play-Pac4j](https://github.com/pac4j/play-pac4j)
 Pac4j is a general java authentication and authorization library that has a version for play.
 By default the system makes it a little hard to allow users to pick which authentication method they like to use so I built a [sample app](https://github.com/kristiankime/play-pac4j-slick/) that routes the user to a login choice page if they are not authenticated.  
