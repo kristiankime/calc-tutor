@@ -28,7 +28,8 @@ import org.pac4j.sql.profile.service.DbProfileService
 import play.api.data._
 import play.api.data.Forms._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 /**
  * This controller handles actions specifically related to Authentication and Authorization
@@ -44,17 +45,20 @@ class AuthController @Inject()(val config: Config, val playSessionStore: PlaySes
     Ok(views.html.auth.signUp.render(UserData.form, request))
   }
 
-  def createLogin = Action { implicit request =>
+  def createLogin = Action.async { implicit request =>
     UserData.form.bindFromRequest.fold(
       formWithErrors => {
-        BadRequest(views.html.auth.signUp(formWithErrors, request))
+        Future.successful(BadRequest(views.html.auth.signUp(formWithErrors, request)))
       },
       userData => {
-        val profile = new DbProfile()
-        profile.setId(UUID.randomUUID())
-        profile.addAttribute(Pac4jConstants.USERNAME, userData.name)
-        dbProfileService.create(profile, userData.password)
-        Redirect(routes.AuthController.signIn())
+        loginDAO.byName(userData.name).map( _ match {
+          case Some(user) => BadRequest(views.html.auth.signUp(UserData.form.withError(UserData.nameAlreadyExist, "The name " + user.userName + " is already in use"), request))
+          case None => val profile = new DbProfile()
+            profile.setId(UUID.randomUUID())
+            profile.addAttribute(Pac4jConstants.USERNAME, userData.name)
+            dbProfileService.create(profile, userData.password)
+            Redirect(routes.AuthController.signIn())
+        })
       }
     )
 
@@ -98,6 +102,8 @@ object UserData {
       PASSWORD -> nonEmptyText
     )(Values.apply)(Values.unapply)
   )
+
+  val nameAlreadyExist = "nameAlreadyExist"
 }
 
 

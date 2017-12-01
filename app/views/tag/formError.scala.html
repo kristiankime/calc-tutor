@@ -1,0 +1,1 @@
+@(form: Form[_], key: String)@for(error <- form.error(key)){<span class="form-error"> @error.messages </span>}

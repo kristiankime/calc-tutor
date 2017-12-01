@@ -30,5 +30,7 @@ class NamePassDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def byId(id : String): Future[Option[NamePassLogin]] = db.run(Logins.filter(_.id === id).result.headOption)
 
+  def byName(name : String): Future[Option[NamePassLogin]] = db.run(Logins.filter(_.userName === name).result.headOption)
+
 }
 

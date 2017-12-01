@@ -3,7 +3,7 @@
 @boxedContent("Sign Up") {
     <h1>Create your Username and Password</h1>
     <form action="@controllers.auth.routes.AuthController.createLogin" method="POST">
-        Name: <input type="text" name="@controllers.auth.UserData.NAME" value="" /> <p />
+        Name: <input type="text" name="@controllers.auth.UserData.NAME" value="" /> @tag.formError(userForm, controllers.auth.UserData.nameAlreadyExist) <p />
         Password <input type="password" name="@controllers.auth.UserData.PASSWORD" value="" /> <p />
         <input type="submit" name="submit" value="Submit" />
         @views.html.helper.CSRF.formField(request)
