@@ -22,7 +22,7 @@
             @tag.isValid("skillsInvalid")
         </div>
 
-        <div class="item add-section"> <a href='#' data-bind='click: QE.addSection' class="pure-button">Add Section</a> </div>
+        <div class="item add-section"> <a href='#' data-bind='click: QE.addSection' class="pure-button">Add Section</a> @tag.isValid("sectionsInvalid") </div>
 
         <!-- ko foreach: @QuestionCreate.sections -->
         <div class="span-header question-section">
@@ -310,8 +310,12 @@
                     return main.@{QuestionCreate.skills}().length == 0;
                 });
 
+                main.sectionsInvalid = ko.computed(function () {
+                    return main.@{QuestionCreate.sections}().length == 0;
+                });
+
                 main.invalid = ko.computed(function () {
-                    return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid() || main.skillsInvalid()) );
+                    return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid() || main.skillsInvalid() || main.sectionsInvalid()) );
                 });
             }
 
