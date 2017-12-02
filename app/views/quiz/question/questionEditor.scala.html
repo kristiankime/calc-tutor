@@ -17,8 +17,9 @@
         @*https://stackoverflow.com/questions/10559759/binding-checkboxes-to-array-with-knockout-js-mvc-razor*@
         <div class="item question-skills">
             @for(skill <- allSkills){
-                <label for="skill_@skill"> <input checked="checked" data-bind="checked: skills" type="checkbox" value="@skill" id="skill_@skill" > </input> @skill </label>
+            <label for="skill_@skill"> <input checked="checked" data-bind="checked: @QuestionCreate.skills" type="checkbox" value="@skill" id="skill_@skill" > </input> @skill </label>
             }
+            @tag.isValid("skillsInvalid")
         </div>
 
         <div class="item add-section"> <a href='#' data-bind='click: QE.addSection' class="pure-button">Add Section</a> </div>
@@ -305,8 +306,12 @@
                     return main.@{QuestionCreate.title}() == "";
                 });
 
+                main.skillsInvalid = ko.computed(function () {
+                    return main.@{QuestionCreate.skills}().length == 0;
+                });
+
                 main.invalid = ko.computed(function () {
-                    return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid()) );
+                    return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid() || main.skillsInvalid()) );
                 });
             }
 
