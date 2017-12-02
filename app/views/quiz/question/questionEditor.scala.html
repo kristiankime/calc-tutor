@@ -32,8 +32,8 @@
                 <a href='#' data-bind='click: function(data, event) { QE.removeSection($parent, data) }' class="pure-button">Remove This Section</a>
                 <input type="radio" value="choice"  data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> @QuestionCreate.choice </input>
                 <input type="radio" value="function" data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> @QuestionCreate.function </input>
-                <a href='#' data-bind='click: QE.addChoicePart' class="pure-button">Add Choice</a>
-                <a href='#' data-bind='click: QE.addFunctionPart' class="pure-button">Add Function</a>
+                <!-- ko if: @{QuestionCreate.choiceOrFunction}() == '@QuestionCreate.choice' --> <a href='#' data-bind='click: QE.addChoicePart' class="pure-button">Add Choice</a> <!-- /ko -->
+                <!-- ko if: @{QuestionCreate.choiceOrFunction}() == '@QuestionCreate.function' --> <a href='#' data-bind='click: QE.addFunctionPart' class="pure-button">Add Function</a> <!-- /ko -->
             </div>
 
             <!-- ko if: @{QuestionCreate.choiceOrFunction}() == '@QuestionCreate.choice' -->
