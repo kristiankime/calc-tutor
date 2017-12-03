@@ -64,9 +64,24 @@
                 <h5> There are no quizzes for this course </h5>
             } else {
                 <h5> The course has the following quiz@zes(quizzes): </h5>
-                <ul class="pure-list">
-                @for(quiz <- quizzes) {<li> @tag.courseQuizLink(course, quiz, None) </li> }
-                </ul>
+                <table class="pure-table pure-table-striped">
+                    <tr>
+                        <th>Quiz</th>
+                        @if(access.write){<th>Remove</th>}
+                    </tr>
+                @for(quiz <- quizzes) {
+                    <tr>
+                        <td>@tag.courseQuizLink(course, quiz, None)</td>
+                        @if(access >= Edit) {
+                            <td>
+                            @form(controllers.quiz.routes.QuizController.remove(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
+                                <input class="pure-button" type="submit" value="remove" > @views.html.helper.CSRF.formField
+                            }
+                            </td>
+                        }
+                    </tr>
+                }
+                </table>
             }
             @if(access.write) { <a href="@controllers.quiz.routes.QuizController.createForm(course.organizationId, course.id)" class="pure-button"> add a quiz</a> }
         </section>

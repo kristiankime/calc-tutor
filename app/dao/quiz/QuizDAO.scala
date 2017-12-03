@@ -100,8 +100,12 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     ownerAccess.flatMap(owner => directAccess.flatMap(direct => courseAccess.map(course => owner max direct max course)))
   }
 
+  // Course 2 Quiz
   def attach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, None, None)).map { _ => () }
+  def detach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes.filter(c2q => c2q.quizId === quiz.id && c2q.courseId === course.id).delete)
 
+
+  // Question 2 Quiz
   def attach(question: Question, quiz: Quiz, userId: UserId) = {
     val lastOrder = db.run( Question2Quizzes.filter(_.quizId === quiz.id).map(_.order).max.result)
     lastOrder.flatMap( lo => {

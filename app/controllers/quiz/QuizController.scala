@@ -88,6 +88,17 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   } } } }
 
+  def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, quiz)) =>
+        quizDAO.detach(course, quiz).map(update => Redirect(controllers.organization.routes.CourseController.view(organizationId, course.id)))
+      }
+    }
+
+  } } } }
+
   /**
     * Get the Quiz as JSON
     * @param quizId id of the quiz
