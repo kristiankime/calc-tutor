@@ -72,7 +72,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
     * @param questionId id of the question
     * @return HTTP OK with question JSON as the body
     */
-  def questionJson(questionId: QuestionId) = Action.async { implicit request =>
+  def questionJson(questionId: QuestionId) = Action.async { implicit request => /* TODO figure out access to questions */
 
     ( questionDAO.frameByIdEither(questionId) ).map{ _ match {
       case Left(notFoundResult) => notFoundResult
@@ -82,7 +82,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   }
 
-  def questionJsonCourse(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = Action.async { implicit request =>
+  def questionJsonCourse(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId /* TODO figure out access to questions */ ) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
@@ -90,7 +90,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
         Ok(QuestionCreate.questionFormat.writes(QuestionJson(question)))
     } }
 
-  }
+  } } } }
 
   def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 

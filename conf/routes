@@ -37,7 +37,7 @@ POST        /orgs/:o/courses/:c/quizzes/json/create                   controller
 POST        /orgs/:o/courses/:c/quizzes/:z/questions/create           controllers.quiz.QuestionController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q               controllers.quiz.QuestionController.view(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId, a: Option[AnswerId])
 POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/remove        controllers.quiz.QuestionController.remove(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
-GET         /questions/:q/json                                        controllers.quiz.QuestionController.questionJson(q: QuestionId)
+# TODO reinstate after adding question access levels # GET         /questions/:q/json                                        controllers.quiz.QuestionController.questionJson(q: QuestionId)
 GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q/json          controllers.quiz.QuestionController.questionJsonCourse(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 
 # ----------------------

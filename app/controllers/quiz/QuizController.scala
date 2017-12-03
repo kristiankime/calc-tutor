@@ -93,7 +93,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
     * @param quizId id of the quiz
     * @return HTTP OK with question JSON as the body
     */
-  def quizJson(quizId: QuizId) = Action.async { implicit request =>
+  def quizJson(quizId: QuizId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
     ( quizDAO.frameByIdEither(quizId) ).map{ _ match {
       case Left(notFoundResult) => notFoundResult
@@ -101,9 +101,9 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
         Ok(QuizCreateFromJson.quizFormat.writes(QuizJson(quiz)))
     } }
 
-  }
+  } } } }
 
-  def quizJsonCourse(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = Action.async { implicit request =>
+  def quizJsonCourse(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO.frameByIdEither(quizId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
@@ -111,7 +111,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
         Ok(QuizCreateFromJson.quizFormat.writes(QuizJson(quiz)))
     } }
 
-  }
+  } } } }
 
   def createJson(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
@@ -123,7 +123,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   } } } }
 
-  def createSubmitJson(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+  def createSubmitJson(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +^ skillDAO.skillsMap).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
