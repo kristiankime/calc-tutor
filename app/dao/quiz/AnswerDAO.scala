@@ -90,6 +90,20 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
       case None => Future.successful(Right(None))
     }
 
+  def frameByIdEither(questionId: QuestionId, answerIdOp: Option[AnswerId]): Future[Either[Result, Option[AnswerFrame]]] =
+    answerIdOp match {
+      case Some(answerId) => frameById(answerId).map { _ match {
+        case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+answerId+"]")))
+        case Some(answer) =>
+          if(answer.answer.questionId != questionId) {
+            Left(NotFound(views.html.errors.notFoundPage("The answer for id=["+answerId+"] does not match the question for id=["+questionId+"]")))
+          } else {
+            Right(Some(answer))
+          }
+      } }
+      case None => Future.successful(Right(None))
+    }
+
   // ====== Create ======
   def insert(answerFrame: AnswerFrame) : Future[AnswerFrame] = {
     insert(answerFrame.answer).flatMap(answer => {
