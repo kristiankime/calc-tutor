@@ -38,10 +38,10 @@ ARTC.insertGraph = function (inParams) {
 
     // Here we have a nicer way to do boundingbox
     var useMinMax = false;
-    var xMin      = typeof params.xMin === 'undefined' ? -11 : useMinMax=true; params.xMin;
-    var xMax      = typeof params.xMax === 'undefined' ?  11 : useMinMax=true; params.xMax;
-    var yMin      = typeof params.yMin === 'undefined' ? -11 : useMinMax=true; params.yMin;
-    var yMax      = typeof params.yMax === 'undefined' ?  11 : useMinMax=true; params.yMax;
+    var xMin      = typeof params.xMin === 'undefined' ? -11 : params.xMin; useMinMax=true;
+    var xMax      = typeof params.xMax === 'undefined' ?  11 : params.xMax; useMinMax=true;
+    var yMin      = typeof params.yMin === 'undefined' ? -11 : params.yMin; useMinMax=true;
+    var yMax      = typeof params.yMax === 'undefined' ?  11 : params.yMax; useMinMax=true;
     if(xMin > xMax) { xMin = xMax -1; }
     if(yMin > yMax) { yMin = yMax -1; }
     if(useMinMax) { // Create boundingbox from minmax
