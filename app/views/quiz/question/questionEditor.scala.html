@@ -12,7 +12,7 @@
         <div class="item title-input"> Question Title @tag.isValid("titleInvalid") : <input data-bind="textInput: @QuestionCreate.title" /> </div>
         <div class="item title-output"> <span data-bind="html: @QuestionCreate.title"> </span> </div>
         <div class="item description-input"> Question Description @tag.isValid("descriptionInvalid") : <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.descriptionRaw"></textarea> </div>
-        <div class="item description-output"> <span data-bind="html: @QuestionCreate.descriptionHtml"> </span> </div>
+        <div class="item description-output"> <span data-bind="mathjax: @QuestionCreate.descriptionHtml"> </span> </div>
 
         @*https://stackoverflow.com/questions/10559759/binding-checkboxes-to-array-with-knockout-js-mvc-razor*@
         <div class="item question-skills">
@@ -27,7 +27,7 @@
         <!-- ko foreach: @QuestionCreate.sections -->
         <div class="span-header question-section">
             <div class="item explanation-input"> Explanation @tag.isValid("explanationInvalid") : <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.explanationRaw"></textarea> </div>
-            <div class="item explanation-output"> <span data-bind="html: @QuestionCreate.explanationHtml"> </span> </div>
+            <div class="item explanation-output"> <span data-bind="mathjax: @QuestionCreate.explanationHtml"> </span> </div>
             <div class="item section-controls">
                 <a href='#' data-bind='click: function(data, event) { QE.removeSection($parent, data) }' class="pure-button">Remove This Section</a>
                 <input type="radio" value="choice"  data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> @QuestionCreate.choice </input>
@@ -40,7 +40,7 @@
             <!-- ko foreach: @QuestionCreate.choices -->
             <div class="span-section question-choice">
                 <div class="item summary-input"> Summary @tag.isValid("invalid"): <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
-                <div class="item summary-output"> <span data-bind="html: @QuestionCreate.summaryHtml"> </span> </div>
+                <div class="item summary-output"> <span data-bind="mathjax: @QuestionCreate.summaryHtml"> </span> </div>
                 <div class="item choice-correct"> <input type="radio" data-bind="name: $parent.@QuestionCreate.id, value: $index, checked: $parent.@QuestionCreate.correctChoiceIndex, text: $parent.@QuestionCreate.id"> Correct </input> </div>
                 <div class="item choice-controls"> <a href='#' data-bind='click: function(data, event) { QE.removeChoicePart($parent, data) }' class="pure-button">Remove This Part</a> </div>
             </div>
@@ -51,7 +51,7 @@
             <!-- ko foreach: @QuestionCreate.functions -->
             <div class="span-section question-function">
                 <div class="item summary-input"> Summary @tag.isValid("summaryInvalid"): <br> <textarea type="text" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
-                <div class="item summary-output"> <span data-bind="html: @QuestionCreate.summaryHtml"> </span> </div>
+                <div class="item summary-output"> <span data-bind="mathjax: @QuestionCreate.summaryHtml"> </span> </div>
                 <div class="item function-input"> Function @tag.isValid("functionInvalid") : <input data-bind="textInput: @QuestionCreate.functionRaw" /> </div>
                 <div class="item function-output"><span data-bind="attr: { 'id' : @QuestionCreate.id }"> </span> </div>
                 <div class="item function-controls"><a href='#' data-bind='click: function(data, event) { QE.removeFunctionPart($parent, data) }' class="pure-button">Remove This Part</a> </div>

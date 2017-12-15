@@ -34,9 +34,6 @@ ARTC.markdown = function (idPrefix, text) {
         text = text.replace(pattern, index);
     }
 
-    // console.log(replaces);
-    // console.log(text);
-
     var markdown = converter.makeHtml(text);
     var ret = markdown;
 
@@ -65,7 +62,5 @@ ARTC.markdown = function (idPrefix, text) {
         }
     }
 
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-    // console.log(ret);
     return ret;
 }
