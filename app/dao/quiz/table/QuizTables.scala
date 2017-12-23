@@ -67,6 +67,7 @@ class QuizTables @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
   class Course2QuizTable(tag: Tag) extends Table[Course2Quiz](tag, "course_2_quiz") {
     def courseId = column[CourseId]("course_id")
     def quizId = column[QuizId]("quiz_id")
+    def viewHide = column[Boolean]("view_hide")
     def startDate = column[Option[DateTime]]("start_date")
     def endDate = column[Option[DateTime]]("end_date")
 
@@ -75,7 +76,7 @@ class QuizTables @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     def quizIdFK = foreignKey("course_2_quiz_fk__user_id", quizId, Quizzes)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
     def courseIdFK = foreignKey("course_2_quiz_fk__course_id", courseId, courseTables.Courses)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (courseId, quizId, startDate, endDate) <> (Course2Quiz.tupled, Course2Quiz.unapply)
+    def * = (courseId, quizId, viewHide, startDate, endDate) <> (Course2Quiz.tupled, Course2Quiz.unapply)
   }
 
   class Question2QuizTable(tag: Tag) extends Table[Question2Quiz](tag, "question_2_quiz") {

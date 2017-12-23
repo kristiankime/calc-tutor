@@ -12,12 +12,36 @@
         This quiz is for the course @tag.courseLink(course)
     </p>
 
+    <div id="create-quiz">
     @form(controllers.quiz.routes.QuizController.createSubmit(course.organizationId, course.id), 'class -> "pure-form") {
         <fieldset>
-            <label for="@QuizCreate.name">Name: <input type="text" name="@QuizCreate.name" placeholder="quiz name"></label>
+            <label for="@QuizCreate.name">Name: <input type="text" name="@QuizCreate.name" data-bind="text: @QuizCreate.name" placeholder="quiz name"></label> <br>
+
+            <label for="@QuizCreate.viewHide">Hide:
+                <input type="checkbox" name="@QuizCreate.name" value="true"  data-bind="checked: @QuizCreate.viewHide" />
+                <input type="hidden"   name="@QuizCreate.name" value="false" data-bind="checked: spamFlavors" />
+            </label> <br>
+
+            <label for="@QuizCreate.startDate">Start Date (Optional): <input type="datetime-local" name="@QuizCreate.startDate"></label> <br>
+
+            <label for="@QuizCreate.endDate">Send Date (Optional): <input type="datetime-local" name="@QuizCreate.endDate"></label> <br>
+
             <input type="submit" class="pure-button pure-button-primary" value="Submit">
             @views.html.helper.CSRF.formField
         </fieldset>
     }
+    </div>
 
+    <script>
+        var now = new Date();
+        var tomorrow = new Date(now.getTime());
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        ko.applyBindings( {
+            "this.@{QuizCreate.name}" : ko.observable("")
+            "this.@{QuizCreate.viewHide}" : ko.observable(false),
+            "this.@{QuizCreate.startDate}" : ko.observable(now),
+            "this.@{QuizCreate.endDate}" : ko.observable(tomorrow)
+        }, document.getElementById("create-quiz")); // This makes Knockout get to work
+    </script>
 }

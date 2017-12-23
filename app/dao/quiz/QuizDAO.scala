@@ -52,11 +52,11 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     case Some(quiz) => Right(quiz)
   } }
 
-  def byIds(courseId: CourseId, quizId: QuizId): Future[Option[Quiz]] = db.run{
-    (for(z <- Quizzes; c2z <- Courses2Quizzes if c2z.courseId === courseId && c2z.quizId === quizId && z.id === quizId ) yield z).result.headOption
+  def byIds(courseId: CourseId, quizId: QuizId): Future[Option[(Course2Quiz, Quiz)]] = db.run{
+    (for(z <- Quizzes; c2z <- Courses2Quizzes if c2z.courseId === courseId && c2z.quizId === quizId && z.id === quizId ) yield (c2z, z)).result.headOption
   }
 
-  def apply(courseId: CourseId, quizId: QuizId): Future[Either[Result, Quiz]] = byIds(courseId, quizId).map { _ match {
+  def apply(courseId: CourseId, quizId: QuizId): Future[Either[Result, (Course2Quiz, Quiz)]] = byIds(courseId, quizId).map { _ match {
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no Quiz for id=["+quizId+"] which also had Course Id [" + courseId + "]")))
     case Some(quiz) => Right(quiz)
   } }
@@ -101,7 +101,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   }
 
   // Course 2 Quiz
-  def attach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, None, None)).map { _ => () }
+  def attach(course: Course, quiz: Quiz, viewHide: Boolean, startDate: Option[DateTime], endDate: Option[DateTime]) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, viewHide, startDate, endDate)).map { _ => () }
   def detach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes.filter(c2q => c2q.quizId === quiz.id && c2q.courseId === course.id).delete)
 
 

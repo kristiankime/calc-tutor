@@ -18,8 +18,12 @@ import controllers.organization.CourseCreate
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
 import models.quiz.{QuestionFrame, Quiz, QuizFrame}
+import org.joda.time.DateTime
+import play.api.data._
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.data.Forms.jodaDate
+import play.api.data.Forms.optional
 import play.api.libs.json.{JsError, JsSuccess, Json}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -49,8 +53,8 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
             val now = JodaUTC.now
-            quizDAO.insert(Quiz(null, user.id, form, now, now)).flatMap(quiz => // Create the Quiz
-              quizDAO.attach(course, quiz).map( _ => // Attach it to the Course
+            quizDAO.insert(Quiz(null, user.id, form.name, now, now)).flatMap(quiz => // Create the Quiz
+              quizDAO.attach(course, quiz, form.viewHide, form.startDate, form.endDate).map( _ => // Attach it to the Course
                 Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
           }
         )
@@ -61,10 +65,10 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp) +^ skillDAO.allSkills).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp) +^ skillDAO.allSkills).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, quiz, access, answerOp, skills)) =>
-        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, questions, answerOp, skills.map(_.name))))
+      case Right((course, (course2Quiz, quiz), access, answerOp, skills)) =>
+        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, course2Quiz, questions, answerOp, skills.map(_.name))))
       }
     }
 
@@ -147,7 +151,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
               case JsSuccess(value, path) => {
                 val quizFrameFuture = quizDAO.insert(QuizFrame(user.id, value, skillsMap))
                 quizFrameFuture.flatMap(quizFrame => {
-                  quizDAO.attach(course, quizFrame.quiz).map(_ =>
+                  quizDAO.attach(course, quizFrame.quiz, false, None, None).map(_ =>
                     Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizFrame.quiz.id, None)))
                 })
               }
@@ -162,25 +166,36 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 }
 
 
+// -----------
+case class QuizCreateForm(name: String, viewHide: Boolean, startDate: Option[DateTime], endDate: Option[DateTime])
+
 object QuizCreate {
   val name = "name"
+  val viewHide = "viewHide"
+  val startDate = "startDate"
+  val endDate = "endDate"
 
-  val form : Form[String] = Form(name -> nonEmptyText)
+  val form : Form[QuizCreateForm] = Form(
+    mapping(
+      name -> nonEmptyText,
+      viewHide -> boolean,
+      startDate -> optional(jodaDate),
+      endDate -> optional(jodaDate)
+    )(QuizCreateForm.apply)(QuizCreateForm.unapply)
+  )
+
 }
 
+
+// -----------
 object QuizRename {
   val name = "name"
 
   val form : Form[String] = Form(name -> nonEmptyText)
 }
 
-//object QuizRemoveQuestion {
-//  val questionId = "questonId"
-//
-//  val form : Form[Int] = Form(questionId -> number)
-//}
 
-//
+// -----------
 case class QuizJson(name: String, questions: Vector[QuestionJson])
 
 object QuizJson {
@@ -193,6 +208,8 @@ object QuizJson {
 
 }
 
+
+// -----------
 object QuizCreateFromJson {
   val data = "data"
 

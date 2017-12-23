@@ -23,9 +23,9 @@ class QuizDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val org = TestData.await(organizationDAO.insert(TestData.organization(0)))
       val course = TestData.await(courseDAO.insert(TestData.course(0, org, owner) ))
       val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
-      TestData.await(quizDAO.attach(course, quiz))
+      TestData.await(quizDAO.attach(course, quiz, false, None, None))
 
-      TestData.await(quizDAO.byIds(course.id, quiz.id)) mustBe(Some(quiz))
+      TestData.await(quizDAO.byIds(course.id, quiz.id)).map(_._2)  mustBe(Some(quiz))
     }
 
     "return None if quiz is not assocated with the course" in {
@@ -37,7 +37,7 @@ class QuizDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val course = TestData.await(courseDAO.insert(TestData.course(0, org, owner) ))
       val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
 
-      TestData.await(quizDAO.byIds(course.id, quiz.id)) mustBe(None)
+      TestData.await(quizDAO.byIds(course.id, quiz.id)).map(_._2)  mustBe(None)
     }
   }
 
@@ -94,7 +94,7 @@ class QuizDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val org = TestData.await(organizationDAO.insert(TestData.organization(0)))
       val course = TestData.await(courseDAO.insert(TestData.course(0, org, owner) ))
       val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
-      TestData.await(quizDAO.attach(course, quiz))
+      TestData.await(quizDAO.attach(course, quiz, false, None, None))
 
       // Grant a user Edit access to the course
       val user = TestData.await(userDAO.insert(TestData.user(1)))
@@ -111,7 +111,7 @@ class QuizDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val org = TestData.await(organizationDAO.insert(TestData.organization(0)))
       val course = TestData.await(courseDAO.insert(TestData.course(0, org, owner) ))
       val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
-      TestData.await(quizDAO.attach(course, quiz))
+      TestData.await(quizDAO.attach(course, quiz, false, None, None))
 
       // Grant a user Edit access to the course
       val user = TestData.await(userDAO.insert(TestData.user(1)))

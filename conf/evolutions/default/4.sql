@@ -21,6 +21,7 @@ CREATE TABLE course_2_quiz
 (
   course_id INT NOT NULL REFERENCES course(id),
   quiz_id INT NOT NULL REFERENCES quiz(id),
+  view_hide BOOLEAN,
   start_date TIMESTAMP,
   end_date TIMESTAMP,
   PRIMARY KEY (course_id, quiz_id)

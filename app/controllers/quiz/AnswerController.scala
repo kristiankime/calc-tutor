@@ -35,7 +35,7 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
 
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +& questionDAO.frameByIdEither(questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, quiz, question)) =>
+      case Right((course, (course2Quiz, quiz), question)) =>
 
         AnswerCreate.form.bindFromRequest.fold(
           errors =>

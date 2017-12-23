@@ -1,6 +1,8 @@
+@import models.organization.Course2Quiz
 @(access: models.Access,
         course: models.organization.Course,
         quiz: models.quiz.Quiz,
+        course2Quiz: Course2Quiz,
         questions: Seq[models.quiz.Question],
         answerOp: Option[models.quiz.Answer],
         allSkills: Seq[String])(implicit request: Request[AnyContent])
@@ -39,6 +41,12 @@
             }
         </tr>}
     </table>
+
+    <div>
+        viewHide: @course2Quiz.viewHide <br>
+        startDate: @course2Quiz.startDate <br>
+        endDate: @course2Quiz.endDate <br>
+    </div>
 
 
     @if(access.write){
