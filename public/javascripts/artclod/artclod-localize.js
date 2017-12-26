@@ -6,3 +6,4 @@ if (!ARTC) {
 ARTC.localize = function (t) {
     document.write(moment(new Date(t + " UTC")).format("M/D/YYYY h:mm:ss a"));
 }
+

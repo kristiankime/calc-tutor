@@ -50,7 +50,24 @@ ko.bindingHandlers.mathjax = {
 };
 
 // https://stackoverflow.com/questions/18016718/using-knockout-js-how-do-bind-a-date-property-to-a-html5-date-picker#18058410
-ko.bindingHandlers.datePicker = {
+// ko.bindingHandlers.datetimeLocalPicker = {
+//     init: function (element, valueAccessor, allBindingsAccessor, viewModel) {
+//         // Register change callbacks to update the model
+//         // if the control changes.
+//         ko.utils.registerEventHandler(element, "change", function () {
+//             var value = valueAccessor();
+//             value(new Date(element.value));
+//         });
+//     },
+//     // Update the control whenever the view model changes
+//     update: function (element, valueAccessor, allBindingsAccessor, viewModel) {
+//         var value = valueAccessor();
+//         // var vTmp = value();
+//         element.value = value().toLocalISOStringNoZ();
+//     }
+// };
+
+ko.bindingHandlers.datetimeLocalPicker = {
     init: function (element, valueAccessor, allBindingsAccessor, viewModel) {
         // Register change callbacks to update the model
         // if the control changes.
@@ -62,6 +79,6 @@ ko.bindingHandlers.datePicker = {
     // Update the control whenever the view model changes
     update: function (element, valueAccessor, allBindingsAccessor, viewModel) {
         var value =  valueAccessor();
-        element.value = value().toISOString();
+        element.value = value().toLocalISOStringNoZ();
     }
 };

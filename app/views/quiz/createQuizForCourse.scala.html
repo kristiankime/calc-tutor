@@ -15,17 +15,34 @@
     <div id="create-quiz">
     @form(controllers.quiz.routes.QuizController.createSubmit(course.organizationId, course.id), 'class -> "pure-form") {
         <fieldset>
+            <!-- name -->
             <label for="@QuizCreate.name">Name: <input type="text" name="@QuizCreate.name" data-bind="text: @QuizCreate.name" placeholder="quiz name"></label> <br>
 
+            <!-- hide -->
             <label for="@QuizCreate.viewHide">Hide:
-                <input type="checkbox" name="@QuizCreate.name" value="true"  data-bind="checked: @QuizCreate.viewHide" />
-                <input type="hidden"   name="@QuizCreate.name" value="false" data-bind="checked: spamFlavors" />
+                <input type="checkbox" name="@QuizCreate.viewHide" value="true"  data-bind="checked: @QuizCreate.viewHide" />
+                <input type="hidden"   name="@QuizCreate.viewHide" value="false"/>
             </label> <br>
 
-            <label for="@QuizCreate.startDate">Start Date (Optional): <input type="datetime-local" name="@QuizCreate.startDate"></label> <br>
+            <!-- start date -->
+            <label for="@QuizCreate.useStartDate">Use Start:
+                <input type="checkbox" name="@QuizCreate.useStartDate" value="true"  data-bind="checked: @QuizCreate.useStartDate" />
+                <input type="hidden"   name="@QuizCreate.useStartDate" value="false"/>
+            </label>
+            <label for="@{QuizCreate.startDate}View">Date: <input id="@{QuizCreate.startDate}View" type="datetime-local" name="@{QuizCreate.startDate}View" data-bind="datetimeLocalPicker : @{QuizCreate.startDate}View"></label>
+            <span data-bind="text : @{QuizCreate.startDate}View"> </span> ||| <span data-bind="text : @{QuizCreate.startDate}"> </span>
+            <br>
 
-            <label for="@QuizCreate.endDate">Send Date (Optional): <input type="datetime-local" name="@QuizCreate.endDate"></label> <br>
+            <!-- end date -->
+            <label for="@QuizCreate.useEndDate">Use End:
+                <input type="checkbox" name="@QuizCreate.useEndDate" value="true"  data-bind="checked: @QuizCreate.useEndDate" />
+                <input type="hidden"   name="@QuizCreate.useEndDate" value="false"/>
+            </label>
+            <label for="@{QuizCreate.endDate}View">Date: <input id="@{QuizCreate.endDate}View" type="datetime-local" name="@{QuizCreate.endDate}View" data-bind="datetimeLocalPicker : @{QuizCreate.endDate}View"></label>
+            <span data-bind="text : @{QuizCreate.endDate}View"> </span> ||| <span data-bind="text : @{QuizCreate.endDate}"> </span>
+            <br>
 
+            <!-- submit -->
             <input type="submit" class="pure-button pure-button-primary" value="Submit">
             @views.html.helper.CSRF.formField
         </fieldset>
@@ -33,15 +50,40 @@
     </div>
 
     <script>
-        var now = new Date();
-        var tomorrow = new Date(now.getTime());
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        (function() {
+            var now = new Date();
+            now.setMinutes(0, 0, 0); // Test taking doesn't need to be accurate down to the millisecond...
+            var tomorrow = new Date(now.getTime());
+            tomorrow.setDate(tomorrow.getDate() + 7);
 
-        ko.applyBindings( {
-            "this.@{QuizCreate.name}" : ko.observable("")
-            "this.@{QuizCreate.viewHide}" : ko.observable(false),
-            "this.@{QuizCreate.startDate}" : ko.observable(now),
-            "this.@{QuizCreate.endDate}" : ko.observable(tomorrow)
-        }, document.getElementById("create-quiz")); // This makes Knockout get to work
+            var createQuizModel = {
+                "@{QuizCreate.name}": ko.observable(""),
+                "@{QuizCreate.viewHide}": ko.observable(false),
+
+                "@{QuizCreate.useStartDate}": ko.observable(false),
+                "@{QuizCreate.startDate}View": ko.observable(now),
+
+                "@{QuizCreate.useEndDate}": ko.observable(false),
+                "@{QuizCreate.endDate}View": ko.observable(tomorrow)
+            };
+
+            createQuizModel.@{QuizCreate.startDate} = ko.computed(function () {
+                if(createQuizModel.@{QuizCreate.startDate}View().isValid()) {
+                    return createQuizModel.@{QuizCreate.startDate}View().toISOString();
+                } else {
+                    return null;
+                }
+            }, createQuizModel);
+
+            createQuizModel.@{QuizCreate.endDate} = ko.computed(function () {
+                if(createQuizModel.@{QuizCreate.startDate}View().isValid()) {
+                    return createQuizModel.@{QuizCreate.endDate}View().toISOString();
+                } else {
+                    return null;
+                }
+            }, createQuizModel);
+
+            ko.applyBindings(createQuizModel, document.getElementById("create-quiz"));
+        }());
     </script>
 }

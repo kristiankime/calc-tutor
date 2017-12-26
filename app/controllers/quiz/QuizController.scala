@@ -54,7 +54,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
           form => {
             val now = JodaUTC.now
             quizDAO.insert(Quiz(null, user.id, form.name, now, now)).flatMap(quiz => // Create the Quiz
-              quizDAO.attach(course, quiz, form.viewHide, form.startDate, form.endDate).map( _ => // Attach it to the Course
+              quizDAO.attach(course, quiz, form.viewHide, if(form.useStartDate){Some(form.startDate)}else{None}, if(form.useEndDate){Some(form.endDate)}else{None}).map( _ => // Attach it to the Course
                 Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
           }
         )
@@ -167,25 +167,28 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
 
 // -----------
-case class QuizCreateForm(name: String, viewHide: Boolean, startDate: Option[DateTime], endDate: Option[DateTime])
+case class QuizCreateForm(name: String, viewHide: Boolean, useStartDate: Boolean, startDate: DateTime, useEndDate: Boolean, endDate: DateTime)
 
 object QuizCreate {
   val name = "name"
   val viewHide = "viewHide"
+  val useStartDate = "useStartDate"
   val startDate = "startDate"
+  val useEndDate = "useEndDate"
   val endDate = "endDate"
 
   val form : Form[QuizCreateForm] = Form(
     mapping(
       name -> nonEmptyText,
       viewHide -> boolean,
-      startDate -> optional(jodaDate),
-      endDate -> optional(jodaDate)
+      useStartDate -> boolean,
+      startDate -> jodaDate,
+      useEndDate -> boolean,
+      endDate -> jodaDate
     )(QuizCreateForm.apply)(QuizCreateForm.unapply)
   )
 
 }
-
 
 // -----------
 object QuizRename {
