@@ -179,12 +179,12 @@ object QuizCreate {
 
   val form : Form[QuizCreateForm] = Form(
     mapping(
-      name -> nonEmptyText,
-      viewHide -> boolean,
+      name ->         nonEmptyText,
+      viewHide ->     boolean,
       useStartDate -> boolean,
-      startDate -> jodaDate,
-      useEndDate -> boolean,
-      endDate -> jodaDate
+      startDate ->    jodaDate("yyyy-MM-dd'T'HH:mm:ss"),
+      useEndDate ->   boolean,
+      endDate ->      jodaDate("yyyy-MM-dd'T'HH:mm:ss")
     )(QuizCreateForm.apply)(QuizCreateForm.unapply)
   )
 

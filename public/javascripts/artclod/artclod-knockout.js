@@ -43,7 +43,7 @@ ko.bindingHandlers.mathjax = {
         var value = valueAccessor(), allBindings = allBindingsAccessor();
 
         var valueUnwrapped = ko.unwrap(value);
-        // the replace is an artefact of my encoding.  Maybe I will use markdown instead.
+        // the replace is an artifact of my encoding.  Maybe I will use markdown instead.
         $(element).html(valueUnwrapped.replace(/\n/g, '<br>'));
         MathJax.Hub.Queue(["Typeset",MathJax.Hub,element]);
     }

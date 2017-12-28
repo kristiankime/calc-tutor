@@ -29,8 +29,9 @@
                 <input type="checkbox" name="@QuizCreate.useStartDate" value="true"  data-bind="checked: @QuizCreate.useStartDate" />
                 <input type="hidden"   name="@QuizCreate.useStartDate" value="false"/>
             </label>
-            <label for="@{QuizCreate.startDate}View">Date: <input id="@{QuizCreate.startDate}View" type="datetime-local" name="@{QuizCreate.startDate}View" data-bind="datetimeLocalPicker : @{QuizCreate.startDate}View"></label>
+            <label for="@{QuizCreate.startDate}View">Date: <input id="@{QuizCreate.startDate}View" type="datetime-local" name="@{QuizCreate.startDate}View" data-bind="datetimeLocalPicker : @{QuizCreate.startDate}View, enable : @QuizCreate.useStartDate" ></label>
             <span data-bind="text : @{QuizCreate.startDate}View"> </span> ||| <span data-bind="text : @{QuizCreate.startDate}"> </span>
+            <input type="hidden" name="@QuizCreate.startDate" data-bind="value : @QuizCreate.startDate" />
             <br>
 
             <!-- end date -->
@@ -38,8 +39,9 @@
                 <input type="checkbox" name="@QuizCreate.useEndDate" value="true"  data-bind="checked: @QuizCreate.useEndDate" />
                 <input type="hidden"   name="@QuizCreate.useEndDate" value="false"/>
             </label>
-            <label for="@{QuizCreate.endDate}View">Date: <input id="@{QuizCreate.endDate}View" type="datetime-local" name="@{QuizCreate.endDate}View" data-bind="datetimeLocalPicker : @{QuizCreate.endDate}View"></label>
+            <label for="@{QuizCreate.endDate}View">Date: <input id="@{QuizCreate.endDate}View" type="datetime-local" name="@{QuizCreate.endDate}View" data-bind="datetimeLocalPicker : @{QuizCreate.endDate}View, enable : @QuizCreate.useEndDate"></label>
             <span data-bind="text : @{QuizCreate.endDate}View"> </span> ||| <span data-bind="text : @{QuizCreate.endDate}"> </span>
+            <input type="hidden" name="@QuizCreate.endDate" data-bind="value : @QuizCreate.endDate" />
             <br>
 
             <!-- submit -->
@@ -50,11 +52,10 @@
     </div>
 
     <script>
-        (function() {
+        var ZE = (function() {
             var now = new Date();
-            now.setMinutes(0, 0, 0); // Test taking doesn't need to be accurate down to the millisecond...
-            var tomorrow = new Date(now.getTime());
-            tomorrow.setDate(tomorrow.getDate() + 7);
+            now.setHours(0, 0, 0, 0); // Quizzes default to a day
+            var later = now.plusDays(7);
 
             var createQuizModel = {
                 "@{QuizCreate.name}": ko.observable(""),
@@ -64,12 +65,13 @@
                 "@{QuizCreate.startDate}View": ko.observable(now),
                 // End Date Values
                 "@{QuizCreate.useEndDate}": ko.observable(false),
-                "@{QuizCreate.endDate}View": ko.observable(tomorrow)
+                "@{QuizCreate.endDate}View": ko.observable(later)
             };
 
             createQuizModel.@{QuizCreate.startDate} = ko.computed(function () {
                 if(createQuizModel.@{QuizCreate.startDate}View().isValid()) {
-                    return createQuizModel.@{QuizCreate.startDate}View().toISOString();
+//                    return createQuizModel.@{QuizCreate.startDate}View().toISOString();
+                    return createQuizModel.@{QuizCreate.startDate}View().toUTCStringNoZ();
                 } else {
                     return null;
                 }
@@ -77,13 +79,23 @@
 
             createQuizModel.@{QuizCreate.endDate} = ko.computed(function () {
                 if(createQuizModel.@{QuizCreate.startDate}View().isValid()) {
-                    return createQuizModel.@{QuizCreate.endDate}View().toISOString();
+//                    return createQuizModel.@{QuizCreate.endDate}View().toISOString();
+                    return createQuizModel.@{QuizCreate.endDate}View().toUTCStringNoZ();
                 } else {
                     return null;
                 }
             }, createQuizModel);
 
+            // Make sure the end date is always after the start date
+            createQuizModel.@{QuizCreate.startDate}View.subscribe(function(newValue) {
+                if(createQuizModel.@{QuizCreate.startDate}View >= createQuizModel.@{QuizCreate.endDate}View) {
+                    createQuizModel.@{QuizCreate.endDate}View(createQuizModel.@{QuizCreate.startDate}View().plusDays(1));
+                }
+            });
+
             ko.applyBindings(createQuizModel, document.getElementById("create-quiz"));
+
+            return { viewModel : createQuizModel };
         }());
     </script>
 }
