@@ -70,8 +70,7 @@
 
             createQuizModel.@{QuizCreate.startDate} = ko.computed(function () {
                 if(createQuizModel.@{QuizCreate.startDate}View().isValid()) {
-//                    return createQuizModel.@{QuizCreate.startDate}View().toISOString();
-                    return createQuizModel.@{QuizCreate.startDate}View().toUTCStringNoZ();
+                    return createQuizModel.@{QuizCreate.startDate}View().toUTCSecStringNoZ();
                 } else {
                     return null;
                 }
@@ -79,8 +78,7 @@
 
             createQuizModel.@{QuizCreate.endDate} = ko.computed(function () {
                 if(createQuizModel.@{QuizCreate.startDate}View().isValid()) {
-//                    return createQuizModel.@{QuizCreate.endDate}View().toISOString();
-                    return createQuizModel.@{QuizCreate.endDate}View().toUTCStringNoZ();
+                    return createQuizModel.@{QuizCreate.endDate}View().toUTCSecStringNoZ();
                 } else {
                     return null;
                 }
@@ -88,8 +86,15 @@
 
             // Make sure the end date is always after the start date
             createQuizModel.@{QuizCreate.startDate}View.subscribe(function(newValue) {
-                if(createQuizModel.@{QuizCreate.startDate}View >= createQuizModel.@{QuizCreate.endDate}View) {
+                if(createQuizModel.@{QuizCreate.startDate}View() >= createQuizModel.@{QuizCreate.endDate}View()) {
                     createQuizModel.@{QuizCreate.endDate}View(createQuizModel.@{QuizCreate.startDate}View().plusDays(1));
+                }
+            });
+
+            // Make sure the start date is always before the end date
+            createQuizModel.@{QuizCreate.endDate}View.subscribe(function(newValue) {
+                if(createQuizModel.@{QuizCreate.endDate}View() <= createQuizModel.@{QuizCreate.startDate}View()) {
+                    createQuizModel.@{QuizCreate.startDate}View(createQuizModel.@{QuizCreate.endDate}View().plusDays(-1));
                 }
             });
 
