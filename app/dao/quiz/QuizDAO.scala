@@ -61,8 +61,8 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     case Some(quiz) => Right(quiz)
   } }
 
-  def quizzesFor(courseId: CourseId) : Future[Seq[Quiz]] = db.run {
-    (for(c2z <- Courses2Quizzes; z <- Quizzes if c2z.courseId === courseId && c2z.quizId === z.id) yield z).result
+  def quizzesFor(courseId: CourseId) : Future[Seq[(Course2Quiz, Quiz)]] = db.run {
+    (for(c2z <- Courses2Quizzes; z <- Quizzes if c2z.courseId === courseId && c2z.quizId === z.id) yield (c2z, z)).result
   }
 
   def questionSummariesFor(quiz: Quiz): Future[Seq[Question]] = db.run {

@@ -70,7 +70,7 @@
 
             createQuizModel.@{QuizCreate.startDate} = ko.computed(function () {
                 if(createQuizModel.@{QuizCreate.startDate}View().isValid()) {
-                    return createQuizModel.@{QuizCreate.startDate}View().toUTCSecStringNoZ();
+                    return createQuizModel.@{QuizCreate.startDate}View().toISOString();
                 } else {
                     return null;
                 }
@@ -78,7 +78,7 @@
 
             createQuizModel.@{QuizCreate.endDate} = ko.computed(function () {
                 if(createQuizModel.@{QuizCreate.startDate}View().isValid()) {
-                    return createQuizModel.@{QuizCreate.endDate}View().toUTCSecStringNoZ();
+                    return createQuizModel.@{QuizCreate.endDate}View().toISOString();
                 } else {
                     return null;
                 }

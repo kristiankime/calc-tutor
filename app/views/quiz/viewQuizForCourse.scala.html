@@ -44,8 +44,8 @@
 
     <div>
         viewHide: @course2Quiz.viewHide <br>
-        startDate: @course2Quiz.startDate <br>
-        endDate: @course2Quiz.endDate <br>
+        startDate: @course2Quiz.startDate.map(tag.datetime(_)) <br>
+        endDate: @course2Quiz.endDate.map(tag.datetime(_))  <br>
     </div>
 
 

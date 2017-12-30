@@ -182,9 +182,9 @@ object QuizCreate {
       name ->         nonEmptyText,
       viewHide ->     boolean,
       useStartDate -> boolean,
-      startDate ->    jodaDate("yyyy-MM-dd'T'HH:mm:ss"),
+      startDate ->    jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ"),
       useEndDate ->   boolean,
-      endDate ->      jodaDate("yyyy-MM-dd'T'HH:mm:ss")
+      endDate ->      jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
     )(QuizCreateForm.apply)(QuizCreateForm.unapply)
   )
 

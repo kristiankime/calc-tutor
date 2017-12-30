@@ -1,4 +1,5 @@
-@(organization: models.organization.Organization, course: models.organization.Course, access: models.Access, quizzes: Seq[models.quiz.Quiz])(implicit request: Request[AnyContent])
+@import com.artclod.slick.JodaUTC
+@(organization: models.organization.Organization, course: models.organization.Course, access: models.Access, quizzes: Seq[(models.organization.Course2Quiz, models.quiz.Quiz)])(implicit request: Request[AnyContent])
 
 @import com.artclod.play._
 @import views.html.tag._
@@ -67,19 +68,25 @@
                 <table class="pure-table pure-table-striped">
                     <tr>
                         <th>Quiz</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
                         @if(access.write){<th>Remove</th>}
                     </tr>
                 @for(quiz <- quizzes) {
+                    @if(quiz._1.show(access)){
                     <tr>
-                        <td>@tag.courseQuizLink(course, quiz, None)</td>
+                        <td>@if(quiz._1.isValidTime(access, JodaUTC.now)){@tag.courseQuizLink(course, quiz._2, None)}else{@quiz._2.name}</td>
+                        <td>@quiz._1.startDate.map(tag.datetime(_)).getOrElse(Html("")) || @quiz._1.startDate</td>
+                        <td>@quiz._1.endDate.map(tag.datetime(_)).getOrElse(Html("")) || @quiz._1.endDate</td>
                         @if(access >= Edit) {
                             <td>
-                            @form(controllers.quiz.routes.QuizController.remove(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
+                            @form(controllers.quiz.routes.QuizController.remove(course.organizationId, course.id, quiz._2.id), 'class -> "pure-form") {
                                 <input class="pure-button" type="submit" value="remove" > @views.html.helper.CSRF.formField
                             }
                             </td>
                         }
                     </tr>
+                    }
                 }
                 </table>
             }
