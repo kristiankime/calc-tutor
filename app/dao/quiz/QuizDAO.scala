@@ -103,6 +103,9 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   // Course 2 Quiz
   def attach(course: Course, quiz: Quiz, viewHide: Boolean, startDate: Option[DateTime], endDate: Option[DateTime]) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, viewHide, startDate, endDate)).map { _ => () }
   def detach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes.filter(c2q => c2q.quizId === quiz.id && c2q.courseId === course.id).delete)
+  // https://stackoverflow.com/questions/16757368/how-do-you-update-multiple-columns-using-slick-lifted-embedding
+  def update(course: Course, quiz: Quiz, viewHide: Boolean, startDate: Option[DateTime], endDate: Option[DateTime]) =
+    db.run((for { c2z <- Courses2Quizzes if c2z.quizId === quiz.id && c2z.courseId === course.id } yield c2z ).map(c2z => (c2z.viewHide, c2z.startDate, c2z.endDate) ).update(viewHide, startDate, endDate))
 
 
   // Question 2 Quiz
@@ -134,6 +137,10 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
 
   def updateName(quiz: Quiz, name: String): Future[Int] = db.run {
     (for { z <- Quizzes if z.id === quiz.id } yield z.name ).update(name)
+  }
+
+  def updateViewable(courseId: CourseId, quiz: Quiz, view: Boolean): Future[Int] = db.run {
+    (for { c2z <- Courses2Quizzes if c2z.quizId === quiz.id && c2z.courseId === courseId } yield c2z.viewHide ).update(view)
   }
 
 }

@@ -74,7 +74,6 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   } } } }
 
-
   def rename(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
@@ -92,7 +91,24 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   } } } }
 
-  def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+  def updateAttachment(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, quiz)) =>
+        QuizAttach.form.bindFromRequest.fold(
+          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+          form => {
+            val updateQuiz2CourseFuture = quizDAO.update(course, quiz, form.viewHide, Some(form.startDate), Some(form.endDate))
+            updateQuiz2CourseFuture.map(_ =>  Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
+          }
+        )
+    }
+    }
+
+  } } } }
+
+  def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -165,7 +181,6 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
 }
 
-
 // -----------
 case class QuizCreateForm(name: String, viewHide: Boolean, useStartDate: Boolean, startDate: DateTime, useEndDate: Boolean, endDate: DateTime)
 
@@ -197,6 +212,27 @@ object QuizRename {
   val form : Form[String] = Form(name -> nonEmptyText)
 }
 
+// -----------
+case class QuizAttachForm(viewHide: Boolean, useStartDate: Boolean, startDate: DateTime, useEndDate: Boolean, endDate: DateTime)
+
+object QuizAttach {
+  val viewHide = "viewHide"
+  val useStartDate = "useStartDate"
+  val startDate = "startDate"
+  val useEndDate = "useEndDate"
+  val endDate = "endDate"
+
+  val form : Form[QuizAttachForm] = Form(
+    mapping(
+      viewHide ->     boolean,
+      useStartDate -> boolean,
+      startDate ->    jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ"),
+      useEndDate ->   boolean,
+      endDate ->      jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+    )(QuizAttachForm.apply)(QuizAttachForm.unapply)
+  )
+
+}
 
 // -----------
 case class QuizJson(name: String, questions: Vector[QuestionJson])
@@ -210,7 +246,6 @@ object QuizJson {
     )
 
 }
-
 
 // -----------
 object QuizCreateFromJson {

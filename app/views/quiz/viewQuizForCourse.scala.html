@@ -11,9 +11,20 @@
 @import com.artclod.play._
 @import controllers.organization.CourseCreate
 @import controllers.quiz.QuizRename
+@import controllers.quiz.QuizAttach
+@import com.artclod.slick.JodaUTC
+@import org.joda.time.DateTime
 
 @mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
     <h2>Welcome to the page for quiz: @quiz.name </h2>
+
+    @if(course2Quiz.startDate.isDefined || course2Quiz.endDate.isDefined) {
+        <div>
+            This quiz is active from <br>
+            @for(startDate <- course2Quiz.startDate){startDate : @tag.datetime(startDate)} <br>
+            @for(endDate <- course2Quiz.endDate){endDate : @tag.datetime(endDate)} <br>
+        </div>
+    }
 
     <h4>There @are(questions) @questions.size Question@s(questions) in the quiz @tag.icon("icon-help", 'data_ot -> "Click a question to answer it")</h4>
 
@@ -42,20 +53,105 @@
         </tr>}
     </table>
 
-    <div>
-        viewHide: @course2Quiz.viewHide <br>
-        startDate: @course2Quiz.startDate.map(tag.datetime(_)) <br>
-        endDate: @course2Quiz.endDate.map(tag.datetime(_))  <br>
-    </div>
 
 
     @if(access.write){
+        <h5> Rename </h5>
         @form(controllers.quiz.routes.QuizController.rename(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
-            To rename type a new name here <input type="text" name="@QuizRename.name" value="@quiz.name">
-            and click <input class="pure-button" type="submit" value="rename" >
+            To rename type a new name here <input type="text" name="@QuizRename.name" value="@quiz.name"> and click <input class="pure-button" type="submit" value="rename" >
             @views.html.helper.CSRF.formField
         }
     }
+
+    @if(access.write){
+        <div id="attach-quiz">
+        <h5> Availability </h5>
+        @form(controllers.quiz.routes.QuizController.updateAttachment(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
+            Update the availability of the quiz below <br>
+
+            <label for="@QuizAttach.viewHide"> Hide:
+                <input type="checkbox" name="@QuizAttach.viewHide" value="true" @if(course2Quiz.viewHide){checked} />
+                <input type="hidden" name="@QuizAttach.viewHide" value="false"/> <br>
+            </label>
+            <!-- start date -->
+            <label for="@QuizAttach.useStartDate">Use Start:
+                <input type="checkbox" name="@QuizAttach.useStartDate" value="true"  data-bind="checked: @QuizAttach.useStartDate" />
+                <input type="hidden"   name="@QuizAttach.useStartDate" value="false"/>
+            </label>
+            <label for="@{QuizAttach.startDate}View">Date: <input id="@{QuizAttach.startDate}View" type="datetime-local" name="@{QuizAttach.startDate}View" data-bind="datetimeLocalPicker : @{QuizAttach.startDate}View, enable : @QuizAttach.useStartDate" ></label>
+            <span data-bind="text : @{QuizAttach.startDate}View"> </span> ||| <span data-bind="text : @{QuizAttach.startDate}"> </span>
+            <input type="hidden" name="@QuizAttach.startDate" data-bind="value : @QuizAttach.startDate" />
+            <br>
+
+                <!-- end date -->
+            <label for="@QuizAttach.useEndDate">Use End:
+                <input type="checkbox" name="@QuizAttach.useEndDate" value="true"  data-bind="checked: @QuizAttach.useEndDate" />
+                <input type="hidden"   name="@QuizAttach.useEndDate" value="false"/>
+            </label>
+            <label for="@{QuizAttach.endDate}View">Date: <input id="@{QuizAttach.endDate}View" type="datetime-local" name="@{QuizAttach.endDate}View" data-bind="datetimeLocalPicker : @{QuizAttach.endDate}View, enable : @QuizAttach.useEndDate"></label>
+            <span data-bind="text : @{QuizAttach.endDate}View"> </span> ||| <span data-bind="text : @{QuizAttach.endDate}"> </span>
+            <input type="hidden" name="@QuizAttach.endDate" data-bind="value : @QuizAttach.endDate" />
+            <br>
+
+            and click <input class="pure-button" type="submit" value="Update Availability" >
+            @views.html.helper.CSRF.formField
+        }
+        </div>
+    }
+
+    <script>
+        var AZ = (function() {
+            @defining(course2Quiz.startDate.getOrElse(JodaUTC.currentDay)){ start : DateTime =>
+            @defining(course2Quiz.endDate.getOrElse(JodaUTC.currentDay.plusDays(7))){ end : DateTime=>
+
+            var attachQuizModel = {
+                "@{QuizAttach.viewHide}": ko.observable(@{course2Quiz.viewHide}),
+                // Start Date Values
+                "@{QuizAttach.useStartDate}": ko.observable(@{course2Quiz.startDate.isDefined}),
+                "@{QuizAttach.startDate}View": ko.observable(@tag.localDate(start)),
+                // End Date Values
+                "@{QuizAttach.useEndDate}": ko.observable(@{course2Quiz.endDate.isDefined}),
+                "@{QuizAttach.endDate}View": ko.observable(@tag.localDate(end))
+            };
+
+            }
+            }
+
+            attachQuizModel.@{QuizAttach.startDate} = ko.computed(function () {
+                if(attachQuizModel.@{QuizAttach.startDate}View().isValid()) {
+                    return attachQuizModel.@{QuizAttach.startDate}View().toISOString();
+                } else {
+                    return null;
+                }
+            }, attachQuizModel);
+
+            attachQuizModel.@{QuizAttach.endDate} = ko.computed(function () {
+                if(attachQuizModel.@{QuizAttach.startDate}View().isValid()) {
+                    return attachQuizModel.@{QuizAttach.endDate}View().toISOString();
+                } else {
+                    return null;
+                }
+            }, attachQuizModel);
+
+            // Make sure the end date is always after the start date
+            attachQuizModel.@{QuizAttach.startDate}View.subscribe(function(newValue) {
+                if(attachQuizModel.@{QuizAttach.startDate}View() >= attachQuizModel.@{QuizAttach.endDate}View()) {
+                    attachQuizModel.@{QuizAttach.endDate}View(attachQuizModel.@{QuizAttach.startDate}View().plusDays(1));
+                }
+            });
+
+            // Make sure the start date is always before the end date
+            attachQuizModel.@{QuizAttach.endDate}View.subscribe(function(newValue) {
+                if(attachQuizModel.@{QuizAttach.endDate}View() <= attachQuizModel.@{QuizAttach.startDate}View()) {
+                    attachQuizModel.@{QuizAttach.startDate}View(attachQuizModel.@{QuizAttach.endDate}View().plusDays(-1));
+                }
+            });
+
+            ko.applyBindings(attachQuizModel, document.getElementById("attach-quiz"));
+
+            return { viewModel : attachQuizModel };
+        }());
+    </script>
 
     @if(access.write){
         @views.html.quiz.question.questionEditor(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), allSkills)

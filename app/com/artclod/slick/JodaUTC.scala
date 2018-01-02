@@ -15,6 +15,8 @@ object JodaUTC {
 
   def now = DateTime.now(DateTimeZone.UTC)
 
+  def currentDay = DateTime.now(DateTimeZone.UTC).withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
+
   def apply(l: Long) = new DateTime(l, DateTimeZone.UTC)
 
   val zero = new DateTime(0L, DateTimeZone.UTC)
