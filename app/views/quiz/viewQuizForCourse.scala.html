@@ -9,9 +9,8 @@
 
 @import helper._
 @import com.artclod.play._
-@import controllers.organization.CourseCreate
 @import controllers.quiz.QuizRename
-@import controllers.quiz.QuizAttach
+@import controllers.quiz.QuizAvailability
 @import com.artclod.slick.JodaUTC
 @import org.joda.time.DateTime
 
@@ -20,9 +19,10 @@
 
     @if(course2Quiz.startDate.isDefined || course2Quiz.endDate.isDefined) {
         <div>
-            This quiz is active from <br>
-            @for(startDate <- course2Quiz.startDate){startDate : @tag.datetime(startDate)} <br>
-            @for(endDate <- course2Quiz.endDate){endDate : @tag.datetime(endDate)} <br>
+            <h5> Timing </h5>
+            @for(startDate <- course2Quiz.startDate){This quiz starts on @tag.datetime(startDate)}
+            @if(course2Quiz.startDate.isDefined && course2Quiz.endDate.isDefined){and ends on}else{this quiz ends on}
+            @for(endDate <- course2Quiz.endDate){@tag.datetime(endDate)} <br>
         </div>
     }
 
@@ -53,8 +53,6 @@
         </tr>}
     </table>
 
-
-
     @if(access.write){
         <h5> Rename </h5>
         @form(controllers.quiz.routes.QuizController.rename(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
@@ -69,28 +67,25 @@
         @form(controllers.quiz.routes.QuizController.updateAttachment(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
             Update the availability of the quiz below <br>
 
-            <label for="@QuizAttach.viewHide"> Hide:
-                <input type="checkbox" name="@QuizAttach.viewHide" value="true" @if(course2Quiz.viewHide){checked} />
-                <input type="hidden" name="@QuizAttach.viewHide" value="false"/> <br>
+            <label for="@QuizAvailability.viewHide"> Hide:
+                <input type="checkbox" name="@QuizAvailability.viewHide" value="true" @if(course2Quiz.viewHide){checked} />
+                <input type="hidden" name="@QuizAvailability.viewHide" value="false"/> <br>
             </label>
             <!-- start date -->
-            <label for="@QuizAttach.useStartDate">Use Start:
-                <input type="checkbox" name="@QuizAttach.useStartDate" value="true"  data-bind="checked: @QuizAttach.useStartDate" />
-                <input type="hidden"   name="@QuizAttach.useStartDate" value="false"/>
+            <label for="@QuizAvailability.useStartDate">Use Start:
+                <input type="checkbox" name="@QuizAvailability.useStartDate" value="true"  data-bind="checked: @QuizAvailability.useStartDate" />
+                <input type="hidden"   name="@QuizAvailability.useStartDate" value="false"/>
             </label>
-            <label for="@{QuizAttach.startDate}View">Date: <input id="@{QuizAttach.startDate}View" type="datetime-local" name="@{QuizAttach.startDate}View" data-bind="datetimeLocalPicker : @{QuizAttach.startDate}View, enable : @QuizAttach.useStartDate" ></label>
-            <span data-bind="text : @{QuizAttach.startDate}View"> </span> ||| <span data-bind="text : @{QuizAttach.startDate}"> </span>
-            <input type="hidden" name="@QuizAttach.startDate" data-bind="value : @QuizAttach.startDate" />
+            <label for="@{QuizAvailability.startDate}View">Date: <input id="@{QuizAvailability.startDate}View" type="datetime-local" name="@{QuizAvailability.startDate}View" data-bind="datetimeLocalPicker : @{QuizAvailability.startDate}View, enable : @QuizAvailability.useStartDate" ></label>
+            <input type="hidden" name="@QuizAvailability.startDate" data-bind="value : @QuizAvailability.startDate" />
             <br>
-
-                <!-- end date -->
-            <label for="@QuizAttach.useEndDate">Use End:
-                <input type="checkbox" name="@QuizAttach.useEndDate" value="true"  data-bind="checked: @QuizAttach.useEndDate" />
-                <input type="hidden"   name="@QuizAttach.useEndDate" value="false"/>
+            <!-- end date -->
+            <label for="@QuizAvailability.useEndDate">Use End:
+                <input type="checkbox" name="@QuizAvailability.useEndDate" value="true"  data-bind="checked: @QuizAvailability.useEndDate" />
+                <input type="hidden"   name="@QuizAvailability.useEndDate" value="false"/>
             </label>
-            <label for="@{QuizAttach.endDate}View">Date: <input id="@{QuizAttach.endDate}View" type="datetime-local" name="@{QuizAttach.endDate}View" data-bind="datetimeLocalPicker : @{QuizAttach.endDate}View, enable : @QuizAttach.useEndDate"></label>
-            <span data-bind="text : @{QuizAttach.endDate}View"> </span> ||| <span data-bind="text : @{QuizAttach.endDate}"> </span>
-            <input type="hidden" name="@QuizAttach.endDate" data-bind="value : @QuizAttach.endDate" />
+            <label for="@{QuizAvailability.endDate}View">Date: <input id="@{QuizAvailability.endDate}View" type="datetime-local" name="@{QuizAvailability.endDate}View" data-bind="datetimeLocalPicker : @{QuizAvailability.endDate}View, enable : @QuizAvailability.useEndDate"></label>
+            <input type="hidden" name="@QuizAvailability.endDate" data-bind="value : @QuizAvailability.endDate" />
             <br>
 
             and click <input class="pure-button" type="submit" value="Update Availability" >
@@ -105,45 +100,45 @@
             @defining(course2Quiz.endDate.getOrElse(JodaUTC.currentDay.plusDays(7))){ end : DateTime=>
 
             var attachQuizModel = {
-                "@{QuizAttach.viewHide}": ko.observable(@{course2Quiz.viewHide}),
+                "@{QuizAvailability.viewHide}": ko.observable(@{course2Quiz.viewHide}),
                 // Start Date Values
-                "@{QuizAttach.useStartDate}": ko.observable(@{course2Quiz.startDate.isDefined}),
-                "@{QuizAttach.startDate}View": ko.observable(@tag.localDate(start)),
+                "@{QuizAvailability.useStartDate}": ko.observable(@{course2Quiz.startDate.isDefined}),
+                "@{QuizAvailability.startDate}View": ko.observable(@tag.localDate(start)),
                 // End Date Values
-                "@{QuizAttach.useEndDate}": ko.observable(@{course2Quiz.endDate.isDefined}),
-                "@{QuizAttach.endDate}View": ko.observable(@tag.localDate(end))
+                "@{QuizAvailability.useEndDate}": ko.observable(@{course2Quiz.endDate.isDefined}),
+                "@{QuizAvailability.endDate}View": ko.observable(@tag.localDate(end))
             };
 
             }
             }
 
-            attachQuizModel.@{QuizAttach.startDate} = ko.computed(function () {
-                if(attachQuizModel.@{QuizAttach.startDate}View().isValid()) {
-                    return attachQuizModel.@{QuizAttach.startDate}View().toISOString();
+            attachQuizModel.@{QuizAvailability.startDate} = ko.computed(function () {
+                if(attachQuizModel.@{QuizAvailability.startDate}View().isValid()) {
+                    return attachQuizModel.@{QuizAvailability.startDate}View().toISOString();
                 } else {
                     return null;
                 }
             }, attachQuizModel);
 
-            attachQuizModel.@{QuizAttach.endDate} = ko.computed(function () {
-                if(attachQuizModel.@{QuizAttach.startDate}View().isValid()) {
-                    return attachQuizModel.@{QuizAttach.endDate}View().toISOString();
+            attachQuizModel.@{QuizAvailability.endDate} = ko.computed(function () {
+                if(attachQuizModel.@{QuizAvailability.startDate}View().isValid()) {
+                    return attachQuizModel.@{QuizAvailability.endDate}View().toISOString();
                 } else {
                     return null;
                 }
             }, attachQuizModel);
 
             // Make sure the end date is always after the start date
-            attachQuizModel.@{QuizAttach.startDate}View.subscribe(function(newValue) {
-                if(attachQuizModel.@{QuizAttach.startDate}View() >= attachQuizModel.@{QuizAttach.endDate}View()) {
-                    attachQuizModel.@{QuizAttach.endDate}View(attachQuizModel.@{QuizAttach.startDate}View().plusDays(1));
+            attachQuizModel.@{QuizAvailability.startDate}View.subscribe(function(newValue) {
+                if(attachQuizModel.@{QuizAvailability.startDate}View() >= attachQuizModel.@{QuizAvailability.endDate}View()) {
+                    attachQuizModel.@{QuizAvailability.endDate}View(attachQuizModel.@{QuizAvailability.startDate}View().plusDays(1));
                 }
             });
 
             // Make sure the start date is always before the end date
-            attachQuizModel.@{QuizAttach.endDate}View.subscribe(function(newValue) {
-                if(attachQuizModel.@{QuizAttach.endDate}View() <= attachQuizModel.@{QuizAttach.startDate}View()) {
-                    attachQuizModel.@{QuizAttach.startDate}View(attachQuizModel.@{QuizAttach.endDate}View().plusDays(-1));
+            attachQuizModel.@{QuizAvailability.endDate}View.subscribe(function(newValue) {
+                if(attachQuizModel.@{QuizAvailability.endDate}View() <= attachQuizModel.@{QuizAvailability.startDate}View()) {
+                    attachQuizModel.@{QuizAvailability.startDate}View(attachQuizModel.@{QuizAvailability.endDate}View().plusDays(-1));
                 }
             });
 

@@ -30,7 +30,6 @@
                 <input type="hidden"   name="@QuizCreate.useStartDate" value="false"/>
             </label>
             <label for="@{QuizCreate.startDate}View">Date: <input id="@{QuizCreate.startDate}View" type="datetime-local" name="@{QuizCreate.startDate}View" data-bind="datetimeLocalPicker : @{QuizCreate.startDate}View, enable : @QuizCreate.useStartDate" ></label>
-            <span data-bind="text : @{QuizCreate.startDate}View"> </span> ||| <span data-bind="text : @{QuizCreate.startDate}"> </span>
             <input type="hidden" name="@QuizCreate.startDate" data-bind="value : @QuizCreate.startDate" />
             <br>
 
@@ -40,7 +39,6 @@
                 <input type="hidden"   name="@QuizCreate.useEndDate" value="false"/>
             </label>
             <label for="@{QuizCreate.endDate}View">Date: <input id="@{QuizCreate.endDate}View" type="datetime-local" name="@{QuizCreate.endDate}View" data-bind="datetimeLocalPicker : @{QuizCreate.endDate}View, enable : @QuizCreate.useEndDate"></label>
-            <span data-bind="text : @{QuizCreate.endDate}View"> </span> ||| <span data-bind="text : @{QuizCreate.endDate}"> </span>
             <input type="hidden" name="@QuizCreate.endDate" data-bind="value : @QuizCreate.endDate" />
             <br>
 

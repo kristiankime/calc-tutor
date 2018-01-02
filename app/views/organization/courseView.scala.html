@@ -67,17 +67,17 @@
                 <h5> The course has the following quiz@zes(quizzes): </h5>
                 <table class="pure-table pure-table-striped">
                     <tr>
-                        <th>Quiz</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        @if(access.write){<th>Remove</th>}
+                        <th> Quiz </th>
+                        <th> Start Date </th>
+                        <th> End Date </th>
+                        @if(access.write){<th> Remove </th>}
                     </tr>
                 @for(quiz <- quizzes) {
                     @if(quiz._1.show(access)){
                     <tr>
-                        <td>@if(quiz._1.isValidTime(access, JodaUTC.now)){@tag.courseQuizLink(course, quiz._2, None)}else{@quiz._2.name}</td>
-                        <td>@quiz._1.startDate.map(tag.datetime(_)).getOrElse(Html("")) || @quiz._1.startDate</td>
-                        <td>@quiz._1.endDate.map(tag.datetime(_)).getOrElse(Html("")) || @quiz._1.endDate</td>
+                        <td> @if(quiz._1.isValidTime(access, JodaUTC.now)){@tag.courseQuizLink(course, quiz._2, None)}else{@quiz._2.name} </td>
+                        <td> @quiz._1.startDate.map(tag.datetime(_)).getOrElse(Html("")) </td>
+                        <td> @quiz._1.endDate.map(tag.datetime(_)).getOrElse(Html("")) </td>
                         @if(access >= Edit) {
                             <td>
                             @form(controllers.quiz.routes.QuizController.remove(course.organizationId, course.id, quiz._2.id), 'class -> "pure-form") {

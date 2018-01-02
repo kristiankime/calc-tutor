@@ -96,7 +96,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
     (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, quiz)) =>
-        QuizAttach.form.bindFromRequest.fold(
+        QuizAvailability.form.bindFromRequest.fold(
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
             val updateQuiz2CourseFuture = quizDAO.update(course, quiz, form.viewHide, Some(form.startDate), Some(form.endDate))
@@ -202,7 +202,6 @@ object QuizCreate {
       endDate ->      jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
     )(QuizCreateForm.apply)(QuizCreateForm.unapply)
   )
-
 }
 
 // -----------
@@ -213,25 +212,24 @@ object QuizRename {
 }
 
 // -----------
-case class QuizAttachForm(viewHide: Boolean, useStartDate: Boolean, startDate: DateTime, useEndDate: Boolean, endDate: DateTime)
+case class QuizAvailabilityForm(viewHide: Boolean, useStartDate: Boolean, startDate: DateTime, useEndDate: Boolean, endDate: DateTime)
 
-object QuizAttach {
+object QuizAvailability {
   val viewHide = "viewHide"
   val useStartDate = "useStartDate"
   val startDate = "startDate"
   val useEndDate = "useEndDate"
   val endDate = "endDate"
 
-  val form : Form[QuizAttachForm] = Form(
+  val form : Form[QuizAvailabilityForm] = Form(
     mapping(
       viewHide ->     boolean,
       useStartDate -> boolean,
       startDate ->    jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ"),
       useEndDate ->   boolean,
       endDate ->      jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-    )(QuizAttachForm.apply)(QuizAttachForm.unapply)
+    )(QuizAvailabilityForm.apply)(QuizAvailabilityForm.unapply)
   )
-
 }
 
 // -----------
