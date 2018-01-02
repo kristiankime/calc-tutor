@@ -17,8 +17,12 @@ case class Course2Quiz(courseId: CourseId, quizId: QuizId, viewHide: Boolean, st
     }
   }
 
+  def isInvalidTime(access: models.Access, now: org.joda.time.DateTime) = !isValidTime(access, now)
+
   def hide(access: models.Access) = (access <= models.View) && viewHide
 
   def show(access: models.Access) = !hide(access)
+
+  def currentlyHidden(access: models.Access, now: org.joda.time.DateTime) = isInvalidTime(access, now) || hide(access)
 
 }

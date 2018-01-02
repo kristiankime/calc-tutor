@@ -8,6 +8,7 @@
 @import models.AccessName.an
 @import models.Access._
 @import controllers.organization.CourseJoin
+@import org.joda.time.DateTime
 
 @mainContent(organization.name, tag.organizationLink(organization)) {
     <h2>Welcome to the information page for the course: @course.name</h2>
@@ -60,9 +61,10 @@
     @if(access > Non) {
 
         @* ======= Quizzes ======= *@
+        @defining(JodaUTC.now){ now : DateTime =>
         <section>
-            @if(quizzes.isEmpty) {
-                <h5> There are no quizzes for this course </h5>
+            @if(quizzes.filter(_._1.show(access)).isEmpty) {
+                <h5> There are no available quizzes for this course </h5>
             } else {
                 <h5> The course has the following quiz@zes(quizzes): </h5>
                 <table class="pure-table pure-table-striped">
@@ -75,7 +77,7 @@
                 @for(quiz <- quizzes) {
                     @if(quiz._1.show(access)){
                     <tr>
-                        <td> @if(quiz._1.isValidTime(access, JodaUTC.now)){@tag.courseQuizLink(course, quiz._2, None)}else{@quiz._2.name} </td>
+                        <td> @if(quiz._1.isValidTime(access, now)){@tag.courseQuizLink(course, quiz._2, None)}else{@quiz._2.name} </td>
                         <td> @quiz._1.startDate.map(tag.datetime(_)).getOrElse(Html("")) </td>
                         <td> @quiz._1.endDate.map(tag.datetime(_)).getOrElse(Html("")) </td>
                         @if(access >= Edit) {
@@ -92,7 +94,7 @@
             }
             @if(access.write) { <a href="@controllers.quiz.routes.QuizController.createForm(course.organizationId, course.id)" class="pure-button"> add a quiz</a> }
         </section>
-
+        }
     }
     @* <<<<< Close Access > Non *@
 

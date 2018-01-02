@@ -99,7 +99,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
         QuizAvailability.form.bindFromRequest.fold(
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
-            val updateQuiz2CourseFuture = quizDAO.update(course, quiz, form.viewHide, Some(form.startDate), Some(form.endDate))
+            val updateQuiz2CourseFuture = quizDAO.update(course, quiz, form.viewHide, if(form.useStartDate){Some(form.startDate)}else{None}, if(form.useEndDate){Some(form.endDate)}else{None})
             updateQuiz2CourseFuture.map(_ =>  Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
           }
         )
