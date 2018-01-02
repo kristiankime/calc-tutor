@@ -237,4 +237,36 @@ class QuizDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
 
   }
 
+  "access via course" should {
+
+    "return Non if user has view access to a course but quiz is not in course" in {
+      val (userDAO, quizDAO, courseDAO, organizationDAO) = app.injector.instanceOf4[UserDAO, QuizDAO, CourseDAO, OrganizationDAO]
+
+      val owner = TestData.await(userDAO.insert(TestData.user(0)))
+      val organization = TestData.await(organizationDAO.insert(TestData.organization(0)))
+      val course = TestData.await(courseDAO.insert(TestData.course(0, organization, owner)))
+      val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner))) // Not attached to course
+      val user = TestData.await(userDAO.insert(TestData.user(1)))
+
+      courseDAO.grantAccess(user, course, View)
+
+      TestData.await(quizDAO.access(user.id, quiz.id)) mustBe (Non)
+    }
+
+    "return View if user has view access to a course and quiz is in course" in {
+      val (userDAO, quizDAO, courseDAO, organizationDAO) = app.injector.instanceOf4[UserDAO, QuizDAO, CourseDAO, OrganizationDAO]
+
+      val owner = TestData.await(userDAO.insert(TestData.user(0)))
+      val organization = TestData.await(organizationDAO.insert(TestData.organization(0)))
+      val course = TestData.await(courseDAO.insert(TestData.course(0, organization, owner)))
+      val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
+      TestData.await(quizDAO.attach(course, quiz, false, None, None)) // Quiz attached without any Availability restrictions
+      val user = TestData.await(userDAO.insert(TestData.user(1)))
+
+      courseDAO.grantAccess(user, course, View)
+
+      TestData.await(quizDAO.access(user.id, quiz.id)) mustBe (View)
+    }
+
+  }
 }
