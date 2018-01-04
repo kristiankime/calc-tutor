@@ -15,7 +15,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable}
 
 object TestData {
-  val duration = Duration(5, TimeUnit.SECONDS)
+  val duration = Duration(5000, TimeUnit.SECONDS)
 
   def await[A](awaitable: Awaitable[A]) = Await.result(awaitable, duration)
   def await[A, B](a1: Awaitable[A], a2: Awaitable[B]) = (Await.result(a1, duration), Await.result(a2, duration))

@@ -13,8 +13,8 @@ class Course2QuizSpec extends PlaySpec {
       Course2Quiz(null, null, false, None, None).isValidTime(View, JodaUTC.zero) mustEqual(true)
 		}
 
-    "return false if hide is on" in {
-      Course2Quiz(null, null, true, None, None).isValidTime(View, JodaUTC.zero) mustEqual(false)
+    "ignores hide setting on" in {
+      Course2Quiz(null, null, true, None, None).isValidTime(View, JodaUTC.zero) mustEqual(true)
     }
 
     "return true if start is before current time" in {

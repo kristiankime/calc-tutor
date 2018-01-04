@@ -1,5 +1,6 @@
 package dao.quiz
 
+import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 
 import com.artclod.mathml.scalar.MathMLElem
@@ -16,7 +17,8 @@ import play.api.mvc.Result
 import play.api.mvc.Results._
 import slick.lifted
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 // ====
 import slick.driver.JdbcProfile
@@ -101,5 +103,23 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
     )
   }
 
+  // ====== Update Counts ======
+  def incrementCount(userId: UserId, skillId: SkillId, correct: Int, incorrect: Int): Future[Int] = {
+    val currentFuture = db.run(  UserAnswerCounts.filter(uac => uac.userId === userId && uac.skillId === skillId).result.headOption )
+
+    // As of 2018-01-04 There doesn't seem to be an update "in place" ability in Slick so we get the data manually
+    currentFuture.flatMap( currentOption => {
+      currentOption match {
+        case Some(current) => db.run(UserAnswerCounts.filter(uac => uac.userId === userId && uac.skillId === skillId).update(UserAnswerCount(userId, skillId, current.correct + correct, current.incorrect + incorrect) ))
+        case None => db.run(UserAnswerCounts += UserAnswerCount(userId, skillId, correct, incorrect ))
+      }
+    })
+  }
+
+  def getCount(userId: UserId, skillId: SkillId): Future[Option[UserAnswerCount]] =
+    db.run(UserAnswerCounts.filter(uac => uac.userId === userId && uac.skillId === skillId).result.headOption)
+
+  def getCounts(userId: UserId): Future[Seq[UserAnswerCount]] =
+    db.run(UserAnswerCounts.filter(uac => uac.userId === userId).result)
 }
 
