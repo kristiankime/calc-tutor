@@ -104,6 +104,11 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   }
 
   // ====== Update Counts ======
+  def incrementCounts(userId: UserId, skills: (SkillId, Int, Int)*): Future[Vector[Int]] = {
+    val seqFutures = skills.map(s => incrementCount(userId, s._1, s._2, s._3) )
+    com.artclod.concurrent.raiseFuture(seqFutures)
+  }
+
   def incrementCount(userId: UserId, skillId: SkillId, correct: Int, incorrect: Int): Future[Int] = {
     val currentFuture = db.run(  UserAnswerCounts.filter(uac => uac.userId === userId && uac.skillId === skillId).result.headOption )
 
