@@ -107,7 +107,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   def incrementCount(userId: UserId, skillId: SkillId, correct: Int, incorrect: Int): Future[Int] = {
     val currentFuture = db.run(  UserAnswerCounts.filter(uac => uac.userId === userId && uac.skillId === skillId).result.headOption )
 
-    // As of 2018-01-04 There doesn't seem to be an update "in place" ability in Slick so we get the data manually
+    // As of 2018-01-04 There doesn't seem to be an update "in place" ability in Slick so we get the data manually https://github.com/slick/slick/issues/497
     currentFuture.flatMap( currentOption => {
       currentOption match {
         case Some(current) => db.run(UserAnswerCounts.filter(uac => uac.userId === userId && uac.skillId === skillId).update(UserAnswerCount(userId, skillId, current.correct + correct, current.incorrect + incorrect) ))
