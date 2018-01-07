@@ -17,7 +17,7 @@ import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
 import controllers.organization.CourseCreate
 import controllers.quiz.QuestionCreate.questionJson
-import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO}
+import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
 import models.quiz._
 import play.api.data.Form
@@ -29,7 +29,7 @@ import scala.util.{Random, Right}
 
 
 @Singleton
-class AnswerController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class AnswerController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
   def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
@@ -44,18 +44,21 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
             AnswerCreate.answerFormat.reads(Json.parse(form)) match {
               case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
               case JsSuccess(value, path) => {
-                val answerFrame = AnswerFrame(question, value, user.id)
+                val protoAnswerFrame = AnswerFrame(question, value, user.id)
 
-                if(answerFrame.correctUnknown) { // Here we are unable to determine if the question was answered correctly so we go back to the page
-                  Future.successful( Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, AnswerJson(answerFrame))) )
+                if(protoAnswerFrame.correctUnknown) { // Here we are unable to determine if the question was answered correctly so we go back to the page
+                  Future.successful( Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, AnswerJson(protoAnswerFrame))) )
                 } else {
-                  answerDAO.insert(answerFrame).map(answerFrame => {
+                  answerDAO.insert(protoAnswerFrame).flatMap(answerFrame => {
+                    updateSkillCounts(user.id, questionId, answerFrame.answer.correct).map( updated => { // Keep track of the in/correct counts for each skill
+
                     if (answerFrame.answer.correct) { // Here everything was correct so go back to the quiz itself
                       Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, Some(answerFrame.answer.id)))
                     } else { // Here an answer was wrong so give the user another chance to answer
                       Redirect(controllers.quiz.routes.QuestionController.view(organizationId, course.id, quizId, questionId, Some(answerFrame.answer.id)))
                     }
 
+                    })
                   })
                 }
 
@@ -68,6 +71,12 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
     }
 
   } } } }
+
+  def updateSkillCounts(userId: UserId, questionId: QuestionId, correct: Boolean): Future[Boolean] =
+    answerDAO.numberOfAttempts(userId, questionId).flatMap(num => num match {
+      case 0 => { skillDAO.incrementsCounts(userId, questionId, if(correct){1}else{0}, if(correct){0}else{1}).map(_ => true) }
+      case _ => Future.successful(false)
+    })
 
 //  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 //

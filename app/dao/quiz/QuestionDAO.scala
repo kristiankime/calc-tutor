@@ -72,7 +72,12 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
       questionFrameOp
 
     }) }) }) }) })
- }
+  }
+
+  //--- Skills for question
+  def skillsFor(id : QuestionId) = {
+    null
+  }
 
   // ---
   def apply(questionId: QuestionId): Future[Either[Result, Question]] = byId(questionId).map { _ match {

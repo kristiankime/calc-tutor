@@ -61,6 +61,11 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
     }) }) })
   }
+
+  // ---
+  def numberOfAttempts(userId: UserId, questionId: QuestionId): Future[Int] =
+    db.run(Answers.filter(a => a.ownerId === userId && a.questionId === questionId).length.result)
+
   // ---
   def apply(answerId: AnswerId): Future[Either[Result, Answer]] = byId(answerId).map { _ match {
     case None => Left(NotFound(views.html.errors.notFoundPage("There was no answer for id=["+answerId+"]")))

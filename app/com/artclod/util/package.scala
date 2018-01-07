@@ -78,6 +78,23 @@ package object util {
     }
   }
 
+  // =========== Future Combine
+  implicit class FutureCombine1[V1](future: Future[V1]) {
+    def +#[V](other: Future[V])(implicit executionContext: ExecutionContext): Future[(V1, V)] = future.flatMap(e => other.map(o => (e, o)))
+  }
+
+  implicit class FutureCombine2[V1, V2](future: Future[(V1, V2)]) {
+    def +#[V](other: Future[V])(implicit executionContext: ExecutionContext): Future[(V1, V2, V)] = future.flatMap(e => other.map(o => (e._1, e._2, o)))
+  }
+
+  implicit class FutureCombine3[V1, V2, V3](future: Future[(V1, V2, V3)]) {
+    def +#[V](other: Future[V])(implicit executionContext: ExecutionContext): Future[(V1, V2, V3, V)] = future.flatMap(e => other.map(o => (e._1, e._2, e._3, o)))
+  }
+
+  implicit class FutureCombine4[V1, V2, V3, V4](future: Future[(V1, V2, V3, V4)]) {
+    def +#[V](other: Future[V])(implicit executionContext: ExecutionContext): Future[(V1, V2, V3, V4, V)] = future.flatMap(e => other.map(o => (e._1, e._2, e._3, e._4, o)))
+  }
+
   // =========== Future Either Combine
   implicit class FutureEitherCombine1[L, R1](future: Future[Either[L, R1]]) {
     def +&[R](other: Future[Either[L, R]])(implicit executionContext: ExecutionContext) : Future[Either[L, (R1, R)]] = future.flatMap(e => other.map(o => (e, o) match {

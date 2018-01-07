@@ -1,12 +1,14 @@
 package dao.quiz
 
+import com.artclod.slick.JodaUTC
 import dao.TestData
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
-import models.quiz.{Skill, UserAnswerCount}
+import models.quiz.{Question, Skill, UserAnswerCount}
 import models.{Edit, Non, Own, View}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
+import play.twirl.api.Html
 import support.{CleanDatabaseAfterEach, EnhancedInjector}
 
 class SkillDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
@@ -61,6 +63,23 @@ class SkillDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
 
   }
 
+  "skillIdsFor" should {
+
+    "return all skills for the question" in {
+      val (userDAO, skillDAO, questionDAO) = app.injector.instanceOf3[UserDAO, SkillDAO, QuestionDAO]
+
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val skill0 = TestData.await(skillDAO.insert(Skill(null, "0", "s0", 0, 0, 0)))
+      val skill1 = TestData.await(skillDAO.insert(Skill(null, "1", "s1", 0, 0, 0)))
+
+      val question = TestData.await(questionDAO.insert(Question(null, user.id, "title", "descriptionRaw", Html("descriptionHtml"), JodaUTC.zero)))
+      skillDAO.addSkills(question, Vector(skill0, skill1))
+
+      TestData.await(skillDAO.skillIdsFor(question.id)).toSet mustBe Set(skill0.id, skill1.id)
+    }
+
+  }
+
   "incrementCount" should {
 
     "create a record if none exists" in {
@@ -87,7 +106,7 @@ class SkillDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
 
   }
 
-  "incrementCounts" should {
+  "incrementCounts (varargs)" should {
 
     "create records if none exist" in {
       val (userDAO, skillDAO) = app.injector.instanceOf2[UserDAO, SkillDAO]
@@ -118,5 +137,38 @@ class SkillDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
     }
 
   }
+
+  "incrementCounts (questionId)" should {
+
+    "create records if none exist" in {
+      val (userDAO, skillDAO) = app.injector.instanceOf2[UserDAO, SkillDAO]
+
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val skill0 = TestData.await(skillDAO.insert(Skill(null, "0", "s0", 0, 0, 0)))
+      val skill1 = TestData.await(skillDAO.insert(Skill(null, "1", "s1", 0, 0, 0)))
+
+      TestData.await(skillDAO.incrementCounts(user.id, (skill0.id, 1 , 2), (skill1.id, 3, 4)))
+
+      TestData.await(skillDAO.getCounts(user.id)).toSet mustBe Set(UserAnswerCount(user.id, skill0.id, 1, 2), UserAnswerCount(user.id, skill1.id, 3, 4))
+    }
+
+    "update records if they exist" in {
+      val (userDAO, skillDAO) = app.injector.instanceOf2[UserDAO, SkillDAO]
+
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val skill0 = TestData.await(skillDAO.insert(Skill(null, "0", "s0", 0, 0, 0)))
+      val skill1 = TestData.await(skillDAO.insert(Skill(null, "1", "s1", 0, 0, 0)))
+
+      TestData.await(skillDAO.incrementCounts(user.id, (skill0.id, 1, 2), (skill1.id, 3, 4)))
+
+      val skill2 = TestData.await(skillDAO.insert(Skill(null, "2", "s2", 0, 0, 0)))
+
+      TestData.await(skillDAO.incrementCounts(user.id, (skill0.id, 10, 20), (skill1.id, 30, 40), (skill2.id, 5 , 6)))
+
+      TestData.await(skillDAO.getCounts(user.id)).toSet mustBe Set(UserAnswerCount(user.id, skill0.id, 11, 22), UserAnswerCount(user.id, skill1.id, 33, 44), UserAnswerCount(user.id, skill2.id, 5, 6))
+    }
+
+  }
+
 
 }

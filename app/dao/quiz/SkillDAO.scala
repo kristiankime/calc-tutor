@@ -40,6 +40,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   // ====== FIND ======
   def allSkills: Future[Seq[Skill]] = db.run(Skills.result)
 
+  def skillIdsFor(questionId: QuestionId) = db.run(Skills2Questions.filter(_.questionId === questionId).map(_.skillId).result)
   def skillsFor(questionId: QuestionId): Future[Seq[Skill]] = db.run {
     (for (s2q <- Skills2Questions; s <- Skills if s2q.questionId === questionId && s2q.skillId === s.id) yield s).result
   }
@@ -104,6 +105,9 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   }
 
   // ====== Update Counts ======
+  def incrementsCounts(userId: UserId, questionId: QuestionId, correct: Int, incorrect: Int): Future[Vector[Int]] =
+    skillIdsFor(questionId).flatMap(skillIds => incrementCounts(userId, skillIds.map(s => (s, correct, incorrect)):_*))
+
   def incrementCounts(userId: UserId, skills: (SkillId, Int, Int)*): Future[Vector[Int]] = {
     val seqFutures = skills.map(s => incrementCount(userId, s._1, s._2, s._3) )
     com.artclod.concurrent.raiseFuture(seqFutures)
