@@ -34,6 +34,11 @@ object TestData {
   def skill(name: String) = Skill(null, name, name.substring(0,1), 1d, 1d, 1d)
 
   // ===== Question Frame =====
+  def questionFrameSimple(info: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill] = Seq()): QuestionFrame = {
+    val section = questionSectionFrame(info + " explanation", 0)()( questionPartFunction(info + "summary", "<cn>1</cn>", 0))
+    questionFrame(title = info + " title", description = info +" description", userId  = userId, creationDate = creationDate, skills = skills, Seq(section))
+  }
+
   def questionFrame(title: String, description: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill], questionSectionFrames: Seq[QuestionSectionFrame]) : QuestionFrame =
     QuestionFrame(
       Question(null, userId, title, description, Markdowner.html(description), creationDate),
@@ -86,5 +91,8 @@ object TestData {
     if(partsNoIds.size != partsWithIds.size) { throw new IllegalArgumentException("sections size didn't match"); }
     partsNoIds.zip(partsWithIds).map(e => e._1.copy(id = e._2.id))
   }
+
+  // ===== Answer Frame =====
+
 
 }

@@ -50,7 +50,7 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
                   Future.successful( Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, AnswerJson(protoAnswerFrame))) )
                 } else {
                   answerDAO.insert(protoAnswerFrame).flatMap(answerFrame => {
-                    updateSkillCounts(user.id, questionId, answerFrame.answer.correct).map( updated => { // Keep track of the in/correct counts for each skill
+                    answerDAO.updateSkillCounts(user.id, questionId, answerFrame.answer.correct).map( updated => { // Keep track of the in/correct counts for each skill
 
                     if (answerFrame.answer.correct) { // Here everything was correct so go back to the quiz itself
                       Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, Some(answerFrame.answer.id)))
@@ -71,12 +71,6 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
     }
 
   } } } }
-
-  def updateSkillCounts(userId: UserId, questionId: QuestionId, correct: Boolean): Future[Boolean] =
-    answerDAO.numberOfAttempts(userId, questionId).flatMap(num => num match {
-      case 0 => { skillDAO.incrementsCounts(userId, questionId, if(correct){1}else{0}, if(correct){0}else{1}).map(_ => true) }
-      case _ => Future.successful(false)
-    })
 
 //  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 //

@@ -12,6 +12,9 @@ package object support {
     def instanceOf4[A : ClassTag, B : ClassTag, C : ClassTag, D : ClassTag]                             = (injector.instanceOf[A], injector.instanceOf[B], injector.instanceOf[C], injector.instanceOf[D])
     def instanceOf5[A : ClassTag, B : ClassTag, C : ClassTag, D : ClassTag, E : ClassTag]               = (injector.instanceOf[A], injector.instanceOf[B], injector.instanceOf[C], injector.instanceOf[D], injector.instanceOf[E])
     def instanceOf6[A : ClassTag, B : ClassTag, C : ClassTag, D : ClassTag, E : ClassTag, F : ClassTag] = (injector.instanceOf[A], injector.instanceOf[B], injector.instanceOf[C], injector.instanceOf[D], injector.instanceOf[E], injector.instanceOf[F])
+
+    def instanceOf7[A : ClassTag,          B : ClassTag, C :       ClassTag, D :           ClassTag,               E : ClassTag,           F : ClassTag,           G : ClassTag] =
+                  (injector.instanceOf[A], injector.instanceOf[B], injector.instanceOf[C], injector.instanceOf[D], injector.instanceOf[E], injector.instanceOf[F], injector.instanceOf[G])
   }
 
 }

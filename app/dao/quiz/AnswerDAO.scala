@@ -23,7 +23,7 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO, protected val questionDAO: QuestionDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO, protected val questionDAO: QuestionDAO, protected val skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
@@ -136,6 +136,13 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   def insert(answerParts: Seq[AnswerPart]): Future[Seq[AnswerPart]] = db.run {
     (AnswerParts returning AnswerParts.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= answerParts
   }
+
+  // ----
+  def updateSkillCounts(userId: UserId, questionId: QuestionId, correct: Boolean): Future[Boolean] =
+    numberOfAttempts(userId, questionId).flatMap(num => num match {
+      case 0 => { skillDAO.incrementsCounts(userId, questionId, if(correct){1}else{0}, if(correct){0}else{1}).map(_ => true) }
+      case _ => Future.successful(false)
+    })
 
   // === Support ===
 

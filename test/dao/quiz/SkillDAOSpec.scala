@@ -72,10 +72,9 @@ class SkillDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val skill0 = TestData.await(skillDAO.insert(Skill(null, "0", "s0", 0, 0, 0)))
       val skill1 = TestData.await(skillDAO.insert(Skill(null, "1", "s1", 0, 0, 0)))
 
-      val question = TestData.await(questionDAO.insert(Question(null, user.id, "title", "descriptionRaw", Html("descriptionHtml"), JodaUTC.zero)))
-      skillDAO.addSkills(question, Vector(skill0, skill1))
+      val question = TestData.await(questionDAO.insert(TestData.questionFrameSimple("q1", userId = user.id, skills = Vector(skill0, skill1))))
 
-      TestData.await(skillDAO.skillIdsFor(question.id)).toSet mustBe Set(skill0.id, skill1.id)
+      TestData.await(skillDAO.skillIdsFor(question.question.id)).toSet mustBe Set(skill0.id, skill1.id)
     }
 
   }
