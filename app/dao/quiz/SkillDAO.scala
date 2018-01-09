@@ -1,5 +1,6 @@
 package dao.quiz
 
+import java.util.Objects
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 
@@ -50,6 +51,8 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   def byName(name : String): Future[Option[Skill]] = db.run(Skills.filter(_.name === name).result.headOption)
 
   def skillsMap: Future[Map[String, Skill]] = db.run(Skills.result).map(_.groupBy(_.name).mapValues(_.head) )
+
+  def skillIdsMap: Future[Map[SkillId, Skill]] = db.run(Skills.result).map(_.groupBy(_.id).mapValues(_.head) )
 
   // ====== Create ======
   def insert(skill: Skill): Future[Skill] = db.run(
@@ -104,7 +107,10 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
     )
   }
 
-  // ====== Update Counts ======
+
+  // =========== Skill Computations ========
+
+  // ----- Update Counts
   def incrementsCounts(userId: UserId, questionId: QuestionId, correct: Int, incorrect: Int): Future[Vector[Int]] =
     skillIdsFor(questionId).flatMap(skillIds => incrementCounts(userId, skillIds.map(s => (s, correct, incorrect)):_*))
 
@@ -130,5 +136,61 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
 
   def getCounts(userId: UserId): Future[Seq[UserAnswerCount]] =
     db.run(UserAnswerCounts.filter(uac => uac.userId === userId).result)
+
+  def skillCountsMaps(userId: UserId): Future[Map[SkillId, UserAnswerCount]] =
+    db.run(UserAnswerCounts.filter(uac => uac.userId === userId).result.map(_.groupBy(_.skillId).mapValues(_.head)))
+
+  // =====
+  def pfaProbability(userId: UserId, questionId: QuestionId): Future[Double] =
+    skillIdsFor(questionId).flatMap(skills => skillIdsMap.flatMap(skillData => skillCountsMaps(userId).map(skillCounts =>
+      pfaProbability(skills, skillData, skillCounts)
+    )))
+
+  def pfaProbability(skills: Seq[SkillId], skillData: Map[SkillId, Skill], skillCounts: Map[SkillId, UserAnswerCount]): Double = {
+    // http://pact.cs.cmu.edu/koedinger/pubs/AIED%202009%20final%20Pavlik%20Cen%20Keodinger%20corrected.pdf
+    val m = pfaM(skills, skillData, skillCounts)
+    1 / (1 + math.exp(-m))
+  }
+
+  def pfaM(skills: Seq[SkillId], skillData: Map[SkillId, Skill], skillCounts: Map[SkillId, UserAnswerCount]): Double = {
+    skills.map(s => {
+      val skillCoef = Objects.requireNonNull(skillData(s))
+      if(skillCoef == null){ throw new IllegalArgumentException("Skill id " + s + " was not in skillData coding error") }
+      val skillCount = skillCounts.getOrElse(s, UserAnswerCount(null, s, 0 , 0))
+      skillComputation(skillCoef, skillCount)
+    }).sum
+  }
+
+  // =====
+  def userSkillLevels(userId: UserId) : Future[Seq[(Skill, Double)]] =
+    allSkills.flatMap(as => skillCountsMaps(userId).map(skillCounts => userSkillLevels(as, skillCounts)))
+
+  def userSkillLevels(allSkills: Seq[Skill], skillCounts: Map[SkillId, UserAnswerCount]): Seq[(Skill, Double)] = {
+    allSkills.map(skillCoef => {
+      val skillCount = skillCounts.getOrElse(skillCoef.id, UserAnswerCount(null, skillCoef.id, 0 , 0))
+      val m = skillComputation(skillCoef, skillCount)
+      (skillCoef, 1 / (1 / (1 + math.exp(-m))))
+    })
+  }
+
+  def skillComputation(skillCoef: Skill, skillCount: UserAnswerCount) = // http://pact.cs.cmu.edu/koedinger/pubs/AIED%202009%20final%20Pavlik%20Cen%20Keodinger%20corrected.pdf
+    skillCoef.β + (skillCount.correct * skillCoef.γ) + (skillCount.incorrect * skillCoef.ρ)
+
+  // =====
+  def usersSkillLevels(allSkills: Seq[Skill], userIds: Seq[UserId]): Future[Seq[(Skill, Seq[Double])]] = {
+    val allUserSkillsFuture = db.run(UserAnswerCounts.filter(uac => uac.userId inSet userIds.toSet).result)
+
+    allUserSkillsFuture.map(allUserSkills => {
+      val allSkillsCountMap = allUserSkills.groupBy(_.skillId)
+
+      val allSkillsCountMapPadded = allSkillsCountMap.map(e => (e._1, e._2.padTo(userIds.size, UserAnswerCount(null, e._1, 0 , 0))) )
+
+      val allSkillsCounts = allSkills.map(sk =>
+        (sk, allSkillsCountMapPadded.getOrElse(sk.id, Seq.fill(userIds.size)(UserAnswerCount(null, sk.id, 0 , 0)))))
+
+      allSkillsCounts.map(sk => (sk._1, sk._2.map(skillComputation(sk._1,_)))  )
+    })
+  }
+
 }
 

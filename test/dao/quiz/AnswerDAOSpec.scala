@@ -60,9 +60,6 @@ class AnswerDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       TestData.await(skillDAO.getCounts(user.id)).toSet mustBe Set(UserAnswerCount(user.id, skill0.id, 0, 1), UserAnswerCount(user.id, skill1.id, 0, 1))
     }
 
-
   }
-
-
 
 }
