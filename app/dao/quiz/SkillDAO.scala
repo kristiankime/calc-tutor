@@ -131,6 +131,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
     })
   }
 
+  // ----- Get Counts
   def getCount(userId: UserId, skillId: SkillId): Future[Option[UserAnswerCount]] =
     db.run(UserAnswerCounts.filter(uac => uac.userId === userId && uac.skillId === skillId).result.headOption)
 
@@ -140,7 +141,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   def skillCountsMaps(userId: UserId): Future[Map[SkillId, UserAnswerCount]] =
     db.run(UserAnswerCounts.filter(uac => uac.userId === userId).result.map(_.groupBy(_.skillId).mapValues(_.head)))
 
-  // =====
+  // ----- PFA Computations
   def pfaProbability(userId: UserId, questionId: QuestionId): Future[Double] =
     skillIdsFor(questionId).flatMap(skills => skillIdsMap.flatMap(skillData => skillCountsMaps(userId).map(skillCounts =>
       pfaProbability(skills, skillData, skillCounts)
@@ -154,29 +155,32 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
 
   def pfaM(skills: Seq[SkillId], skillData: Map[SkillId, Skill], skillCounts: Map[SkillId, UserAnswerCount]): Double = {
     skills.map(s => {
-      val skillCoef = Objects.requireNonNull(skillData(s))
-      if(skillCoef == null){ throw new IllegalArgumentException("Skill id " + s + " was not in skillData coding error") }
+      val skillCoef = Objects.requireNonNull(skillData(s), "Skill id " + s + " was not in skillData coding error")
       val skillCount = skillCounts.getOrElse(s, UserAnswerCount(null, s, 0 , 0))
       skillComputation(skillCoef, skillCount)
     }).sum
   }
 
-  // =====
+  def skillComputationSigmod(skillCoef: Skill, skillCount: UserAnswerCount) = {
+    val m = skillComputation(skillCoef, skillCount)
+    1 / (1 + math.exp(-m))
+  }
+
+  def skillComputation(skillCoef: Skill, skillCount: UserAnswerCount) = // http://pact.cs.cmu.edu/koedinger/pubs/AIED%202009%20final%20Pavlik%20Cen%20Keodinger%20corrected.pdf
+    skillCoef.β + (skillCount.correct * skillCoef.γ) + (skillCount.incorrect * skillCoef.ρ)
+
+  // ----- Single User Skill Levels
   def userSkillLevels(userId: UserId) : Future[Seq[(Skill, Double)]] =
     allSkills.flatMap(as => skillCountsMaps(userId).map(skillCounts => userSkillLevels(as, skillCounts)))
 
   def userSkillLevels(allSkills: Seq[Skill], skillCounts: Map[SkillId, UserAnswerCount]): Seq[(Skill, Double)] = {
     allSkills.map(skillCoef => {
       val skillCount = skillCounts.getOrElse(skillCoef.id, UserAnswerCount(null, skillCoef.id, 0 , 0))
-      val m = skillComputation(skillCoef, skillCount)
-      (skillCoef, 1 / (1 / (1 + math.exp(-m))))
+      (skillCoef, skillComputationSigmod(skillCoef, skillCount))
     })
   }
 
-  def skillComputation(skillCoef: Skill, skillCount: UserAnswerCount) = // http://pact.cs.cmu.edu/koedinger/pubs/AIED%202009%20final%20Pavlik%20Cen%20Keodinger%20corrected.pdf
-    skillCoef.β + (skillCount.correct * skillCoef.γ) + (skillCount.incorrect * skillCoef.ρ)
-
-  // =====
+  // ----- Group User Skill Levels
   def usersSkillLevels(allSkills: Seq[Skill], userIds: Seq[UserId]): Future[Seq[(Skill, Seq[Double])]] = {
     val allUserSkillsFuture = db.run(UserAnswerCounts.filter(uac => uac.userId inSet userIds.toSet).result)
 

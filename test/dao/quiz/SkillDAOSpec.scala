@@ -5,11 +5,11 @@ import dao.TestData
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
 import models.quiz.{Question, Skill, UserAnswerCount}
-import models.{Edit, Non, Own, View}
+import models._
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.twirl.api.Html
-import support.{CleanDatabaseAfterEach, EnhancedInjector}
+import _root_.support.{CleanDatabaseAfterEach, EnhancedInjector}
 
 class SkillDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
 
@@ -169,5 +169,23 @@ class SkillDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
 
   }
 
+  "userSkillLevels (no db)" should {
+
+    "computes values correctely (uses zeroes for counts if none exist)" in {
+      val (userDAO, skillDAO) = app.injector.instanceOf2[UserDAO, SkillDAO]
+
+      val skill0 = Skill(SkillId(0), "S0", "0",  1,  2,  3)
+      val skill1 = Skill(SkillId(1), "S1", "1", 10, 20, 30)
+
+      val countsFor0 = UserAnswerCount(null, skill0.id, 5, 6)
+      val skillLevels = skillDAO.userSkillLevels(Seq(skill0, skill1), Map((skill0.id, countsFor0)))
+
+      skillLevels mustBe Seq(
+        (skill0, skillDAO.skillComputationSigmod(skill0, countsFor0)),
+        (skill1, skillDAO.skillComputationSigmod(skill1, UserAnswerCount(null, skill1.id, 0, 0)))
+      )
+    }
+
+  }
 
 }
