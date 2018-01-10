@@ -161,7 +161,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
     }).sum
   }
 
-  def skillComputationSigmod(skillCoef: Skill, skillCount: UserAnswerCount) = {
+  def skillComputationSigmoid(skillCoef: Skill, skillCount: UserAnswerCount) = {
     val m = skillComputation(skillCoef, skillCount)
     1 / (1 + math.exp(-m))
   }
@@ -176,7 +176,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   def userSkillLevels(allSkills: Seq[Skill], skillCounts: Map[SkillId, UserAnswerCount]): Seq[(Skill, Double)] = {
     allSkills.map(skillCoef => {
       val skillCount = skillCounts.getOrElse(skillCoef.id, UserAnswerCount(null, skillCoef.id, 0 , 0))
-      (skillCoef, skillComputationSigmod(skillCoef, skillCount))
+      (skillCoef, skillComputationSigmoid(skillCoef, skillCount))
     })
   }
 
@@ -192,7 +192,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
       val allSkillsCounts = allSkills.map(sk =>
         (sk, allSkillsCountMapPadded.getOrElse(sk.id, Seq.fill(userIds.size)(UserAnswerCount(null, sk.id, 0 , 0)))))
 
-      allSkillsCounts.map(sk => (sk._1, sk._2.map(skillComputation(sk._1,_)))  )
+      allSkillsCounts.map(sk => (sk._1, sk._2.map(skillComputationSigmoid(sk._1,_)))  )
     })
   }
 
