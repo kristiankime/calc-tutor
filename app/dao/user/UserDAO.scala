@@ -4,8 +4,10 @@ import javax.inject.Inject
 
 import com.artclod.slick.JodaUTC
 import dao.ColumnTypeMappings
+import dao.organization.table.CourseTables
 import dao.user.table.UserTables
-import models.UserId
+import models.{Access, UserId}
+import models.organization.Course
 import models.user.User
 import org.joda.time.DateTime
 import org.pac4j.core.profile.CommonProfile
@@ -19,7 +21,7 @@ import slick.driver.JdbcProfile
 //import slick.jdbc.JdbcProfile // Use this after upgrading slick
 // ====
 
-class UserDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class UserDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val courseTables: CourseTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
@@ -56,5 +58,16 @@ class UserDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
           }
       }
 
+  def students(): Future[Seq[User]] = db.run({
+    (for (u2c <- courseTables.User2Courses; u <- Users
+          if u2c.access === Access.view && u2c.userId === u.id
+    ) yield u).sortBy(_.name).result
+  })
+
+  def studentIds(): Future[Seq[UserId]] = db.run({
+    (for (u2c <- courseTables.User2Courses; u <- Users
+          if u2c.access === Access.view && u2c.userId === u.id
+    ) yield u.id).result
+  })
 }
 

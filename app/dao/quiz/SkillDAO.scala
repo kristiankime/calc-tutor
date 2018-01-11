@@ -181,6 +181,9 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   }
 
   // ----- Group User Skill Levels
+  def usersSkillLevels(userIds: Seq[UserId]): Future[Seq[(Skill, Seq[Double])]] =
+    allSkills.flatMap(skills => { usersSkillLevels(skills, userIds) })
+
   def usersSkillLevels(allSkills: Seq[Skill], userIds: Seq[UserId]): Future[Seq[(Skill, Seq[Double])]] = {
     val allUserSkillsFuture = db.run(UserAnswerCounts.filter(uac => uac.userId inSet userIds.toSet).result)
 

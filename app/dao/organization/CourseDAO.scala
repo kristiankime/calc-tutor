@@ -72,6 +72,7 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   def revokeAccess(user: User, course: Course) =
     db.run(User2Courses.filter(u2c => u2c.userId === user.id && u2c.courseId === course.id).delete)
 
+  // ====== Courses <-> Users ======
   def coursesFor(user: User): Future[Seq[Course]] =
     db.run({
       (for(u2c <- User2Courses; c <- Courses if u2c.userId === user.id && u2c.courseId === c.id) yield c)
@@ -82,9 +83,14 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   def coursesAndAccessFor(user: User): Future[Seq[(Course, Access)]] =
     db.run({
       (for(u2c <- User2Courses; c <- Courses if u2c.userId === user.id && u2c.courseId === c.id) yield (c, u2c.access))
-        .union(
-          Courses.filter(_.ownerId === user.id).map( (_, models.Own))
-        ).result })
+        .union(Courses.filter(_.ownerId === user.id).map( (_, models.Own))
+      ).result})
+
+  def studentsIn(course: Course): Future[Seq[User]] = db.run({
+    (for (u2c <- User2Courses; u <- userTables.Users
+          if u2c.courseId === course.id && u2c.access === Access.view && u2c.userId === u.id
+    ) yield u).sortBy(_.name).result
+  })
 
   // ====== Create ======
   def insert(course: Course): Future[Course] =

@@ -1,4 +1,4 @@
-@(courses: Seq[(models.organization.Course, models.Access)], errorsOp: Option[Form[controllers.user.UserSettingsData]] = None)(implicit user: models.user.User)
+@(courses: Seq[(models.organization.Course, models.Access)], dashboardData: Seq[(models.quiz.Skill, Seq[Double])], errorsOp: Option[Form[controllers.user.UserSettingsData]] = None)(implicit user: models.user.User)
 
 @import com.artclod.play.s
 @import views.html.tag._
@@ -40,7 +40,7 @@
         <button type="submit" class="pure-button pure-button-primary">Update Settings</button>
     }
 
-    @chart.dash("dashboard")
+    @chart.dash("dashboard", dashboardData)
 
     @*
     <h3> Friends </h3>
