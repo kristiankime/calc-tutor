@@ -1,7 +1,13 @@
 @(id: String)
-
 <div id="@id" style="width: 600px;height:400px;"></div>
 <script>
+
+    var dom = document.getElementById("@id");
+    var myChart = echarts.init(dom);
+    var app = {};
+    option = null;
+
+    // https://ecomfe.github.io/echarts-examples/public/editor.html?c=boxplot-light-velocity2
     var data = echarts.dataTool.prepareBoxplotData([
         [850, 740, 900, 1070, 930, 850, 950, 980, 980, 880, 1000, 980, 930, 650, 760, 810, 1000, 1000, 960, 960],
         [960, 940, 960, 940, 880, 800, 850, 880, 900, 840, 830, 790, 810, 880, 880, 830, 800, 790, 760, 800],
@@ -87,6 +93,10 @@
             }
         ]
     };
+
+    if (option && typeof option === "object") {
+        myChart.setOption(option, true);
+    }
 </script>
 
 
