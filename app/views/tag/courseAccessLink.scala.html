@@ -1,0 +1,1 @@
+@(course: models.organization.Course, access: models.Access)<a href="@controllers.organization.routes.CourseController.view(course.organizationId, course.id)" class="pure-button" data-ot="You have access to this course as @viewsupport.organization.AccessName.an(access)">@course.name @tag.accessIcon(access)</a>

@@ -1,0 +1,6 @@
+@(access: models.Access) @access match {
+    case models.Non  => {}
+    case models.View => {@tag.icon("icon-user7")}
+    case models.Edit => {@tag.icon("icon-user-add")}
+    case models.Own  => {@tag.icon("icon-user-add")}
+}

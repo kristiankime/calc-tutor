@@ -36,6 +36,14 @@ class UserDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
 
   def updateConsent(user: User, consent: Boolean): Future[Int] = db.run(Users.insertOrUpdate(user.copy(consented = consent)))
 
+  def updateSettings(user: User, name: Option[String], emailUpdates: Boolean): Future[Int] = {
+    val userUpdate = name match {
+      case Some(n) => user.copy(name = n, emailUpdates = emailUpdates)
+      case None => user.copy(emailUpdates = emailUpdates)
+    }
+    db.run(Users.insertOrUpdate(userUpdate))
+  }
+
   def byId(id : UserId): Future[Option[User]] = db.run(Users.filter(_.id === id).result.headOption)
 
   def ensureByLoginId(profiles: List[CommonProfile]): Future[User] = ensureByLoginId(profiles.head) // TODO handle multiple profiles

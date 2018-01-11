@@ -1,0 +1,54 @@
+@(courses: Seq[(models.organization.Course, models.Access)], errorsOp: Option[Form[controllers.user.UserSettingsData]] = None)(implicit user: models.user.User)
+
+@import com.artclod.play.s
+@import views.html.tag._
+@import helper._
+@import controllers.user.UserSettings
+
+@mainContent("User Information") {
+
+    <h1>Welcome to CalcTutor</h1>
+
+    <p>
+        You are logged in as: @user.name <br>
+        You email is: @user.email
+    </p>
+
+    @if(courses.isEmpty){
+    <h5> You are not signed up for any courses </h5>
+    } else {
+    <h5> Your are associated with the following course@s(courses):</h5>
+    <ul class="pure-list">
+        @for(course <- courses) {<li> @tag.courseAccessLink(course._1, course._2) </li>}
+    </ul>
+    }
+
+    <h3> Update your settings </h3>
+
+    <div>To update your settings change the values below and then hit the "Update Settings" button.</div>
+
+    @form(action = controllers.user.routes.SettingsController.updateSettings, 'class -> "pure-form") {
+
+        <label for="@UserSettings.name">Change user name: @tag.icon("icon-help", 'data_ot -> "Names cannot be blank, and will always have a -# appended to them.") </label>
+        <input id="@UserSettings.name" name="@UserSettings.name" type="text" placeholder="@user.name"> @for(err <- errorsOp.flatMap(_.error(UserSettings.name))){ @tag.error(err.message) }  <br>
+
+        <label for="@UserSettings.emailGameUpdates" class="pure-checkbox">
+            <input type="checkbox" id="@UserSettings.emailGameUpdates" name="@UserSettings.emailGameUpdates" value="true" @if(user.emailUpdates){checked }/>
+            <input type="hidden" name="@UserSettings.emailGameUpdates" value="false" /> Send me an email on updates
+        </label><br>
+
+        <button type="submit" class="pure-button pure-button-primary">Update Settings</button>
+    }
+
+    @*
+    <h3> Friends </h3>
+
+    To see your friends list (and invite new friends) click <a href="@controllers.routes.Home.friends()" class="pure-button">Here</a>
+
+    <h3> Revoke Consent </h3>
+
+    @form(action = routes.Consent.revokeConsent, 'class -> "pure-form") {
+        I no longer want to take part in this study <input class="pure-button" type="submit" value="Revoke Consent">
+    }
+    *@
+}

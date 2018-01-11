@@ -66,14 +66,29 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     ownerAccess.flatMap(oa => directAccess.map( da => oa max da))
   }
 
-  def grantAccess(user: User, course: Course, access: Access) = db.run(User2Courses += User2Course(user.id, course.id, access)).map { _ => () }
+  def grantAccess(user: User, course: Course, access: Access) =
+    db.run(User2Courses += User2Course(user.id, course.id, access)).map { _ => () }
 
-  def revokeAccess(user: User, course: Course) = db.run(User2Courses.filter(u2c => u2c.userId === user.id && u2c.courseId === course.id).delete)
+  def revokeAccess(user: User, course: Course) =
+    db.run(User2Courses.filter(u2c => u2c.userId === user.id && u2c.courseId === course.id).delete)
+
+  def coursesFor(user: User): Future[Seq[Course]] =
+    db.run({
+      (for(u2c <- User2Courses; c <- Courses if u2c.userId === user.id && u2c.courseId === c.id) yield c)
+        .union(
+        Courses.filter(_.ownerId === user.id)
+      ).result })
+
+  def coursesAndAccessFor(user: User): Future[Seq[(Course, Access)]] =
+    db.run({
+      (for(u2c <- User2Courses; c <- Courses if u2c.userId === user.id && u2c.courseId === c.id) yield (c, u2c.access))
+        .union(
+          Courses.filter(_.ownerId === user.id).map( (_, models.Own))
+        ).result })
 
   // ====== Create ======
-  def insert(course: Course): Future[Course] = db.run(
-    (Courses returning Courses.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += course
-  )
+  def insert(course: Course): Future[Course] =
+    db.run({ (Courses returning Courses.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += course })
 
 }
 

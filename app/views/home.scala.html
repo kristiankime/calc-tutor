@@ -1,4 +1,4 @@
-@(courses: List[models.organization.Course])
+@(courses: Seq[(models.organization.Course, models.Access)])
 
 @import com.artclod.play.s
 
@@ -20,7 +20,7 @@
     } else {
       You are currently associated with the following course@s(courses):
       <ul class="pure-list">
-      @for(course <- courses) {<li> @* @tag.courseAccessLink(course) *@ </li>}
+        @for(course <- courses) {<li>  @tag.courseAccessLink(course._1, course._2) </li>}
       </ul>
     }
   </section>
