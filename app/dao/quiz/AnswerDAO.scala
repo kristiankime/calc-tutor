@@ -140,7 +140,7 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   // ----
   def updateSkillCounts(userId: UserId, questionId: QuestionId, correct: Boolean): Future[Boolean] =
     numberOfAttempts(userId, questionId).flatMap(num => num match {
-      case 0 => { skillDAO.incrementsCounts(userId, questionId, if(correct){1}else{0}, if(correct){0}else{1}).map(_ => true) }
+      case 0 => skillDAO.incrementsCounts(userId, questionId, if(correct){1}else{0}, if(correct){0}else{1}).map(_ => true)
       case _ => Future.successful(false)
     })
 
