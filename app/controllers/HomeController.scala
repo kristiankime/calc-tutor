@@ -35,7 +35,7 @@ class HomeController @Inject()(val config: Config, val playSessionStore: PlaySes
     val skillsFuture = studentIdsFuture.flatMap(ids => skillDAO.skillsLevelFor(user.id, ids))
     val coursesAndAccessFuture = courseDAO.coursesAndAccessFor(user)
     coursesAndAccessFuture.flatMap(courses => skillsFuture.map(skills =>
-      Ok(views.html.user.userInfo(courses, skills._2, studentDataOp = Some(skills._1)))
+      Ok(views.html.user.userInfo(courses, skills._2, skills._1))
     ))
   } } }
 

@@ -49,8 +49,8 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
                 if(protoAnswerFrame.correctUnknown) { // Here we are unable to determine if the question was answered correctly so we go back to the page
                   Future.successful( Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, AnswerJson(protoAnswerFrame))) )
                 } else {
-                  answerDAO.insert(protoAnswerFrame).flatMap(answerFrame => {
-                    answerDAO.updateSkillCounts(user.id, questionId, answerFrame.answer.correct).map( updated => { // Keep track of the in/correct counts for each skill
+                  answerDAO.updateSkillCounts(user.id, questionId, protoAnswerFrame.answer.correct).flatMap( updated => { // Keep track of the in/correct counts for each skill
+                    answerDAO.insert(protoAnswerFrame).map(answerFrame => {
 
                     if (answerFrame.answer.correct) { // Here everything was correct so go back to the quiz itself
                       Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, Some(answerFrame.answer.id)))
