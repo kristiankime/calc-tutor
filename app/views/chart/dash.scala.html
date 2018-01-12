@@ -1,4 +1,4 @@
-@(id: String, dashboardData: Seq[(models.quiz.Skill, Seq[Double])])
+@(id: String, dashboardData: Seq[(models.quiz.Skill, Seq[Double])], studentDataOp : Option[Seq[(models.quiz.Skill, Double)]] = None)
 <div id="@id" style="width: 600px;height:400px;"></div> <!-- https://ecomfe.github.io/echarts-examples/public/editor.html?c=boxplot-light-velocity2 -->
 <script>
 
@@ -15,9 +15,8 @@
         layout: 'vertical'
     });
 
-    // override the axis labels
+    // override the default prepareBoxplotData axis labels
     data.axisData = @{Html(dashboardData.map(_._1.name).mkString("[\"", "\",\"", "\"]"))};
-
 
     option = {
         title: [
@@ -86,12 +85,20 @@
                         ].join('<br/>')
                     }
                 },
+                @for(studentData <- studentDataOp){
                 // Mark the student's values
                 // https://ecomfe.github.io/echarts-doc/public/en/option.html#series-boxplot.markPoint
                 // https://ecomfe.github.io/echarts-doc/public/en/option.html#series-boxplot.markPoint.data.valueIndex
-                markPoint : {
+                markPoint: {
                     @* data : [ @{Html(dashboardData.map("{y : .5, x : \"" + _._1.name + "\"}").mkString(","))} ] *@
-                    data : [ @{Html(dashboardData.map("{ coord : [.5, '" + _._1.name + "'] }").mkString(","))} ]
+                    data: [@{Html(studentData.map(d => "{ coord : [" + d._2 + ", '" + d._1.name + "'] }").mkString(","))}],
+                    symbol: 'triangle',
+                    symbolSize: 5,
+                    label: {
+                        normal: {show: false},
+                        emphasis: {show: false}
+                    }
+                }
                 }
             },
             {

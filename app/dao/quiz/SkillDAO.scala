@@ -17,6 +17,7 @@ import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import slick.lifted
+import com.artclod.util._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -171,7 +172,10 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
 
   // ----- Single User Skill Levels
   def userSkillLevels(userId: UserId) : Future[Seq[(Skill, Double)]] =
-    allSkills.flatMap(as => skillCountsMaps(userId).map(skillCounts => userSkillLevels(as, skillCounts)))
+    allSkills.flatMap(as => userSkillLevels(userId, as))
+
+  def userSkillLevels(userId: UserId, allSkills: Seq[Skill]) : Future[Seq[(Skill, Double)]] =
+    skillCountsMaps(userId).map(skillCounts => userSkillLevels(allSkills, skillCounts))
 
   def userSkillLevels(allSkills: Seq[Skill], skillCounts: Map[SkillId, UserAnswerCount]): Seq[(Skill, Double)] = {
     allSkills.map(skillCoef => {
@@ -198,6 +202,13 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
       allSkillsCounts.map(sk => (sk._1, sk._2.map(skillComputationSigmoid(sk._1,_)))  )
     })
   }
+
+  // ----- Single User and Group Skill Levels
+  def skillsLevelFor(userId: UserId, userIds: Seq[UserId]): Future[(Seq[(Skill, Double)], Seq[(Skill, Seq[Double])])] =
+    allSkills.flatMap(as =>
+      userSkillLevels(userId, as)
+        +#
+        usersSkillLevels(as, userIds) )
 
 }
 

@@ -32,9 +32,11 @@ class HomeController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   def userInfo = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
     val studentIdsFuture = userDAO.studentIds()
-    val skillsFuture = studentIdsFuture.flatMap(ids => skillDAO.usersSkillLevels(ids))
+    val skillsFuture = studentIdsFuture.flatMap(ids => skillDAO.skillsLevelFor(user.id, ids))
     val coursesAndAccessFuture = courseDAO.coursesAndAccessFor(user)
-    coursesAndAccessFuture.flatMap(courses => skillsFuture.map(skills => Ok(views.html.user.userInfo(courses, skills)) ))
+    coursesAndAccessFuture.flatMap(courses => skillsFuture.map(skills =>
+      Ok(views.html.user.userInfo(courses, skills._2, studentDataOp = Some(skills._1)))
+    ))
   } } }
 
 }
