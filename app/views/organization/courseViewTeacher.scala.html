@@ -19,5 +19,23 @@
     @views.html.organization.courseViewCore(org, course, access, quizzes)
 
     @* ======= Student List and Dashboard ======= *@
+    <section>
+    @if(students.isEmpty) {
+        <h5> There are no students enrolled in this course </h5>
+    } else {
+        <h5> The course has the following student@s(students): </h5>
+        <table class="pure-table pure-table-striped">
+            <tr>
+                <th> Name </th>
+            </tr>
+            @for(student <- students) {
+            <tr>
+                <td> <a class="pure-button" href="@controllers.organization.routes.CourseController.studentSummary(course.organizationId, course.id, student.id)")>@student.name</a>  </td>
+            </tr>
+            }
+        </table>
+    }
+    </section>
+
     @chart.dash("dashboard", dashboardData, None)
 }

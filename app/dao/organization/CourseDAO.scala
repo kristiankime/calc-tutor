@@ -22,6 +22,8 @@ import models.organization.Course2Quiz
 
 import scala.concurrent.{ExecutionContext, Future}
 
+
+
 // ====
 import slick.driver.JdbcProfile
 //import slick.jdbc.JdbcProfile // Use this after upgrading slick
@@ -58,6 +60,17 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   } }
 
   def coursesFor(organizationId: OrganizationId) : Future[Seq[Course]] = db.run(Courses.filter(_.organizationId === organizationId).result)
+
+  def studentOf(courseId : CourseId, studentId: UserId): Future[Option[User]] = db.run({
+    (for(u2c <- User2Courses; u <- userTables.Users
+         if u2c.courseId === courseId && u2c.userId === studentId && u2c.access === Access.view
+    ) yield u).result.headOption
+  })
+
+  def apply(courseId : CourseId, studentId: UserId) : Future[Either[Result, User]] = studentOf(courseId, studentId).map{ _ match {
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no User for id=["+studentId+"] which was also a student in [" + courseId + "]")))
+    case Some(student) => Right(student)
+  } }
 
   // ====== Access ======
   def access(userId: UserId, courseId : CourseId): Future[Access] = db.run {

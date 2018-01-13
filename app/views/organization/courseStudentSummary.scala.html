@@ -1,0 +1,16 @@
+@(org: models.organization.Organization, course: models.organization.Course, student: models.user.User, dashboardData: Seq[(models.quiz.Skill, Seq[Double])], studentData : Seq[(models.quiz.Skill, Double)])(implicit user: models.user.User)
+
+@import com.artclod.play.s
+@import views.html.tag._
+@import helper._
+@import controllers.user.UserSettings
+
+@mainContent("Student Summary", tag.organizationLink(org), tag.courseLink(course)) {
+
+    <h1>Student Summary Page</h1>
+
+    <h3> Summary for @student.name </h3>
+
+    @chart.dash("dashboard", dashboardData, Some(studentData))
+
+}

@@ -27,6 +27,7 @@ GET         /orgs/:o/courses/create                                   controller
 POST        /orgs/:o/courses                                          controllers.organization.CourseController.createSubmit(o: OrganizationId)
 GET         /orgs/:o/courses/:c                                       controllers.organization.CourseController.view(o: OrganizationId, c: CourseId)
 POST        /orgs/:o/courses/:c/join                                  controllers.organization.CourseController.join(o: OrganizationId, c: CourseId)
+GET         /orgs/:o/courses/:c/user/:u                               controllers.organization.CourseController.studentSummary(o: OrganizationId, c: CourseId, u: UserId)
 
 # --------------
 # Course Quizzes
