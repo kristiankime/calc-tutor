@@ -1,0 +1,23 @@
+@(org: models.organization.Organization,
+  course: models.organization.Course,
+  access: models.Access,
+  quizzes: Seq[(models.organization.Course2Quiz, models.quiz.Quiz)],
+  students: Seq[models.user.User],
+  dashboardData: Seq[(models.quiz.Skill, Seq[Double])]
+)(implicit request: Request[AnyContent])
+
+@import com.artclod.slick.JodaUTC
+@import com.artclod.play._
+@import views.html.tag._
+@import com.artclod.play._
+@import helper._
+@import models.AccessName.an
+@import models.Access._
+@import controllers.organization.CourseJoin
+
+@mainContent(org.name, tag.organizationLink(org)) {
+    @views.html.organization.courseViewCore(org, course, access, quizzes)
+
+    @* ======= Student List and Dashboard ======= *@
+    @chart.dash("dashboard", dashboardData, None)
+}

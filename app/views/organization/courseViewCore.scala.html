@@ -1,6 +1,6 @@
-@import com.artclod.slick.JodaUTC
 @(organization: models.organization.Organization, course: models.organization.Course, access: models.Access, quizzes: Seq[(models.organization.Course2Quiz, models.quiz.Quiz)])(implicit request: Request[AnyContent])
 
+@import com.artclod.slick.JodaUTC
 @import com.artclod.play._
 @import views.html.tag._
 @import com.artclod.play._
@@ -10,7 +10,6 @@
 @import controllers.organization.CourseJoin
 @import org.joda.time.DateTime
 
-@mainContent(organization.name, tag.organizationLink(organization)) {
     <h2>Welcome to the information page for the course: @course.name</h2>
     @* ======= Role ======= *@
     @if(access > Non) {
@@ -98,4 +97,3 @@
     }
     @* <<<<< Close Access > Non *@
 
-}

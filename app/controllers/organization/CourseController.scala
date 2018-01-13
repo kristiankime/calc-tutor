@@ -18,14 +18,14 @@ import models.organization.Course
 import play.api.data.Form
 import play.api.data.Forms._
 import com.artclod.random._
-import dao.quiz.QuizDAO
+import dao.quiz.{QuizDAO, SkillDAO}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Random, Right}
 
 
 @Singleton
-class CourseController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class CourseController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
   implicit val randomEngine = new Random(JodaUTC.now.getMillis())
   val codeRange = (0 to 100000).toVector
 
@@ -70,9 +70,18 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
 
   def view(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
 
-    (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ quizDAO.quizzesFor(courseId)).map{ _ match {
-       case Left(notFoundResult) => notFoundResult
-       case Right((organization, course, access, quizzes)) => Ok(views.html.organization.courseView(organization, course, access, quizzes))
+    (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ quizDAO.quizzesFor(courseId)).flatMap{ _ match {
+       case Left(notFoundResult) => Future.successful(notFoundResult)
+       case Right((organization, course, access, quizzes)) => {
+
+         if(access < Edit) {
+           Future.successful(Ok(views.html.organization.courseViewStudent(organization, course, access, quizzes)))
+         } else {
+           courseDAO.studentsIn(course).flatMap(students => skillDAO.usersSkillLevels(students.map(_.id)).map(skills =>
+               Ok(views.html.organization.courseViewTeacher(organization, course, access, quizzes, students, skills))))
+         }
+
+       }
       }
     }
 
