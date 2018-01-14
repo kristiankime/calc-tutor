@@ -63,7 +63,7 @@ class CourseDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   def studentOf(courseId : CourseId, studentId: UserId): Future[Option[User]] = db.run({
     (for(u2c <- User2Courses; u <- userTables.Users
-         if u2c.courseId === courseId && u2c.userId === studentId && u2c.access === Access.view
+         if u2c.courseId === courseId && u2c.userId === studentId && u.id === studentId && u2c.access === Access.view
     ) yield u).result.headOption
   })
 
