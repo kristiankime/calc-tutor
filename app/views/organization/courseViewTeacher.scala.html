@@ -4,7 +4,7 @@
   quizzes: Seq[(models.organization.Course2Quiz, models.quiz.Quiz)],
   students: Seq[models.user.User],
   dashboardData: Seq[(models.quiz.Skill, Seq[Double])]
-)(implicit request: Request[AnyContent])
+)(implicit request: Request[AnyContent], user: models.user.User)
 
 @import com.artclod.slick.JodaUTC
 @import com.artclod.play._

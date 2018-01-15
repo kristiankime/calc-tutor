@@ -1,4 +1,4 @@
-@(title: String, headers: Html*)(content: Html)
+@(title: String, headers: Html*)(content: Html)(implicit user: models.user.User)
 
 <!DOCTYPE html>
 
@@ -23,7 +23,7 @@
                 }
             </div>
             <div class="header-info">
-                <a href="@routes.HomeController.userInfo" class="pure-button"> Settings </a>
+                <a href="@routes.HomeController.userInfo" class="pure-button"> @user.nameDisplay() </a>
                 @*<a href="@routes.HomeController.friends" class="pure-button">Friends@if(models.user.Friends.pendingInvitesFor.nonEmpty){ @tag.icon("icon-heart6")}</a>*@
                 <a href="@org.pac4j.play.routes.LogoutController.logout" class="pure-button">logout</a>
             </div>

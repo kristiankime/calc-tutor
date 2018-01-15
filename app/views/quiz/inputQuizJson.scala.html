@@ -1,4 +1,4 @@
-@(access: models.Access, course: models.organization.Course)(implicit request: Request[AnyContent])
+@(access: models.Access, course: models.organization.Course)(implicit request: Request[AnyContent], user: models.user.User)
 
 @import helper._
 @import com.artclod.play._

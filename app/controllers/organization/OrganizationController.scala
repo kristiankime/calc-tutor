@@ -22,7 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class OrganizationController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
-  def view(organizationId: OrganizationId) = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { user => Action.async { request =>
+  def view(organizationId: OrganizationId) = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
     organizationDAO(organizationId).flatMap{ organizationEither =>
       organizationEither match {
         case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -31,7 +31,7 @@ class OrganizationController @Inject()(val config: Config, val playSessionStore:
     }
   } } }
 
-  def list() = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { user => Action.async { request =>
+  def list() = Secure("RedirectUnauthenticatedClient") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
     // TODO here we ensure various things that need to be there are created in the system, this is a temporary hack
     skillDAO.defaultSkills.flatMap(_ => organizationDAO.allEnsureAnOrg().map{ organizations => Ok(views.html.organization.organizationList(organizations)) } )
   } } }

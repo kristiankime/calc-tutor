@@ -1,4 +1,4 @@
-@(organizations: Seq[models.organization.Organization])
+@(organizations: Seq[models.organization.Organization])(implicit user: models.user.User)
 
 @mainContent("List of Organizations") {
 

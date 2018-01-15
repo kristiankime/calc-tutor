@@ -2,7 +2,8 @@
         course: models.organization.Course,
         quiz: models.quiz.Quiz,
         questionFrame: models.quiz.QuestionFrame,
-        answer: controllers.quiz.AnswerJson)(implicit request: Request[AnyContent])
+        answer: controllers.quiz.AnswerJson
+)(implicit request: Request[AnyContent], user: models.user.User)
 
 @import helper._
 @import com.artclod.play._

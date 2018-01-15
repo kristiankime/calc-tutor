@@ -5,7 +5,8 @@
         course2Quiz: Course2Quiz,
         questions: Seq[models.quiz.Question],
         answerOp: Option[models.quiz.Answer],
-        allSkills: Seq[String])(implicit request: Request[AnyContent])
+        allSkills: Seq[String]
+)(implicit request: Request[AnyContent],  user: models.user.User)
 
 @import helper._
 @import com.artclod.play._

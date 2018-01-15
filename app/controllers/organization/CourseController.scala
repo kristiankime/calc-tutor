@@ -68,7 +68,7 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
 
   } } } }
 
-  def view(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+  def view(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
     (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ quizDAO.quizzesFor(courseId)).flatMap{ _ match {
        case Left(notFoundResult) => Future.successful(notFoundResult)

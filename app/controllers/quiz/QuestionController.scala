@@ -31,7 +31,7 @@ import scala.util.Right
 @Singleton
 class QuestionController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
 
-  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ skillDAO.skillsMap).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -56,7 +56,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = Action.async { implicit request =>
+  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& answerDAO.frameByIdEither(questionId, answerIdOp)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
@@ -65,7 +65,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
         Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, answerJson ))
     } }
 
-  }
+  } } }
 
   /**
     * Get the Question as JSON
@@ -92,7 +92,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+  def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
