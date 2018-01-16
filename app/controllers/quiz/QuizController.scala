@@ -165,7 +165,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
             QuizCreateFromJson.quizFormat.reads(Json.parse(form)) match {
               case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
               case JsSuccess(value, path) => {
-                val quizFrameFuture = quizDAO.insert(QuizFrame(user.id, value, skillsMap))
+                val quizFrameFuture = quizDAO.insert(QuizFrame(user.id, value, skillsMap), user.id)
                 quizFrameFuture.flatMap(quizFrame => {
                   quizDAO.attach(course, quizFrame.quiz, false, None, None).map(_ =>
                     Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizFrame.quiz.id, None)))

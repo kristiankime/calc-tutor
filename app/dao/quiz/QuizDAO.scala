@@ -101,8 +101,12 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   }
 
   // Course 2 Quiz
-  def attach(course: Course, quiz: Quiz, viewHide: Boolean, startDate: Option[DateTime], endDate: Option[DateTime]) = db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, viewHide, startDate, endDate)).map { _ => () }
-  def detach(course: Course, quiz: Quiz) = db.run(Courses2Quizzes.filter(c2q => c2q.quizId === quiz.id && c2q.courseId === course.id).delete)
+  def attach(course: Course, quiz: Quiz, viewHide: Boolean, startDate: Option[DateTime], endDate: Option[DateTime]) =
+    db.run(Courses2Quizzes += Course2Quiz(course.id, quiz.id, viewHide, startDate, endDate)).map { _ => () }
+
+  def detach(course: Course, quiz: Quiz) =
+    db.run(Courses2Quizzes.filter(c2q => c2q.quizId === quiz.id && c2q.courseId === course.id).delete)
+
   // https://stackoverflow.com/questions/16757368/how-do-you-update-multiple-columns-using-slick-lifted-embedding
   def update(course: Course, quiz: Quiz, viewHide: Boolean, startDate: Option[DateTime], endDate: Option[DateTime]) =
     db.run((for { c2z <- Courses2Quizzes if c2z.quizId === quiz.id && c2z.courseId === course.id } yield c2z ).map(c2z => (c2z.viewHide, c2z.startDate, c2z.endDate) ).update(viewHide, startDate, endDate))
@@ -128,11 +132,14 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     (Quizzes returning Quizzes.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += quiz
   )
 
-  def insert(quizFrame: QuizFrame): Future[QuizFrame] = {
+  def insert(quizFrame: QuizFrame, userId: UserId): Future[QuizFrame] = {
     val quizFuture = insert(quizFrame.quiz)
     val questionFrameFutures: Seq[Future[QuestionFrame]] = quizFrame.questions.map(qf => questionDAO.insert(qf))
     val futureQuestionFrames: Future[Vector[QuestionFrame]] = com.artclod.concurrent.raiseFuture(questionFrameFutures)
-    quizFuture.flatMap(quiz => futureQuestionFrames.map(qfs =>  QuizFrame(quiz, qfs)))
+    quizFuture.flatMap(quiz =>
+      futureQuestionFrames.flatMap(qfs =>
+        com.artclod.concurrent.raiseFuture(qfs.map(qf => attach(qf.question, quiz, userId))).map(_ => QuizFrame(quiz, qfs))
+      ))
   }
 
   def updateName(quiz: Quiz, name: String): Future[Int] = db.run {
