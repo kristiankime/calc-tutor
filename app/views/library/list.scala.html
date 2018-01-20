@@ -1,0 +1,22 @@
+@(skills: Seq[models.quiz.Skill], questions: Seq[(models.quiz.Question, Set[models.quiz.Skill])])(implicit user: models.user.User)
+
+@import com.artclod.play.s
+
+@mainContent("Home") {
+  <h1>Welcome to the Calculus Tutor server Question Library</h1>
+
+
+
+<table class="pure-table pure-table-striped">
+  <tr>
+    <th>Name</th>
+    @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
+  </tr>
+  @for(question <- questions){
+  <tr>
+      <td>@question._1.title</td>
+      @for(skill <- skills){<td>@if(question._2.contains(skill)){ @tag.icon("icon-checkmark3") }else{ @tag.icon("icon-cross") }</td>}
+  </tr>}
+</table>
+
+}

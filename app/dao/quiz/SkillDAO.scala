@@ -40,7 +40,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   // * ====== QUERIES ====== *
 
   // ====== FIND ======
-  def allSkills: Future[Seq[Skill]] = db.run(Skills.result)
+  def allSkills: Future[Seq[Skill]] = db.run(Skills.sortBy(_.id).result)
 
   def skillIdsFor(questionId: QuestionId) = db.run(Skills2Questions.filter(_.questionId === questionId).map(_.skillId).result)
   def skillsFor(questionId: QuestionId): Future[Seq[Skill]] = db.run {
@@ -84,6 +84,7 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
       if(skills.isEmpty) { insertAll(
           //                                                intercept correct incorrect
           //                                                   β      γ       ρ
+          Skill(null, "Graphing",                 "Grp",       0.182, 0.003, -0.034),
           Skill(null, "Numerical",                "Num",      -0.297, 0.025, -0.021),
           Skill(null, "Verbal",                   "Ver",      -0.177, 0.000, -0.147),
           Skill(null, "Algebraic",                "Alg",      -0.115, 0.093,  0.013),

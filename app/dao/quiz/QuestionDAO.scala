@@ -5,7 +5,7 @@ import javax.inject.{Inject, Singleton}
 import com.artclod.mathml.scalar.MathMLElem
 import controllers.quiz.{QuestionPartChoiceJson, QuestionPartFunctionJson}
 import dao.ColumnTypeMappings
-import dao.quiz.table.QuestionTables
+import dao.quiz.table.{QuestionTables, SkillTables}
 import dao.user.UserDAO
 import dao.user.table.UserTables
 import models._
@@ -27,7 +27,7 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val questionTables: QuestionTables, protected val skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val questionTables: QuestionTables, protected val skillDAO: SkillDAO, protected val skillTables: SkillTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
@@ -78,6 +78,13 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   def skillsFor(id : QuestionId) = {
     null
   }
+
+  def skillsForAll(): Future[Seq[(Question, Skill)]] = db.run({
+    (for (q <- Questions; q2s <- skillTables.Skills2Questions; s <- skillTables.Skills if q.id === q2s.questionId && q2s.skillId === s.id) yield (q, s)).result
+  })
+
+  def skillsForAllSet(): Future[Seq[(Question, Set[Skill])]] =
+    skillsForAll().map(s => s.groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.toSet).toSeq )
 
   // ---
   def apply(questionId: QuestionId): Future[Either[Result, Question]] = byId(questionId).map { _ match {
