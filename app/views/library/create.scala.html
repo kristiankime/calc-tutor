@@ -1,0 +1,10 @@
+@(allSkills: Seq[models.quiz.Skill])(implicit request: Request[AnyContent],  user: models.user.User)
+
+@import com.artclod.play.s
+
+@mainContent("Library Create") {
+  <h1>Welcome to the Calculus Tutor server Question Library</h1>
+
+  @views.html.quiz.question.questionEditor(controllers.library.routes.LibraryController.createQuestionSubmit(), allSkills.map(_.name))
+
+}

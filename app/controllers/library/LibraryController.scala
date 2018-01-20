@@ -5,7 +5,7 @@ import javax.inject.{Inject, Singleton}
 import com.artclod.slick.JodaUTC
 import controllers.Application
 import controllers.organization.CourseJoin
-import controllers.quiz.QuizAvailability
+import controllers.quiz.{QuestionCreate, QuizAvailability}
 import controllers.support.{Consented, RequireAccess}
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.quiz.{QuestionDAO, QuizDAO, SkillDAO}
@@ -23,6 +23,8 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
+import models.quiz.QuestionFrame
+import play.api.libs.json.{JsError, JsSuccess, Json}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Random, Right}
@@ -30,13 +32,33 @@ import scala.util.{Random, Right}
 @Singleton
 class LibraryController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, skillDAO: SkillDAO, questionDAO: QuestionDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile] {
 
-  def view() = Secure("RedirectUnauthenticatedClient", "Access") { profiles =>
-    Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
-        skillDAO.allSkills.flatMap(skills => { questionDAO.skillsForAllSet().map(questionsAndSkills => {
+  def view() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+    skillDAO.allSkills.flatMap(skills => { questionDAO.skillsForAllSet().map(questionsAndSkills => {
             Ok(views.html.library.list(skills, questionsAndSkills))
-      }) })
-    }}
-  }
+      })})
+    }}}
+
+  def createQuestionView() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+    skillDAO.allSkills.map(skills => Ok(views.html.library.create(skills)))
+  }}}
+
+  def createQuestionSubmit() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+
+        QuestionCreate.form.bindFromRequest.fold(
+          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+          form => {
+            QuestionCreate.questionFormat.reads(Json.parse(form)) match {
+              case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
+              case JsSuccess(value, path) => {
+                skillDAO.skillsMap.flatMap(skillsMap => { questionDAO.insert(QuestionFrame(value, user.id, skillsMap)).map(questionFrame => {
+                  Redirect(controllers.library.routes.LibraryController.view())
+                })})
+              }
+            }
+          }
+        )
+
+  } } }
 
 }
 
