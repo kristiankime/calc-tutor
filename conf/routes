@@ -7,7 +7,6 @@
 # === Main routes =====
 GET         /                                                         controllers.HomeController.index
 
-
 # =============================
 # === User =====
 GET         /home                                                     controllers.HomeController.home
@@ -54,19 +53,13 @@ GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q/json          controller
 # Course Quiz Answers
 POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/create        controllers.quiz.AnswerController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 
-
 # ----------------------
 # Question library
-GET         /library                                                  controllers.library.LibraryController.view()
+GET         /library                                                  controllers.library.LibraryController.list()
 GET         /library/create                                           controllers.library.LibraryController.createQuestionView()
 POST        /library/create                                           controllers.library.LibraryController.createQuestionSubmit()
-#GET         /library/question/:q                                      controllers.library.LibraryController.viewQuestion(q: QuestionId, a: Option[AnswerId])
-#POST        /library/question/:q                                      controllers.library.LibraryController.answerQuestion(q: QuestionId)
-
-
-
-
-
+GET         /library/question/:q                                      controllers.library.LibraryController.viewQuestion(q: QuestionId, a: Option[AnswerId])
+POST        /library/question/:q                                      controllers.library.LibraryController.answerQuestion(q: QuestionId)
 
 # ==============================
 # Auxiliary routes

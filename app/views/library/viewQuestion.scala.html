@@ -1,0 +1,24 @@
+@(questionFrame: models.quiz.QuestionFrame,
+  answer: controllers.quiz.AnswerJson
+)(implicit request: Request[AnyContent], user: models.user.User)
+
+@import helper._
+@import com.artclod.play._
+@import controllers.organization.CourseCreate
+@import controllers.quiz.QuizRename
+
+@mainContent("Library Question View") {
+    <h2>Welcome to the library question page </h2>
+
+    @views.html.quiz.question.answerEditor(
+        controllers.library.routes.LibraryController.answerQuestion(questionFrame.question.id),
+        questionFrame,
+        answer)
+
+    <ul>
+    @for(skill <- questionFrame.skills){
+        <li>@skill.name</li>
+    }
+    </ul>
+
+}
