@@ -14,7 +14,7 @@
   </tr>
   @for(question <- questions){
   <tr>
-      <td>@question._1.title</td>
+      <td> <a href="@controllers.library.routes.LibraryController.viewQuestion(question._1.id, None)"> @question._1.title </a> </td>
       @for(skill <- skills){<td>@if(question._2.contains(skill)){ @tag.icon("icon-checkmark3") }else{ @tag.icon("icon-cross") }</td>}
   </tr>}
 </table>

@@ -7,7 +7,7 @@
 @import controllers.organization.CourseCreate
 @import controllers.quiz.QuizRename
 
-@mainContent("Library Question View") {
+@mainContent("Library Question View", tag.libraryLink()) {
     <h2>Welcome to the library question page </h2>
 
     @views.html.quiz.question.answerEditor(
