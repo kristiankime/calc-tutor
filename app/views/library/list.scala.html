@@ -5,18 +5,22 @@
 @mainContent("Library") {
   <h1>Welcome to the Calculus Tutor server Question Library</h1>
 
+  <h2> New Question</h2>
+  <section>
+    <a class="pure-button" href="@controllers.library.routes.LibraryController.createQuestionView()"> Create a new question </a>
+  </section>
 
-
-<table class="pure-table pure-table-striped">
-  <tr>
-    <th>Name</th>
-    @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
-  </tr>
-  @for(question <- questions){
-  <tr>
-      <td> <a href="@controllers.library.routes.LibraryController.viewQuestion(question._1.id, None)"> @question._1.title </a> </td>
-      @for(skill <- skills){<td>@if(question._2.contains(skill)){ @tag.icon("icon-checkmark3") }else{ @tag.icon("icon-cross") }</td>}
-  </tr>}
-</table>
+  <h2> Question List</h2>
+  <table class="pure-table pure-table-striped">
+    <tr>
+      <th>Name</th>
+      @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
+    </tr>
+    @for(question <- questions){
+    <tr>
+        <td> <a href="@controllers.library.routes.LibraryController.viewQuestion(question._1.id, None)"> @question._1.title </a> </td>
+        @for(skill <- skills){<td>@if(question._2.contains(skill)){ @tag.icon("icon-checkmark3") }else{ @tag.icon("icon-cross") }</td>}
+    </tr>}
+  </table>
 
 }
