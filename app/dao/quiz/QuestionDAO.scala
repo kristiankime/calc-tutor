@@ -97,6 +97,16 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     case Some(questionFrame) => Right(questionFrame)
   } }
 
+  // ====== Question Search =====
+  def questionSearch(nameQuery: String, skills: Seq[String]) = db.run({
+    (for (q <- Questions; q2s <- skillTables.Skills2Questions; s <- skillTables.Skills
+          if (q.title like nameQuery) && q.id === q2s.questionId && q2s.skillId === s.id) yield (q, s)).result
+  })
+
+  def questionSearchSet(nameQuery: String, skills: Seq[String]): Future[Seq[(Question, Set[Skill])]] =
+    questionSearch(nameQuery, skills).map(s => s.groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.toSet).toSeq )
+
+
   // ====== Create ======
   def insert(questionFrame: QuestionFrame) : Future[QuestionFrame] = {
     insert(questionFrame.question).flatMap{ question => {

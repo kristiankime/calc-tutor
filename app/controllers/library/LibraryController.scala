@@ -2,6 +2,7 @@ package controllers.library
 
 import javax.inject.{Inject, Singleton}
 
+import com.artclod.mathml.MathML
 import com.artclod.slick.JodaUTC
 import controllers.Application
 import controllers.organization.CourseJoin
@@ -23,19 +24,19 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
-import models.quiz.{AnswerFrame, QuestionFrame}
+import models.quiz.{AnswerFrame, Question, QuestionFrame, Skill}
 import play.api.libs.json.{JsError, JsSuccess, Json}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.{Random, Right}
+import scala.util.{Failure, Random, Right, Success}
 
 @Singleton
 class LibraryController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, skillDAO: SkillDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile] {
 
   def list() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
-    skillDAO.allSkills.flatMap(skills => { questionDAO.skillsForAllSet().map(questionsAndSkills => {
-            Ok(views.html.library.list(skills, questionsAndSkills))
-      })})
+    skillDAO.allSkills.flatMap(skills => { questionDAO.skillsForAllSet().flatMap(questionsAndSkills => { questionDAO.questionSearchSet("%", Seq()).map(qsl => {
+            Ok(views.html.library.list(skills, questionsAndSkills, QuestionListResponses(qsl)))
+      })})})
     }}}
 
   def createQuestionView() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
@@ -109,18 +110,40 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
   } } }
 
+
+  // ============== Questions List (Json Ajax) ============
+  import QuestionList.QuestionListRequest
+  import QuestionList.QuestionListResponse
+  implicit val formatQuestionListRequest = QuestionList.formatQuestionListRequest;
+  implicit val formatQuestionListResponse = QuestionList.formatQuestionListResponse;
+
+  object QuestionListResponses {
+    def apply(qsl:  Seq[(Question, Set[Skill])]): Seq[QuestionListResponse] = {
+      qsl.map(qs => QuestionListResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name)))
+    }
+  }
+
+  def questionListAjax = Action.async { request =>
+    request.body.asJson.map { jsonBody =>
+      jsonBody.validate[QuestionListRequest].map { questionListRequest =>
+        questionDAO.questionSearchSet(questionListRequest.nameQuery, questionListRequest.skills).map(qsl => {
+          Ok(Json.toJson(QuestionListResponses(qsl)))
+        })
+      }.recoverTotal { e => Future.successful(BadRequest("Detected error:" + JsError.toJson(e))) }
+    }.getOrElse( Future.successful(BadRequest("Expecting Json data")))
+  }
+
 }
 
-case class UserSettingsData(name: Option[String], emailGameUpdates: Boolean)
+object QuestionList {
+  val nameQuery = "id"
+  val id = "id"
+  val title = "title"
+  val skills = "skills"
 
-object UserSettings {
-  val name = "name"
-  val emailGameUpdates = "emailGameUpdates"
+  case class QuestionListRequest(nameQuery: String, skills: Seq[String])
+  case class QuestionListResponse(id: Long, title: String, skills: Set[String])
 
-  val form = Form(mapping(
-    name             -> optional(text.verifying("Name must not be blank", _.trim != "")),
-    emailGameUpdates -> boolean
-  )(UserSettingsData.apply)(UserSettingsData.unapply))
-
-  private def validName(name: String) = { name.trim != "" }
+  implicit val formatQuestionListRequest = Json.format[QuestionListRequest]
+  implicit val formatQuestionListResponse = Json.format[QuestionListResponse]
 }

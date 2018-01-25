@@ -40,11 +40,12 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   // * ====== QUERIES ====== *
 
   // ====== FIND ======
-  def allSkills: Future[Seq[Skill]] = db.run(Skills.sortBy(_.id).result)
+  def allSkills: Future[Seq[Skill]] = db.run(Skills.sortBy(_.name).result)
 
   def skillIdsFor(questionId: QuestionId) = db.run(Skills2Questions.filter(_.questionId === questionId).map(_.skillId).result)
+
   def skillsFor(questionId: QuestionId): Future[Seq[Skill]] = db.run {
-    (for (s2q <- Skills2Questions; s <- Skills if s2q.questionId === questionId && s2q.skillId === s.id) yield s).result
+    (for (s2q <- Skills2Questions; s <- Skills if s2q.questionId === questionId && s2q.skillId === s.id) yield s).sortBy(_.name).result
   }
 
   def byId(id : SkillId): Future[Option[Skill]] = db.run(Skills.filter(_.id === id).result.headOption)

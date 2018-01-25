@@ -1,6 +1,10 @@
-@(skills: Seq[models.quiz.Skill], questions: Seq[(models.quiz.Question, Set[models.quiz.Skill])])(implicit user: models.user.User)
+@(skills: Seq[models.quiz.Skill], questions: Seq[(models.quiz.Question, Set[models.quiz.Skill])], data: Seq[controllers.library.QuestionList.QuestionListResponse])(implicit user: models.user.User)
 
 @import com.artclod.play.s
+@import controllers.library.QuestionList.formatQuestionListResponse
+@import controllers.library.QuestionList.id
+@import controllers.library.QuestionList.title
+@import play.api.libs.json.Json
 
 @mainContent("Library") {
   <h1>Welcome to the Calculus Tutor server Question Library</h1>
@@ -23,4 +27,38 @@
     </tr>}
   </table>
 
+
+  <section id="question-list">
+    <table class="pure-table pure-table-striped">
+      <tr>
+        <th>Name</th>
+        @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
+      </tr>
+      <!-- ko foreach: $data -->
+      <tr>
+        <td> <a data-bind="text : @{title}(), attr: { href: '/library/question/' + @{id}(), title : @{title}() }"> Foo </a> </td>
+        @for(skill <- skills){<td>   Y   </td>}
+      </tr>
+      <!-- /ko -->
+    </table>
+  </section>
+
+  <script type="text/javascript">
+
+          // === The Answer Enhance Module ===
+          // it knows how to enhance the view model with the MathJAX computations/displays etc
+          var QL = function() {
+            // Get the raw data into a var
+            var data = @Html(Json.toJson(data).toString)
+
+            // Turn it into a view model
+            var viewModel = ko.mapping.fromJS(data);
+
+            var QL = { viewModel : viewModel};
+            return QL;
+          }();
+
+          // then applying bindings
+          ko.applyBindings(QL.viewModel, document.getElementById("question-list"));
+  </script>
 }
