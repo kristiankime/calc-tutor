@@ -126,7 +126,7 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
   def questionListAjax = Action.async { request =>
     request.body.asJson.map { jsonBody =>
       jsonBody.validate[QuestionListRequest].map { questionListRequest =>
-        questionDAO.questionSearchSet(questionListRequest.nameQuery, questionListRequest.skills).map(qsl => {
+        questionDAO.questionSearchSet(questionListRequest.titleQuery, questionListRequest.skillQuery).map(qsl => {
           Ok(Json.toJson(QuestionListResponses(qsl)))
         })
       }.recoverTotal { e => Future.successful(BadRequest("Detected error:" + JsError.toJson(e))) }
@@ -136,12 +136,13 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 }
 
 object QuestionList {
-  val nameQuery = "id"
+  val titleQuery = "titleQuery"
+  val skillQuery = "skillQuery"
   val id = "id"
   val title = "title"
   val skills = "skills"
 
-  case class QuestionListRequest(nameQuery: String, skills: Seq[String])
+  case class QuestionListRequest(titleQuery: String, skillQuery: Seq[String])
   case class QuestionListResponse(id: Long, title: String, skills: Set[String])
 
   implicit val formatQuestionListRequest = Json.format[QuestionListRequest]

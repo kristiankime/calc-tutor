@@ -4,6 +4,8 @@
 @import controllers.library.QuestionList.formatQuestionListResponse
 @import controllers.library.QuestionList.id
 @import controllers.library.QuestionList.title
+@import controllers.library.QuestionList.titleQuery
+@import controllers.library.QuestionList.skillQuery
 @import play.api.libs.json.Json
 
 @mainContent("Library") {
@@ -29,8 +31,12 @@
 
 
   <section id="question-list-search">
-
+  @for(skill <- skills){
+      <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @skillQuery" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label>
+  }
   </section>
+
+
   <section id="question-list">
     <table class="pure-table pure-table-striped">
       <tr>
@@ -47,30 +53,36 @@
   </section>
 
   <script type="text/javascript">
+    // === The Answer Enhance Module ===
+    // it knows how to enhance the view model with the MathJAX computations/displays etc
+    var QL = function() {
+      // Get the raw data into a var
+      var data = @Html(Json.toJson(data).toString);
 
-          // === The Answer Enhance Module ===
-          // it knows how to enhance the view model with the MathJAX computations/displays etc
-          var QL = function() {
-            // Get the raw data into a var
-            var data = @Html(Json.toJson(data).toString)
+      // Turn it into a view model
+      var viewModel = ko.mapping.fromJS(data);
 
-            // Turn it into a view model
-            var viewModel = ko.mapping.fromJS(data);
+      // https://stackoverflow.com/questions/16291456/knockout-checkboxes-with-array
+      var selectedSkills = ko.observableArray(@Html(skills.map(_.name).mkString("['", "','", "']")));
+      var titleQuery = ko.observable("%");
+      var searchViewModel = { @skillQuery : selectedSkills, @titleQuery : titleQuery };
 
-            var skillIndicator = function(skillsList, skillName) {
-              return skillsList.includes(skillName) ? '@tag.icon("icon-checkmark3")' : '@tag.icon("icon-cross")';
-            };
+      var skillIndicator = function(skillsList, skillName) {
+        return skillsList.includes(skillName) ? '@tag.icon("icon-checkmark3")' : '@tag.icon("icon-cross")';
+      };
 
-            var skillsNames = @Html(skills.map(_.name).mkString("['", "','", "']"));
-            var QL = {
-              si : skillIndicator,
-              skillsNames : skillsNames,
-              viewModel : viewModel
-            };
-            return QL;
-          }();
+      var skillsNames = @Html(skills.map(_.name).mkString("['", "','", "']"));
+      var QL = {
+        si : skillIndicator,
+        skillsNames : skillsNames,
+        viewModel : viewModel,
+        searchViewModel : searchViewModel
+      };
+      return QL;
+    }();
 
-          // then applying bindings
-          ko.applyBindings(QL.viewModel, document.getElementById("question-list"));
+    // then applying bindings
+    ko.applyBindings(QL.viewModel,       document.getElementById("question-list"));
+    ko.applyBindings(QL.searchViewModel, document.getElementById("question-list-search"));
   </script>
 }
