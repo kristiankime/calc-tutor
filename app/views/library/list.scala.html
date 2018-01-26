@@ -59,6 +59,7 @@
     // it knows how to enhance the view model with the MathJAX computations/displays etc
     var QL = function() {
       // Get the raw data into a var
+      @*var data = { questions : @Html(Json.toJson(data).toString) };*@
       var data = @Html(Json.toJson(data).toString);
 
       // Turn it into a view model
@@ -76,7 +77,7 @@
       var skillsNames = @Html(skills.map(_.name).mkString("['", "','", "']"));
 
       var runQuery = function() {
-          console.log("runQuery");
+          // console.log("runQuery");
 
           // https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899
           var token =  $('input[name="csrfToken"]').attr('value')
@@ -86,20 +87,17 @@
               }
           });
 
-          console.log("token");
-          console.log(token);
-
-
-
-
-          console.log("ko.mapping.toJS(QL.searchViewModel)");
-          console.log(ko.mapping.toJS(QL.searchViewModel));
-
-          console.log("ko.mapping.toJSON(QL.searchViewModel)");
-          console.log(ko.mapping.toJSON(QL.searchViewModel));
-
-          console.log("encodeURIComponent(ko.mapping.toJSON(QL.searchViewModel))");
-          console.log(encodeURIComponent(ko.mapping.toJSON(QL.searchViewModel)));
+          // console.log("token");
+          // console.log(token);
+          //
+          // console.log("ko.mapping.toJS(QL.searchViewModel)");
+          // console.log(ko.mapping.toJS(QL.searchViewModel));
+          //
+          // console.log("ko.mapping.toJSON(QL.searchViewModel)");
+          // console.log(ko.mapping.toJSON(QL.searchViewModel));
+          //
+          // console.log("encodeURIComponent(ko.mapping.toJSON(QL.searchViewModel))");
+          // console.log(encodeURIComponent(ko.mapping.toJSON(QL.searchViewModel)));
 
           $.ajax({
               dataType: "json",
@@ -108,11 +106,14 @@
               contentType: "application/json; charset=utf-8",
               data: JSON.stringify(ko.mapping.toJS(QL.searchViewModel)),
               success: function(data) {
-                  console.log("data");
-                  console.log(data);
-                  var model = ko.mapping.fromJSON(data);
-                  var mapping = {};
-                  return ko.mapping.fromJS(model, mapping, QL.viewModel);
+                  // var foo = { questions: data };
+                  // console.log("foo");
+                  // console.log(foo);
+                  //
+                  // var model = ko.mapping.fromJSON(foo);
+                  // var mapping = {};
+                  // ko.mapping.fromJS(foo, QL.viewModel);
+                  ko.mapping.fromJS(data, QL.viewModel);
               }
           });
       };
