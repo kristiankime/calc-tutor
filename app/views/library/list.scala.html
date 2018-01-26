@@ -89,15 +89,28 @@
           console.log("token");
           console.log(token);
 
+
+
+
+          console.log("ko.mapping.toJS(QL.searchViewModel)");
+          console.log(ko.mapping.toJS(QL.searchViewModel));
+
+          console.log("ko.mapping.toJSON(QL.searchViewModel)");
+          console.log(ko.mapping.toJSON(QL.searchViewModel));
+
+          console.log("encodeURIComponent(ko.mapping.toJSON(QL.searchViewModel))");
+          console.log(encodeURIComponent(ko.mapping.toJSON(QL.searchViewModel)));
+
           $.ajax({
               dataType: "json",
               url: "/library/query",
               type: "POST",
-              data: ko.mapping.toJS(QL.searchViewModel),
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(ko.mapping.toJS(QL.searchViewModel)),
               success: function(data) {
                   console.log("data");
                   console.log(data);
-                  var model = ko.mapping.fromJS(data);
+                  var model = ko.mapping.fromJSON(data);
                   var mapping = {};
                   return ko.mapping.fromJS(model, mapping, QL.viewModel);
               }
