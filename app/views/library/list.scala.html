@@ -1,4 +1,4 @@
-@(skills: Seq[models.quiz.Skill], questions: Seq[(models.quiz.Question, Set[models.quiz.Skill])], data: Seq[controllers.library.QuestionList.QuestionListResponse])(implicit user: models.user.User)
+@(skills: Seq[models.quiz.Skill], questions: Seq[(models.quiz.Question, Set[models.quiz.Skill])], data: Seq[controllers.library.QuestionList.QuestionListResponse])(implicit user: models.user.User, request: Request[AnyContent])
 
 @import com.artclod.play.s
 @import controllers.library.QuestionList.formatQuestionListResponse
@@ -7,6 +7,7 @@
 @import controllers.library.QuestionList.titleQuery
 @import controllers.library.QuestionList.skillQuery
 @import play.api.libs.json.Json
+@import helper._
 
 @mainContent("Library") {
   <h1>Welcome to the Calculus Tutor server Question Library</h1>
@@ -29,13 +30,14 @@
     </tr>}
   </table>
 
-
   <section id="question-list-search">
-  @for(skill <- skills){
-      <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @skillQuery" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label>
-  }
+    <form method="post" action="/library/query"> @* https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899 *@
+      <input data-bind="textInput: @titleQuery" />
+      @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @skillQuery" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> }
+      <a class="pure-button" href="javascript:QL.runQuery()">Update</a>
+      @CSRF.formField
+    </form>
   </section>
-
 
   <section id="question-list">
     <table class="pure-table pure-table-striped">
@@ -72,11 +74,42 @@
       };
 
       var skillsNames = @Html(skills.map(_.name).mkString("['", "','", "']"));
+
+      var runQuery = function() {
+          console.log("runQuery");
+
+          // https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899
+          var token =  $('input[name="csrfToken"]').attr('value')
+          $.ajaxSetup({
+              beforeSend: function(xhr) {
+                  xhr.setRequestHeader('Csrf-Token', token);
+              }
+          });
+
+          console.log("token");
+          console.log(token);
+
+          $.ajax({
+              dataType: "json",
+              url: "/library/query",
+              type: "POST",
+              data: ko.mapping.toJS(QL.searchViewModel),
+              success: function(data) {
+                  console.log("data");
+                  console.log(data);
+                  var model = ko.mapping.fromJS(data);
+                  var mapping = {};
+                  return ko.mapping.fromJS(model, mapping, QL.viewModel);
+              }
+          });
+      };
+
       var QL = {
         si : skillIndicator,
         skillsNames : skillsNames,
         viewModel : viewModel,
-        searchViewModel : searchViewModel
+        searchViewModel : searchViewModel,
+        runQuery : runQuery
       };
       return QL;
     }();

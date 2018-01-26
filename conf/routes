@@ -60,6 +60,7 @@ GET         /library/create                                           controller
 POST        /library/create                                           controllers.library.LibraryController.createQuestionSubmit()
 GET         /library/question/:q                                      controllers.library.LibraryController.viewQuestion(q: QuestionId, a: Option[AnswerId])
 POST        /library/question/:q                                      controllers.library.LibraryController.answerQuestion(q: QuestionId)
+POST        /library/query                                            controllers.library.LibraryController.questionListAjax()
 
 # ==============================
 # Auxiliary routes

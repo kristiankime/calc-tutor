@@ -123,7 +123,7 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
     }
   }
 
-  def questionListAjax = Action.async { request =>
+  def questionListAjax() = Action.async { request =>
     request.body.asJson.map { jsonBody =>
       jsonBody.validate[QuestionListRequest].map { questionListRequest =>
         questionDAO.questionSearchSet(questionListRequest.titleQuery, questionListRequest.skillQuery).map(qsl => {
