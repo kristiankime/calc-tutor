@@ -28,6 +28,9 @@
   </table>
 
 
+  <section id="question-list-search">
+
+  </section>
   <section id="question-list">
     <table class="pure-table pure-table-striped">
       <tr>
@@ -36,8 +39,8 @@
       </tr>
       <!-- ko foreach: $data -->
       <tr>
-        <td> <a data-bind="text : @{title}(), attr: { href: '/library/question/' + @{id}(), title : @{title}() }"> Foo </a> </td>
-        @for(skill <- skills){<td>   Y   </td>}
+        <td> <a data-bind="text : @{title}(), attr: { href: '/library/question/' + @{id}(), title : @{title}() }"> </a> </td>
+        @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}
       </tr>
       <!-- /ko -->
     </table>
@@ -54,7 +57,16 @@
             // Turn it into a view model
             var viewModel = ko.mapping.fromJS(data);
 
-            var QL = { viewModel : viewModel};
+            var skillIndicator = function(skillsList, skillName) {
+              return skillsList.includes(skillName) ? '@tag.icon("icon-checkmark3")' : '@tag.icon("icon-cross")';
+            };
+
+            var skillsNames = @Html(skills.map(_.name).mkString("['", "','", "']"));
+            var QL = {
+              si : skillIndicator,
+              skillsNames : skillsNames,
+              viewModel : viewModel
+            };
             return QL;
           }();
 
