@@ -98,13 +98,26 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   } }
 
   // ====== Question Search =====
-  def questionSearch(nameQuery: String, skills: Seq[String]) = db.run({
-    (for (q <- Questions; q2s <- skillTables.Skills2Questions; s <- skillTables.Skills
-          if (q.title like nameQuery) && q.id === q2s.questionId && q2s.skillId === s.id) yield (q, s)).result
+  def questionSearch(titleQuery: String) = db.run({
+      (for (q <- Questions; q2s <- skillTables.Skills2Questions; s <- skillTables.Skills
+          if (q.title like titleQuery) && q.id === q2s.questionId && q2s.skillId === s.id) yield (q, s)).result
   })
 
-  def questionSearchSet(nameQuery: String, skills: Seq[String]): Future[Seq[(Question, Set[Skill])]] =
-    questionSearch(nameQuery, skills).map(s => s.groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.toSet).toSeq )
+  def questionSearchSet(nameQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String]): Future[Seq[(Question, Set[Skill])]] = {
+    val req = requiredSkills.toSet
+    val ban = bannedSkills.toSet
+
+    val ret = questionSearch(nameQuery).map(s => s.groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.toSet).toSeq)
+
+    ret.map(questionList => {
+      questionList.filter(question => {
+        val skillsForQuestion = question._2.map(_.name).toSet
+        val reqPass = req.subsetOf(skillsForQuestion)
+        val banPass = ban.intersect(skillsForQuestion).isEmpty
+        reqPass && banPass
+      })
+    })
+  }
 
 
   // ====== Create ======

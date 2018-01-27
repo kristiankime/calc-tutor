@@ -5,7 +5,8 @@
 @import controllers.library.QuestionList.id
 @import controllers.library.QuestionList.title
 @import controllers.library.QuestionList.titleQuery
-@import controllers.library.QuestionList.skillQuery
+@import controllers.library.QuestionList.requiredSkills
+@import controllers.library.QuestionList.bannedSkills
 @import play.api.libs.json.Json
 @import helper._
 
@@ -18,24 +19,15 @@
   </section>
 
   <h2> Question List</h2>
-  <table class="pure-table pure-table-striped">
-    <tr>
-      <th>Name</th>
-      @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
-    </tr>
-    @for(question <- questions){
-    <tr>
-        <td> <a href="@controllers.library.routes.LibraryController.viewQuestion(question._1.id, None)"> @question._1.title </a> </td>
-        @for(skill <- skills){<td>@if(question._2.contains(skill)){ @tag.icon("icon-checkmark3") }else{ @tag.icon("icon-cross") }</td>}
-    </tr>}
-  </table>
 
   <section id="question-list-search">
-    <form method="post" action="/library/query"> @* https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899 *@
-      <input data-bind="textInput: @titleQuery" />
-      @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @skillQuery" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> }
-      <a class="pure-button" href="javascript:QL.runQuery()">Update</a>
-      @CSRF.formField
+    <h2> Search </h2>
+    <form method="post" action="/library/query" class="pure-form">
+      <div> Title : <input data-bind="textInput: @titleQuery" /> </div>
+      <div> Required Skills : @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @requiredSkills" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> } </div>
+      <div> Banned Skills : @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @bannedSkills" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> } </div>
+      <div> <a class="pure-button" href="javascript:QL.runQuery()">Update</a> </div>
+      @CSRF.formField @* https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899 *@
     </form>
   </section>
 
@@ -66,9 +58,10 @@
       var viewModel = ko.mapping.fromJS(data);
 
       // https://stackoverflow.com/questions/16291456/knockout-checkboxes-with-array
-      var selectedSkills = ko.observableArray(@Html(skills.map(_.name).mkString("['", "','", "']")));
-      var titleQuery = ko.observable("%");
-      var searchViewModel = { @skillQuery : selectedSkills, @titleQuery : titleQuery };
+      var @requiredSkills = ko.observableArray();
+      var @bannedSkills = ko.observableArray();
+      var @titleQuery = ko.observable("%");
+      var searchViewModel = { @requiredSkills : @requiredSkills, @titleQuery : @titleQuery, @bannedSkills : @bannedSkills };
 
       var skillIndicator = function(skillsList, skillName) {
         return skillsList.includes(skillName) ? '@tag.icon("icon-checkmark3")' : '@tag.icon("icon-cross")';
@@ -77,8 +70,6 @@
       var skillsNames = @Html(skills.map(_.name).mkString("['", "','", "']"));
 
       var runQuery = function() {
-          // console.log("runQuery");
-
           // https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899
           var token =  $('input[name="csrfToken"]').attr('value')
           $.ajaxSetup({
@@ -87,18 +78,6 @@
               }
           });
 
-          // console.log("token");
-          // console.log(token);
-          //
-          // console.log("ko.mapping.toJS(QL.searchViewModel)");
-          // console.log(ko.mapping.toJS(QL.searchViewModel));
-          //
-          // console.log("ko.mapping.toJSON(QL.searchViewModel)");
-          // console.log(ko.mapping.toJSON(QL.searchViewModel));
-          //
-          // console.log("encodeURIComponent(ko.mapping.toJSON(QL.searchViewModel))");
-          // console.log(encodeURIComponent(ko.mapping.toJSON(QL.searchViewModel)));
-
           $.ajax({
               dataType: "json",
               url: "/library/query",
@@ -106,13 +85,6 @@
               contentType: "application/json; charset=utf-8",
               data: JSON.stringify(ko.mapping.toJS(QL.searchViewModel)),
               success: function(data) {
-                  // var foo = { questions: data };
-                  // console.log("foo");
-                  // console.log(foo);
-                  //
-                  // var model = ko.mapping.fromJSON(foo);
-                  // var mapping = {};
-                  // ko.mapping.fromJS(foo, QL.viewModel);
                   ko.mapping.fromJS(data, QL.viewModel);
               }
           });

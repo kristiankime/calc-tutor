@@ -34,7 +34,7 @@ import scala.util.{Failure, Random, Right, Success}
 class LibraryController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, skillDAO: SkillDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile] {
 
   def list() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
-    skillDAO.allSkills.flatMap(skills => { questionDAO.skillsForAllSet().flatMap(questionsAndSkills => { questionDAO.questionSearchSet("%", Seq()).map(qsl => {
+    skillDAO.allSkills.flatMap(skills => { questionDAO.skillsForAllSet().flatMap(questionsAndSkills => { questionDAO.questionSearchSet("%", Seq(), Seq()).map(qsl => {
             Ok(views.html.library.list(skills, questionsAndSkills, QuestionListResponses(qsl)))
       })})})
     }}}
@@ -126,7 +126,7 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
   def questionListAjax() = Action.async { request =>
     request.body.asJson.map { jsonBody =>
       jsonBody.validate[QuestionListRequest].map { questionListRequest =>
-        questionDAO.questionSearchSet(questionListRequest.titleQuery, questionListRequest.skillQuery).map(qsl => {
+        questionDAO.questionSearchSet(questionListRequest.titleQuery, questionListRequest.requiredSkills, questionListRequest.bannedSkills).map(qsl => {
           Ok(Json.toJson(QuestionListResponses(qsl)))
         })
       }.recoverTotal { e => Future.successful(BadRequest("Detected error:" + JsError.toJson(e))) }
@@ -137,12 +137,13 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
 object QuestionList {
   val titleQuery = "titleQuery"
-  val skillQuery = "skillQuery"
+  val requiredSkills = "requiredSkills"
+  val bannedSkills = "bannedSkills"
   val id = "id"
   val title = "title"
   val skills = "skills"
 
-  case class QuestionListRequest(titleQuery: String, skillQuery: Seq[String])
+  case class QuestionListRequest(titleQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String])
   case class QuestionListResponse(id: Long, title: String, skills: Set[String])
 
   implicit val formatQuestionListRequest = Json.format[QuestionListRequest]

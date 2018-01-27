@@ -41,5 +41,67 @@ class QuestionDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
 
   }
 
+  "questionSearchSet" should {
+
+    "return the question if wild card match" in {
+      val (userDAO, questionDAO, skillDAO) = app.injector.instanceOf3[UserDAO, QuestionDAO, SkillDAO]
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val Seq(sA, sB) = TestData.await( skillDAO.insertAll(TestData.skill("a"), TestData.skill("b")) )
+      val questionFrame = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "a", userId = user.id, skills = Seq(sA, sB))))
+
+      val questions = TestData.await(questionDAO.questionSearchSet("%", Seq(), Seq()))
+
+      questions mustBe(  Seq((questionFrame.question, Set(sA, sB)))  )
+    }
+
+    "not return the question if title doesn't match" in {
+      val (userDAO, questionDAO, skillDAO) = app.injector.instanceOf3[UserDAO, QuestionDAO, SkillDAO]
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val Seq(sA, sB) = TestData.await( skillDAO.insertAll(TestData.skill("a"), TestData.skill("b")) )
+      val questionFrame = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "a", userId = user.id, skills = Seq(sA, sB))))
+
+      val questions = TestData.await(questionDAO.questionSearchSet("this should not match", Seq(), Seq()))
+
+      questions mustBe(  Seq()  )
+    }
+
+    "return only questions that match the title search pattern" in {
+      val (userDAO, questionDAO, skillDAO) = app.injector.instanceOf3[UserDAO, QuestionDAO, SkillDAO]
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val Seq(sA, sB) = TestData.await( skillDAO.insertAll(TestData.skill("a"), TestData.skill("b")) )
+      val questionFrame1 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "1", userId = user.id, skills = Seq(sA, sB))))
+      val questionFrame2 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "2", userId = user.id, skills = Seq(sA, sB))))
+
+      val questions = TestData.await(questionDAO.questionSearchSet("1%", Seq(), Seq()))
+
+      questions mustBe(  Seq((questionFrame1.question, Set(sA, sB)))  )
+    }
+
+    "return only questions that match the required skills" in {
+      val (userDAO, questionDAO, skillDAO) = app.injector.instanceOf3[UserDAO, QuestionDAO, SkillDAO]
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val Seq(sA, sB) = TestData.await( skillDAO.insertAll(TestData.skill("a"), TestData.skill("b")) )
+      val questionFrame1 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "1", userId = user.id, skills = Seq(sA))))
+      val questionFrame2 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "2", userId = user.id, skills = Seq(sB))))
+
+      val questions = TestData.await(questionDAO.questionSearchSet("%", Seq(sA.name), Seq()))
+
+      questions mustBe(  Seq((questionFrame1.question, Set(sA)))  )
+    }
+
+
+    "excluded questions that have the banned skills" in {
+      val (userDAO, questionDAO, skillDAO) = app.injector.instanceOf3[UserDAO, QuestionDAO, SkillDAO]
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val Seq(sA, sB) = TestData.await( skillDAO.insertAll(TestData.skill("a"), TestData.skill("b")) )
+      val questionFrame1 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "1", userId = user.id, skills = Seq(sA))))
+      val questionFrame2 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "2", userId = user.id, skills = Seq(sB))))
+
+      val questions = TestData.await(questionDAO.questionSearchSet("%", Seq(), Seq(sA.name)))
+
+      questions mustBe(  Seq((questionFrame2.question, Set(sB)))  )
+    }
+
+  }
 
 }
