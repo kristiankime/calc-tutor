@@ -1,4 +1,4 @@
-@(skills: Seq[models.quiz.Skill], data: Seq[controllers.library.QuestionList.QuestionListResponse])(implicit user: models.user.User, request: Request[AnyContent])
+@(skills: Seq[models.quiz.Skill], data: Seq[controllers.library.QuestionList.QuestionListResponse], listDisplay: Html)(implicit user: models.user.User, request: Request[AnyContent])
 
 @import com.artclod.play.s
 @import controllers.library.QuestionList.formatQuestionListResponse
@@ -21,7 +21,7 @@
   <h2> Question List</h2>
 
   <section id="question-list-search">
-    <h2> Search </h2>
+    <h3> Search Criteria </h3>
     <form method="post" action="/library/query" class="pure-form">
       <div> Title : <input data-bind="textInput: @titleQuery" /> </div>
       <div> Required Skills : @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @requiredSkills" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> } </div>
@@ -32,18 +32,8 @@
   </section>
 
   <section id="question-list">
-    <table class="pure-table pure-table-striped">
-      <tr>
-        <th>Name</th>
-        @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
-      </tr>
-      <!-- ko foreach: $data -->
-      <tr>
-        <td> <a data-bind="text : @{title}(), attr: { href: '/library/question/' + @{id}(), title : @{title}() }"> </a> </td>
-        @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}
-      </tr>
-      <!-- /ko -->
-    </table>
+    <h3> Search Results </h3>
+    @listDisplay
   </section>
 
   <script type="text/javascript">

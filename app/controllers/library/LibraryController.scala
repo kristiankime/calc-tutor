@@ -26,6 +26,8 @@ import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
 import models.quiz.{AnswerFrame, Question, QuestionFrame, Skill}
 import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.twirl.api.Html
+import views.html.library.{libraryList, list}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Random, Right, Success}
@@ -35,7 +37,9 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
   def list() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
     skillDAO.allSkills.flatMap(skills => { questionDAO.questionSearchSet("%", Seq(), Seq()).map(qsl => {
-            Ok(views.html.library.list(skills, QuestionListResponses(qsl)))
+
+//        val foo: libraryList.type = views.html.library.libraryList
+            Ok(views.html.library.list(skills, QuestionListResponses(qsl), views.html.library.libraryList(skills)))
       })})
     }}}
 
