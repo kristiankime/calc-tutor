@@ -1,4 +1,4 @@
-@(skills: Seq[models.quiz.Skill], questions: Seq[(models.quiz.Question, Set[models.quiz.Skill])], data: Seq[controllers.library.QuestionList.QuestionListResponse])(implicit user: models.user.User, request: Request[AnyContent])
+@(skills: Seq[models.quiz.Skill], data: Seq[controllers.library.QuestionList.QuestionListResponse])(implicit user: models.user.User, request: Request[AnyContent])
 
 @import com.artclod.play.s
 @import controllers.library.QuestionList.formatQuestionListResponse

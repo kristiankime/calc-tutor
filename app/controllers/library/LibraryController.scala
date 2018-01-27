@@ -34,9 +34,9 @@ import scala.util.{Failure, Random, Right, Success}
 class LibraryController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, skillDAO: SkillDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile] {
 
   def list() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
-    skillDAO.allSkills.flatMap(skills => { questionDAO.skillsForAllSet().flatMap(questionsAndSkills => { questionDAO.questionSearchSet("%", Seq(), Seq()).map(qsl => {
-            Ok(views.html.library.list(skills, questionsAndSkills, QuestionListResponses(qsl)))
-      })})})
+    skillDAO.allSkills.flatMap(skills => { questionDAO.questionSearchSet("%", Seq(), Seq()).map(qsl => {
+            Ok(views.html.library.list(skills, QuestionListResponses(qsl)))
+      })})
     }}}
 
   def createQuestionView() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
