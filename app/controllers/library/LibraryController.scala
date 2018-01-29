@@ -26,7 +26,7 @@ import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
 import models.quiz.{AnswerFrame, Question, QuestionFrame, Skill}
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import play.twirl.api.Html
+import play.twirl.api.{Html}
 import views.html.library.{libraryList, list}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -37,9 +37,7 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
   def list() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
     skillDAO.allSkills.flatMap(skills => { questionDAO.questionSearchSet("%", Seq(), Seq()).map(qsl => {
-
-//        val foo: libraryList.type = views.html.library.libraryList
-            Ok(views.html.library.list(skills, QuestionListResponses(qsl), views.html.library.libraryList(skills)))
+        Ok(views.html.library.list(skills, QuestionListResponses(qsl), views.html.library.libraryList.apply(skills)))
       })})
     }}}
 
@@ -95,12 +93,6 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
                   answerDAO.updateSkillCounts(user.id, questionId, protoAnswerFrame.answer.correct).flatMap( updated => { // Keep track of the in/correct counts for each skill
                     answerDAO.insert(protoAnswerFrame).map(answerFrame => {
                       Redirect(controllers.library.routes.LibraryController.viewQuestion(questionId, Some(answerFrame.answer.id)))
-//                      if (answerFrame.answer.correct) { // Here everything was correct
-//                        Redirect(controllers.library.routes.LibraryController.viewQuestion(questionId, Some(answerFrame.answer.id)))
-//                      } else { // Here an answer was wrong so give the user another chance to answer
-//                        Redirect(controllers.library.routes.LibraryController.viewQuestion(questionId, Some(answerFrame.answer.id)))
-//                      }
-
                     })
                   })
                 }
