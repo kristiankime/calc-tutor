@@ -1,0 +1,17 @@
+@(skills: Seq[models.quiz.Skill])
+
+@import controllers.library.QuestionList.id
+@import controllers.library.QuestionList.title
+
+    <table class="pure-table pure-table-striped">
+      <tr>
+        <th>Name</th>
+        @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
+      </tr>
+      <!-- ko foreach: $data -->
+      <tr>
+        <td> <a data-bind="text : @{title}(), attr: { href: '/library/question/' + @{id}(), title : @{title}() }"> </a> </td>
+        @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}
+      </tr>
+      <!-- /ko -->
+    </table>

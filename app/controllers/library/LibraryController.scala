@@ -24,9 +24,10 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
+import controllers.library.QuestionList.QuestionListResponse
 import models.quiz.{AnswerFrame, Question, QuestionFrame, Skill}
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import play.twirl.api.{Html}
+import play.twirl.api.Html
 import views.html.library.{libraryList, list}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -113,12 +114,6 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
   implicit val formatQuestionListRequest = QuestionList.formatQuestionListRequest;
   implicit val formatQuestionListResponse = QuestionList.formatQuestionListResponse;
 
-  object QuestionListResponses {
-    def apply(qsl:  Seq[(Question, Set[Skill])]): Seq[QuestionListResponse] = {
-      qsl.map(qs => QuestionListResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name)))
-    }
-  }
-
   def questionListAjax() = Action.async { request =>
     request.body.asJson.map { jsonBody =>
       jsonBody.validate[QuestionListRequest].map { questionListRequest =>
@@ -129,6 +124,12 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
     }.getOrElse( Future.successful(BadRequest("Expecting Json data")))
   }
 
+}
+
+object QuestionListResponses {
+  def apply(qsl:  Seq[(Question, Set[Skill])]): Seq[QuestionListResponse] = {
+    qsl.map(qs => QuestionListResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name)))
+  }
 }
 
 object QuestionList {

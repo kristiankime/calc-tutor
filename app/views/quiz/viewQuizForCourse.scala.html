@@ -5,7 +5,12 @@
         course2Quiz: Course2Quiz,
         questions: Seq[models.quiz.Question],
         answerOp: Option[models.quiz.Answer],
-        allSkills: Seq[String]
+
+
+        allSkills: Seq[String],
+        skills: Seq[models.quiz.Skill],
+        data: Seq[controllers.library.QuestionList.QuestionListResponse],
+        listDisplay: Html
 )(implicit request: Request[AnyContent],  user: models.user.User)
 
 @import helper._
@@ -155,11 +160,14 @@
     </script>
 
     @if(access.write){
-        @views.html.quiz.question.questionEditor(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), allSkills)
-    }
+        <h3> Add a Question </h3>
 
-    @if(access.write){
-        @views.html.quiz.question.questionJsonInput(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), setOnModel=Some("viewModel"))
+        Pick a method for Adding a question:
+        @tag.switch("addQuestionSwitch", 0,
+            ("Editor", views.html.quiz.question.questionEditor(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), allSkills)),
+            ("Json", views.html.quiz.question.questionJsonInput(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), setOnModel=Some("viewModel"))),
+            ("Library", views.html.library.search(skills, data, listDisplay))
+        )
     }
 
     }

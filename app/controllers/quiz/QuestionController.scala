@@ -100,16 +100,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
         val detachFuture = quizDAO.detach(questionId, quiz)
         detachFuture.map(update => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
-
-//        QuizRemoveQuestion.form.bindFromRequest.fold(
-//          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
-//          form => {
-//            val detachFuture = quizDAO.detach(QuestionId(form), quiz)
-//            detachFuture.map(update => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
-//          }
-//        )
-    }
-    }
+    } }
 
   } } } }
 

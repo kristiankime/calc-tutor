@@ -1,0 +1,28 @@
+@(name: String, selected: Int, optionsRaw: (String, Html)*)
+
+@defining( optionsRaw.zipWithIndex.map(v => (v._2, v._1._1, v._1._2)) ){ options  =>
+
+<script>
+    var @{name}Update = function(button){
+        var ids = @Html(options.map(v => name + v._1).mkString("['", "','", "']"))
+
+        for(var i = 0; i < ids.length; i++) {
+            var id = ids[i]
+            var element = document.getElementById(id);
+            if(button.value === id) { element.style.display='inline' }
+            else { element.style.display='none' }
+        }
+    }
+</script>
+<form class="pure-form">
+    @for(option <- options) {<label> <input type="radio" name="@name" value="@{name + option._1}" onclick="@{name}Update(this)" @if(option._1 == selected){checked} > @option._2</label>}
+</form>
+<br>
+
+@for(option <- options) {
+<div id="@{name + option._1}" @if(option._1 != selected){style="display:none"}>
+    @option._3
+</div>
+}
+
+}
