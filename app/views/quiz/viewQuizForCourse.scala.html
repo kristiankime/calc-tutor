@@ -162,8 +162,8 @@
         Pick a method for Adding a question:
         @tag.switch("addQuestionSwitch", 0,
             ("Editor", views.html.quiz.question.questionEditor(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), skills.map(_.name))),
-            ("Json", views.html.quiz.question.questionJsonInput(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), setOnModel=Some("viewModel"))),
-            ("Library", views.html.library.search(skills, initialLibraryEntries, listDisplay))
+            ("Json", views.html.quiz.question.questionJsonInput(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), setOnModel=Some("viewModel"))) /*,
+            ("Library", views.html.library.search(skills, initialLibraryEntries, listDisplay)) */
         )
     }
 
