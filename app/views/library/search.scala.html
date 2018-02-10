@@ -1,4 +1,4 @@
-@(skills: Seq[models.quiz.Skill], data: Seq[controllers.library.QuestionList.QuestionListResponse], listDisplay: Html)(implicit user: models.user.User, request: Request[AnyContent])
+@(skills: Seq[models.quiz.Skill], initialLibraryEntries: Seq[controllers.library.QuestionList.QuestionListResponse], listDisplay: Html)(implicit user: models.user.User, request: Request[AnyContent])
 
 @import com.artclod.play.s
 @import controllers.library.QuestionList.formatQuestionListResponse
@@ -35,7 +35,7 @@
     var QL = function() {
       // Get the raw data into a var
       @*var data = { questions : @Html(Json.toJson(data).toString) };*@
-      var data = @Html(Json.toJson(data).toString);
+      var data = @Html(Json.toJson(initialLibraryEntries).toString);
 
       // Turn it into a view model
       var viewModel = ko.mapping.fromJS(data);

@@ -70,8 +70,8 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp) +^ skillDAO.allSkills +^ questionDAO.questionSearchSet("%", Seq(), Seq()) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, (course2Quiz, quiz), access, answerOp, skills, qsl)) =>
-        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, course2Quiz, questions, answerOp, skills.map(_.name), skills, QuestionListResponses(qsl), views.html.library.quizList.apply(skills))))
+      case Right((course, (course2Quiz, quiz), access, answerOp, skills, initialLibraryQuestions)) =>
+        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, course2Quiz, questions, answerOp, skills, QuestionListResponses(initialLibraryQuestions), views.html.library.quizList.apply(skills))))
       }
     }
 
