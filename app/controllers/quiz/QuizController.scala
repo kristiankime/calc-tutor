@@ -71,7 +71,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp) +^ skillDAO.allSkills +^ questionDAO.questionSearchSet("%", Seq(), Seq()) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, (course2Quiz, quiz), access, answerOp, skills, initialLibraryQuestions)) =>
-        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, course2Quiz, questions, answerOp, skills, QuestionListResponses(initialLibraryQuestions), views.html.library.quizList.apply(skills))))
+        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, course2Quiz, questions, answerOp, skills, QuestionListResponses(initialLibraryQuestions))))
       }
     }
 
@@ -94,7 +94,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   } } } }
 
-  def updateAttachment(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def updateAvailability(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -110,6 +110,27 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
     }
 
   } } } }
+
+
+
+
+
+  def attach(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, quiz, question)) =>
+        quizDAO.attach(question, quiz, user.id).map(_ => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
+      }
+    }
+
+  } } } }
+
+
+
+
+
+
 
   def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 

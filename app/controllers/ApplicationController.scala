@@ -13,6 +13,7 @@ import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import javax.inject._
 import javax.inject._
+import play.api.routing._
 
 import _root_.controllers.support.RequireAccess
 import _root_.controllers.support.Consented
@@ -35,5 +36,13 @@ class ApplicationController @Inject()(val config: Config, val playSessionStore: 
 
     Ok(views.html.secure())
   } } } }
+
+  def javascriptRoutes = Action { implicit request =>
+    Ok(
+      JavaScriptReverseRouter("jsRoutes")(
+        _root_.controllers.library.routes.javascript.LibraryController.viewQuestion
+      )
+    ).as("text/javascript")
+  }
 
 }

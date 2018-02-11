@@ -34,7 +34,8 @@ GET         /orgs/:o/courses/:c/quizzes/create                        controller
 POST        /orgs/:o/courses/:c/quizzes                               controllers.quiz.QuizController.createSubmit(o: OrganizationId, c: CourseId)
 GET         /orgs/:o/courses/:c/quizzes/:z                            controllers.quiz.QuizController.view(o: OrganizationId, c: CourseId, z: QuizId, a: Option[AnswerId])
 POST        /orgs/:o/courses/:c/quizzes/:z/rename                     controllers.quiz.QuizController.rename(o: OrganizationId, c: CourseId, z: QuizId)
-POST        /orgs/:o/courses/:c/quizzes/:z/attach                     controllers.quiz.QuizController.updateAttachment(o: OrganizationId, c: CourseId, z: QuizId)
+POST        /orgs/:o/courses/:c/quizzes/:z/availability               controllers.quiz.QuizController.updateAvailability(o: OrganizationId, c: CourseId, z: QuizId)
+POST        /orgs/:o/courses/:c/quizzes/:z/attach/:q                  controllers.quiz.QuizController.attach(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 POST        /orgs/:o/courses/:c/quizzes/:z/remove                     controllers.quiz.QuizController.remove(o: OrganizationId, c: CourseId, z: QuizId)
 GET         /quizzes/:z/json                                          controllers.quiz.QuizController.quizJson(z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/:z/json                       controllers.quiz.QuizController.quizJsonCourse(o: OrganizationId, c: CourseId, z: QuizId)
@@ -64,6 +65,9 @@ POST        /library/query                                            controller
 
 # ==============================
 # Auxiliary routes
+
+# === Javascript Routing =====
+GET         /javascriptRoutes                                         controllers.ApplicationController.javascriptRoutes
 
 # ===== Start auth routes ======
 GET         /auth/signIn                                              controllers.auth.AuthController.signIn

@@ -113,7 +113,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
 
 
   // Question 2 Quiz
-  def attach(question: Question, quiz: Quiz, userId: UserId) = {
+  def attach(question: Question, quiz: Quiz, userId: UserId): Future[Unit] = {
     val lastOrder = db.run( Question2Quizzes.filter(_.quizId === quiz.id).map(_.order).max.result)
     lastOrder.flatMap( lo => {
       val nextOrder = (lo.getOrElse(-1) + 1).toShort
