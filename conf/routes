@@ -35,7 +35,10 @@ POST        /orgs/:o/courses/:c/quizzes                               controller
 GET         /orgs/:o/courses/:c/quizzes/:z                            controllers.quiz.QuizController.view(o: OrganizationId, c: CourseId, z: QuizId, a: Option[AnswerId])
 POST        /orgs/:o/courses/:c/quizzes/:z/rename                     controllers.quiz.QuizController.rename(o: OrganizationId, c: CourseId, z: QuizId)
 POST        /orgs/:o/courses/:c/quizzes/:z/availability               controllers.quiz.QuizController.updateAvailability(o: OrganizationId, c: CourseId, z: QuizId)
-POST        /orgs/:o/courses/:c/quizzes/:z/attach/:q                  controllers.quiz.QuizController.attach(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
+
+#POST        /orgs/:o/courses/:c/quizzes/:z/attach/:q                  controllers.quiz.QuizController.attach(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
+POST        /orgs/:o/courses/:c/quizzes/:z/attach/:q                  controllers.quiz.QuizController.attachAjax(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
+
 POST        /orgs/:o/courses/:c/quizzes/:z/remove                     controllers.quiz.QuizController.remove(o: OrganizationId, c: CourseId, z: QuizId)
 GET         /quizzes/:z/json                                          controllers.quiz.QuizController.quizJson(z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/:z/json                       controllers.quiz.QuizController.quizJsonCourse(o: OrganizationId, c: CourseId, z: QuizId)

@@ -1,7 +1,8 @@
-@(skills: Seq[models.quiz.Skill])
-
+@import helper._
 @import controllers.library.QuestionList.id
 @import controllers.library.QuestionList.title
+
+@(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, skills: Seq[models.quiz.Skill])
 
     <table class="pure-table pure-table-striped">
       <tr>
@@ -11,10 +12,44 @@
       </tr>
       <!-- ko foreach: $data -->
       <tr>
-        <td> <a data-bind="text : @{title}(), attr: { href: '/library/question/' + @{id}(), title : @{title}() }"> </a> </td>
-        <td> <a data-bind="attr: { href: '/library/question/' + @{id}() }"> Add </a> </td>
+        <td>
+          <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.library.LibraryController.viewQuestion(@{id}()).url, title : @{title}() }"> </a>
+        </td>
+        <td>
+          <a class="pure-button" data-bind="click : function(){QZL.attach(@organizationId.v, @courseId.v, @quizId.v, @{id}())}"> Add </a>
+        </td>
 
         @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}
       </tr>
       <!-- /ko -->
     </table>
+
+  <script>
+    var QZL = function(){
+        var QZL = {};
+        QZL.attach =  function(organizationId, courseId, quizId, questionId){
+          // var r = jsRoutes.controllers.library.LibraryController.viewQuestion(organizationId, courseId, quizId, questionId);
+          var r = jsRoutes.controllers.quiz.QuizController.attachAjax(organizationId, courseId, quizId, questionId);
+
+          // https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899
+          var token =  $('input[name="csrfToken"]').attr('value'); @* Note this should always be inside search.scala.html so csrfToken will exist *@
+          $.ajaxSetup({
+            beforeSend: function(xhr) {
+              xhr.setRequestHeader('Csrf-Token', token);
+            }
+          });
+
+          $.ajax({
+            dataType : "json",
+            type : r.type,
+            url : r.url,
+            data : JSON.stringify({}),
+            contentType: "application/json",
+            success : function(data){ console.log(data); },
+            failure : function(data){ console.log(data); },
+            processData: false
+          });
+        };
+        return QZL;
+    }();
+  </script>

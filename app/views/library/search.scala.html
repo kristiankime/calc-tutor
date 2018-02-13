@@ -54,7 +54,7 @@
 
       var runQuery = function() {
           // https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899
-          var token =  $('input[name="csrfToken"]').attr('value')
+          var token =  $('input[name="csrfToken"]').attr('value');
           $.ajaxSetup({
               beforeSend: function(xhr) {
                   xhr.setRequestHeader('Csrf-Token', token);

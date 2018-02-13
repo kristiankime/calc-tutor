@@ -18,7 +18,7 @@ import controllers.library.QuestionListResponses
 import controllers.organization.CourseCreate
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
-import models.quiz.{QuestionFrame, Quiz, QuizFrame}
+import models.quiz.{Question, QuestionFrame, Quiz, QuizFrame}
 import org.joda.time.DateTime
 import play.api.data._
 import play.api.data.Form
@@ -27,6 +27,7 @@ import play.api.data.Forms.jodaDate
 import play.api.data.Forms.optional
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import controllers.library.QuestionList.QuestionListResponse
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Right
 
@@ -126,11 +127,33 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   } } } }
 
+//  implicit val formatUserId = Json.format[UserId]
+//  implicit val formatQuestionId = Json.format[QuestionId]
+//  implicit val formatHtml = Json.format[play.twirl.api.Html]
+//  implicit val formatQuestion = Json.format[Question]
+
+  def attachAjax(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+//    def attachAjax(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = Action.async { implicit request =>
 
 
+    //    request.body.asJson.map { jsonBody =>
+    //      jsonBody.validate[QuestionListRequest].map { questionListRequest =>
+    //        questionDAO.questionSearchSet(questionListRequest.titleQuery, questionListRequest.requiredSkills, questionListRequest.bannedSkills).map(qsl => {
+    //          Ok(Json.toJson(QuestionListResponses(qsl)))
+    //        })
+    //      }.recoverTotal { e => Future.successful(BadRequest("Detected error:" + JsError.toJson(e))) }
+    //    }.getOrElse( Future.successful(BadRequest("Expecting Json data")))
 
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, quiz, question)) =>
+//        quizDAO.attach(question, quiz, user.id).map(_ =>  Ok(Json.toJson(question)) )
+        quizDAO.attach(question, quiz, user.id).map(_ =>  Ok(Json.toJson(question.id.v)) )
+      }
+    }
 
-
+  } } } }
+//}
 
   def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 

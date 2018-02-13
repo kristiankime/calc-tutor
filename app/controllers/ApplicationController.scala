@@ -40,7 +40,8 @@ class ApplicationController @Inject()(val config: Config, val playSessionStore: 
   def javascriptRoutes = Action { implicit request =>
     Ok(
       JavaScriptReverseRouter("jsRoutes")(
-        _root_.controllers.library.routes.javascript.LibraryController.viewQuestion
+        _root_.controllers.library.routes.javascript.LibraryController.viewQuestion,
+        _root_.controllers.quiz.routes.javascript.QuizController.attachAjax
       )
     ).as("text/javascript")
   }
