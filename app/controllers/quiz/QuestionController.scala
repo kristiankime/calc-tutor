@@ -104,9 +104,36 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   } } } }
 
+
+  def removeAjax(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+    implicit val minimalQuestionFormat = MinimalQuestionJson.minimalQuestionFormat
+
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, quiz, question)) =>
+        quizDAO.detach(question.id, quiz).flatMap(_ =>
+          quizDAO.questionSummariesFor(quiz).map(questions =>
+            Ok(Json.toJson(MinimalQuestionJson(questions)))))
+    } }
+
+  } } } }
 }
 
 // === QuestionJson
+case class MinimalQuestionJson(id: Long, title: String)
+
+object MinimalQuestionJson {
+  val id = "id"
+  val title = "title"
+
+  def apply(question: Question): MinimalQuestionJson = { MinimalQuestionJson(question.id.v, question.title) }
+
+  def apply(questions: Seq[Question]): Seq[MinimalQuestionJson] = { questions.map(apply(_)) }
+
+  implicit val minimalQuestionFormat = Json.format[MinimalQuestionJson]
+}
+
+
 case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson], skills: Vector[String]) {
   if(sections.size == 0) { throw new IllegalArgumentException("Questions must have at least one section")}
   if(skills.size == 0) { throw new IllegalArgumentException("Questions must have at least one skill")}

@@ -11,11 +11,11 @@
 @import helper.CSRF
 
 
-  <h2> Question List</h2>
+  <h2> Question Library Search</h2>
 
   <section id="question-list-search">
     <h3> Search Criteria </h3>
-    <form method="post" action="/library/query" class="pure-form">
+    <form method="post" class="pure-form">
       <div> Title : <input data-bind="textInput: @titleQuery" /> </div>
       <div> Required Skills : @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @requiredSkills" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> } </div>
       <div> Banned Skills : @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @bannedSkills" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> } </div>
@@ -61,9 +61,11 @@
               }
           });
 
+          var url = jsRoutes.controllers.library.LibraryController.questionListAjax().url; // https://www.playframework.com/documentation/2.5.x/ScalaJavascriptRouting
+
           $.ajax({
               dataType: "json",
-              url: "/library/query",
+              url: url,
               type: "POST",
               contentType: "application/json; charset=utf-8",
               data: JSON.stringify(ko.mapping.toJS(QL.searchViewModel)),

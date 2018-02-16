@@ -41,7 +41,9 @@ class ApplicationController @Inject()(val config: Config, val playSessionStore: 
     Ok(
       JavaScriptReverseRouter("jsRoutes")(
         _root_.controllers.library.routes.javascript.LibraryController.viewQuestion,
-        _root_.controllers.quiz.routes.javascript.QuizController.attachAjax
+        _root_.controllers.quiz.routes.javascript.QuizController.attachAjax,
+        _root_.controllers.quiz.routes.javascript.QuestionController.view,
+        _root_.controllers.quiz.routes.javascript.QuestionController.removeAjax
       )
     ).as("text/javascript")
   }
