@@ -129,9 +129,9 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, quiz, question)) =>
-        val attachFuture = quizDAO.attach(question, quiz, user.id)
-        val questionsFuture = quizDAO.questionSummariesFor(quiz)
-        attachFuture.flatMap(_ => questionsFuture.map(questions => Ok(Json.toJson(MinimalQuestionJson(questions)))))
+        quizDAO.attach(question, quiz, user.id).flatMap(_ =>
+          quizDAO.questionSummariesFor(quiz).map(questions =>
+            Ok(Json.toJson(MinimalQuestionJson(questions)))))
       }
     }
 

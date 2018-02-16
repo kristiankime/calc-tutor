@@ -2,7 +2,7 @@
 @import controllers.library.QuestionList.id
 @import controllers.library.QuestionList.title
 
-@(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, skills: Seq[models.quiz.Skill])
+@(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, skills: Seq[models.quiz.Skill], listObj: String)
 
     <table class="pure-table pure-table-striped">
       <tr>
@@ -45,8 +45,12 @@
             url : r.url,
             data : JSON.stringify({}),
             contentType: "application/json",
-            success : function(data){ console.log(data); },
-            failure : function(data){ console.log(data); },
+            success : function(data) {
+              @{listObj}.update(data);
+              },
+            failure : function(data) {
+                console.log(data);
+              },
             processData: false
           });
         };
