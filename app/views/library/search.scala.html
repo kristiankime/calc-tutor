@@ -47,7 +47,7 @@
       var searchViewModel = { @requiredSkills : @requiredSkills, @titleQuery : @titleQuery, @bannedSkills : @bannedSkills };
 
       var skillIndicator = function(skillsList, skillName) {
-        return skillsList.includes(skillName) ? '@tag.icon("icon-checkmark3")' : '@tag.icon("icon-cross")';
+        return skillsList.includes(skillName) ? '@tag.icon("icon-checkmark3")' : '@*tag.icon("icon-cross")*@ ';
       };
 
       var skillsNames = @Html(skills.map(_.name).mkString("['", "','", "']"));
