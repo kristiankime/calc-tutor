@@ -234,7 +234,7 @@
         @tag.switch("addQuestionSwitch", 0,
             ("Editor", views.html.quiz.question.questionEditor(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), skills.map(_.name))),
             ("Json", views.html.quiz.question.questionJsonInput(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), setOnModel=Some("viewModel"))),
-            ("Library", views.html.library.search(skills, initialLibraryEntries, views.html.library.quizList.apply(course.organizationId, course.id, quiz.id, skills, "CQL")))
+            ("Library", views.html.library.search(skills, initialLibraryEntries, views.html.library.list.quizList.apply(course.organizationId, course.id, quiz.id, skills, "CQL")))
         )
     }
 

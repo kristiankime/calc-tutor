@@ -28,7 +28,8 @@ import controllers.library.QuestionList.QuestionListResponse
 import models.quiz.{AnswerFrame, Question, QuestionFrame, Skill}
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.twirl.api.Html
-import views.html.library.{libraryList, list}
+import views.html.library.list.libraryList
+import views.html.library.catalog
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Random, Right, Success}
@@ -38,12 +39,12 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
   def list() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
     skillDAO.allSkills.flatMap(skills => { questionDAO.questionSearchSet("%", Seq(), Seq()).map(qsl => {
-        Ok(views.html.library.list(skills, QuestionListResponses(qsl), views.html.library.libraryList.apply(skills)))
+        Ok(views.html.library.catalog(skills, QuestionListResponses(qsl), views.html.library.list.libraryList.apply(skills)))
       })})
     }}}
 
   def createQuestionView() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
-    skillDAO.allSkills.map(skills => Ok(views.html.library.create(skills)))
+    skillDAO.allSkills.map(skills => Ok(views.html.library.createQuestion(skills)))
   }}}
 
   def createQuestionSubmit() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
