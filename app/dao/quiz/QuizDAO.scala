@@ -111,13 +111,18 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   def update(course: Course, quiz: Quiz, viewHide: Boolean, startDate: Option[DateTime], endDate: Option[DateTime]) =
     db.run((for { c2z <- Courses2Quizzes if c2z.quizId === quiz.id && c2z.courseId === course.id } yield c2z ).map(c2z => (c2z.viewHide, c2z.startDate, c2z.endDate) ).update(viewHide, startDate, endDate))
 
-
   // Question 2 Quiz
-  def attach(question: Question, quiz: Quiz, userId: UserId): Future[Unit] = {
-    val lastOrder = db.run( Question2Quizzes.filter(_.quizId === quiz.id).map(_.order).max.result)
-    lastOrder.flatMap( lo => {
-      val nextOrder = (lo.getOrElse(-1) + 1).toShort
-      db.run(Question2Quizzes += Question2Quiz(question.id, quiz.id, userId, JodaUTC.now, nextOrder)).map { _ => () }
+  def attach(question: Question, quiz: Quiz, userId: UserId): Future[Int] = {
+    val alreadyAttachedFuture = db.run( Question2Quizzes.filter(q2Q => q2Q.quizId === quiz.id && q2Q.questionId === question.id).result.headOption  )
+    alreadyAttachedFuture.flatMap(_ match {
+      case Some(q2Q) => Future.successful(-1)
+      case None => {
+        val lastOrder = db.run(Question2Quizzes.filter(_.quizId === quiz.id).map(_.order).max.result)
+        lastOrder.flatMap(lo => {
+          val nextOrder = (lo.getOrElse(-1) + 1).toShort
+          db.run(Question2Quizzes += Question2Quiz(question.id, quiz.id, userId, JodaUTC.now, nextOrder))
+        })
+      }
     })
   }
 

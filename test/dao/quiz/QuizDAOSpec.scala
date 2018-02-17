@@ -195,6 +195,42 @@ class QuizDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       TestData.await(quizDAO.questionSummariesFor(quiz)) mustBe (Seq(question1Frame.question, question2Frame.question, question3Frame.question))
     }
 
+    "attaching a question multiple time has no effect" in {
+      val (userDAO, quizDAO, organizationDAO, courseDAO, questionDAO, skillDAO) = app.injector.instanceOf6[UserDAO, QuizDAO, OrganizationDAO, CourseDAO, QuestionDAO, SkillDAO]
+
+      // Create a quiz
+      val owner = TestData.await(userDAO.insert(TestData.user(0)))
+      val quiz = TestData.await(quizDAO.insert(TestData.quiz(0, owner)))
+
+      // Setup the skills for use in the questions
+      val skillsNoId = Vector(TestData.skill("a"), TestData.skill("b"))
+      skillDAO.insertAll(skillsNoId:_*)
+      val skills = TestData.await(skillDAO.allSkills)
+
+      // Create Questions for the quiz
+      val question1Frame = TestData.await(questionDAO.insert(
+        TestData.questionFrame("question 1", "description", owner.id, JodaUTC.zero, skills,  Seq(questionSectionFrame("explanation 1")()(questionPartFunction("summary 2-1", "<cn>1</cn>"))) )
+      ))
+      val question2Frame = TestData.await(questionDAO.insert(
+        TestData.questionFrame("question 1", "description", owner.id, JodaUTC.zero, skills,  Seq(questionSectionFrame("explanation 1")()(questionPartFunction("summary 2-1", "<cn>1</cn>"))) )
+      ))
+      val question3Frame = TestData.await(questionDAO.insert(
+        TestData.questionFrame("question 1", "description", owner.id, JodaUTC.zero, skills,  Seq(questionSectionFrame("explanation 1")()(questionPartFunction("summary 2-1", "<cn>1</cn>"))) )
+      ))
+
+      // Add Questions to Quiz
+      TestData.await(quizDAO.attach(question1Frame.question, quiz, owner.id))
+      TestData.await(quizDAO.attach(question2Frame.question, quiz, owner.id))
+      TestData.await(quizDAO.attach(question3Frame.question, quiz, owner.id))
+
+      // Here we attach some questions again
+      TestData.await(quizDAO.attach(question3Frame.question, quiz, owner.id))
+      TestData.await(quizDAO.attach(question2Frame.question, quiz, owner.id))
+
+      // compare
+      TestData.await(quizDAO.questionSummariesFor(quiz)) mustBe (Seq(question1Frame.question, question2Frame.question, question3Frame.question))
+    }
+
   }
 
 
