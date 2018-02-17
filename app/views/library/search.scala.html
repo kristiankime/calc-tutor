@@ -17,9 +17,15 @@
     <h3> Search Criteria </h3>
     <form method="post" class="pure-form">
       <div> Title : <input data-bind="textInput: @titleQuery" /> </div>
-      <div> Required Skills : @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @requiredSkills" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> } </div>
-      <div> Banned Skills : @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @bannedSkills" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> } </div>
-      <div> <a class="pure-button" href="javascript:QL.runQuery()">Update</a> </div>
+      <div>
+          <b>Required Skills</b> <a class="pure-button" href="javascript:QL.requireAll()">Require All</a> <a class="pure-button" href="javascript:QL.requireNone()">Require None</a> <br>
+          @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @requiredSkills" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> }
+      </div>
+      <div>
+          <b>Banned Skills</b> <a class="pure-button" href="javascript:QL.banAll()">Ban All</a> <a class="pure-button" href="javascript:QL.banNone()">Ban None</a> <br>
+          @for(skill <- skills){ <label for="skill_@skill.name"> <input checked="checked" data-bind="checked: @bannedSkills" type="checkbox" value="@skill.name" id="skill_@skill.name" > </input> @skill.name </label> }
+      </div>
+      <div> <a class="pure-button" href="javascript:QL.runQuery()">Search again</a> </div>
       @CSRF.formField @* https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899 *@
     </form>
   </section>
@@ -52,6 +58,11 @@
 
       var skillsNames = @Html(skills.map(_.name).mkString("['", "','", "']"));
 
+      var requireAll = function() { @{requiredSkills}(skillsNames); };
+      var requireNone = function() { @{requiredSkills}([]); };
+      var banAll = function() { @{bannedSkills}(skillsNames); };
+      var banNone = function() { @{bannedSkills}([]); };
+
       var runQuery = function() {
           // https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899
           var token =  $('input[name="csrfToken"]').attr('value');
@@ -78,6 +89,10 @@
       var QL = {
         si : skillIndicator,
         skillsNames : skillsNames,
+        requireAll  : requireAll  ,
+        requireNone : requireNone ,
+        banAll      : banAll      ,
+        banNone     : banNone     ,
         viewModel : viewModel,
         searchViewModel : searchViewModel,
         runQuery : runQuery
