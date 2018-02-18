@@ -44,7 +44,8 @@ class ApplicationController @Inject()(val config: Config, val playSessionStore: 
         _root_.controllers.library.routes.javascript.LibraryController.questionListAjax,
         _root_.controllers.quiz.routes.javascript.QuizController.attachAjax,
         _root_.controllers.quiz.routes.javascript.QuestionController.view,
-        _root_.controllers.quiz.routes.javascript.QuestionController.removeAjax
+        _root_.controllers.quiz.routes.javascript.QuestionController.removeAjax,
+        _root_.controllers.organization.routes.javascript.CourseController.studentSelfQuestion
       )
     ).as("text/javascript")
   }

@@ -24,7 +24,7 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
-import controllers.library.QuestionList.QuestionListResponse
+import controllers.library.QuestionLibrary.QuestionLibraryResponse
 import models.quiz.{AnswerFrame, Question, QuestionFrame, Skill}
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.twirl.api.Html
@@ -39,7 +39,7 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
   def list() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
     skillDAO.allSkills.flatMap(skills => { questionDAO.questionSearchSet("%", Seq(), Seq()).map(qsl => {
-        Ok(views.html.library.catalog(skills, QuestionListResponses(qsl), views.html.library.list.libraryList.apply(skills)))
+        Ok(views.html.library.catalog(skills, QuestionLibraryResponses(qsl), views.html.library.list.libraryList.apply(skills)))
       })})
     }}}
 
@@ -110,16 +110,16 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
 
   // ============== Questions List (Json Ajax) ============
-  import QuestionList.QuestionListRequest
-  import QuestionList.QuestionListResponse
-  implicit val formatQuestionListRequest = QuestionList.formatQuestionListRequest;
-  implicit val formatQuestionListResponse = QuestionList.formatQuestionListResponse;
+  import QuestionLibrary.QuestionLibraryRequest
+  import QuestionLibrary.QuestionLibraryResponse
+  implicit val formatQuestionListRequest = QuestionLibrary.formatQuestionLibraryRequest;
+  implicit val formatQuestionListResponse = QuestionLibrary.formatQuestionLibraryResponse;
 
   def questionListAjax() = Action.async { request =>
     request.body.asJson.map { jsonBody =>
-      jsonBody.validate[QuestionListRequest].map { questionListRequest =>
+      jsonBody.validate[QuestionLibraryRequest].map { questionListRequest =>
         questionDAO.questionSearchSet(questionListRequest.titleQuery, questionListRequest.requiredSkills, questionListRequest.bannedSkills).map(qsl => {
-          Ok(Json.toJson(QuestionListResponses(qsl)))
+          Ok(Json.toJson(QuestionLibraryResponses(qsl)))
         })
       }.recoverTotal { e => Future.successful(BadRequest("Detected error:" + JsError.toJson(e))) }
     }.getOrElse( Future.successful(BadRequest("Expecting Json data")))
@@ -127,13 +127,13 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
 }
 
-object QuestionListResponses {
-  def apply(qsl:  Seq[(Question, Set[Skill])]): Seq[QuestionListResponse] = {
-    qsl.map(qs => QuestionListResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name)))
+object QuestionLibraryResponses {
+  def apply(qsl:  Seq[(Question, Set[Skill])]): Seq[QuestionLibraryResponse] = {
+    qsl.map(qs => QuestionLibraryResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name)))
   }
 }
 
-object QuestionList {
+object QuestionLibrary {
   val titleQuery = "titleQuery"
   val requiredSkills = "requiredSkills"
   val bannedSkills = "bannedSkills"
@@ -141,9 +141,9 @@ object QuestionList {
   val title = "title"
   val skills = "skills"
 
-  case class QuestionListRequest(titleQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String])
-  case class QuestionListResponse(id: Long, title: String, skills: Set[String])
+  case class QuestionLibraryRequest(titleQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String])
+  case class QuestionLibraryResponse(id: Long, title: String, skills: Set[String])
 
-  implicit val formatQuestionListRequest = Json.format[QuestionListRequest]
-  implicit val formatQuestionListResponse = Json.format[QuestionListResponse]
+  implicit val formatQuestionLibraryRequest = Json.format[QuestionLibraryRequest]
+  implicit val formatQuestionLibraryResponse = Json.format[QuestionLibraryResponse]
 }

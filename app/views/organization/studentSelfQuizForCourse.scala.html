@@ -1,0 +1,24 @@
+@import models.organization.Course2Quiz
+@import helper._
+@import com.artclod.play._
+@import controllers.quiz.QuizRename
+@import controllers.quiz.QuizAvailability
+@import com.artclod.slick.JodaUTC
+@import org.joda.time.DateTime
+@import controllers.quiz.MinimalQuestionJson
+@import controllers.quiz.MinimalQuestionJson.id
+@import controllers.quiz.MinimalQuestionJson.title
+@import play.api.libs.json.Json
+
+@(access: models.Access,
+        course: models.organization.Course,
+        skills: Seq[models.quiz.Skill],
+        initialLibraryEntries: Seq[controllers.library.QuestionLibrary.QuestionLibraryResponse]
+)(implicit request: Request[AnyContent],  user: models.user.User)
+
+@mainContent("Self Quiz for " + course.name, tag.courseLink(course)) {
+    <h2>Welcome to the self quiz page for course: @course.name </h2>
+
+    <h3> Pick a Question to answer </h3>
+    @views.html.library.search(skills, initialLibraryEntries, views.html.library.list.selfQuizList(course.organizationId, course.id, skills))
+}

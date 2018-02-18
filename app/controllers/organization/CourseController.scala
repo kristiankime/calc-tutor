@@ -18,14 +18,16 @@ import models.organization.Course
 import play.api.data.Form
 import play.api.data.Forms._
 import com.artclod.random._
-import dao.quiz.{QuizDAO, SkillDAO}
+import controllers.library.QuestionLibraryResponses
+import controllers.quiz.AnswerJson
+import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Random, Right}
 
 
 @Singleton
-class CourseController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class CourseController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
   implicit val randomEngine = new Random(JodaUTC.now.getMillis())
   val codeRange = (0 to 100000).toVector
 
@@ -112,6 +114,28 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
         courseDAO.studentsIn(course).flatMap(students => skillDAO.skillsLevelFor(studentId, students.map(_.id)).map(skills =>
           Ok(views.html.organization.courseStudentSummary(organization, course, student, skills._2, skills._1))))
     } } }
+
+  } } } }
+
+
+  def studentSelfQuiz(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+
+    (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ skillDAO.allSkills +^ questionDAO.questionSearchSet("%", Seq(), Seq()) ).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((organization, course, access, allSkills, libraryQuestions)) => {
+        Future.successful( Ok(views.html.organization.studentSelfQuizForCourse(access, course, allSkills, QuestionLibraryResponses(libraryQuestions))) )
+      } } }
+
+  } } } }
+
+  def studentSelfQuestion(organizationId: OrganizationId, courseId: CourseId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +& questionDAO.frameByIdEither(questionId) +^ courseDAO.access(user.id, courseId) +& answerDAO.frameByIdEither(questionId, answerIdOp) ).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, questionFrame, access, answerOp)) => {
+        val answerJson : AnswerJson = answerOp.map(a => AnswerJson(a)).getOrElse(controllers.quiz.AnswerJson.blank(questionFrame))
+        Future.successful( Ok(views.html.organization.studentSelfQuestionForCourse(access, course, questionFrame, answerJson)) )
+      } } }
 
   } } } }
 

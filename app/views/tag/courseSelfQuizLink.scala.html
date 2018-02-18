@@ -1,0 +1,1 @@
+@(course: models.organization.Course, atts: (scala.Symbol, String)*)<a href="@controllers.organization.routes.CourseController.studentSelfQuiz(course.organizationId, course.id)"@tag.atts(('class -> "pure-button") +: atts)>@course.name Self Quiz</a>

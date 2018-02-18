@@ -54,9 +54,15 @@ POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/removeAjax    controller
 # TODO reinstate after adding question access levels # GET         /questions/:q/json                                        controllers.quiz.QuestionController.questionJson(q: QuestionId)
 GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q/json          controllers.quiz.QuestionController.questionJsonCourse(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 
+# ---------------------
+# Course Self Quiz
+GET         /orgs/:o/courses/:c/selfQuiz                              controllers.organization.CourseController.studentSelfQuiz(o: OrganizationId, c: CourseId)
+GET         /orgs/:o/courses/:c/questions/:q/selfQuestion             controllers.organization.CourseController.studentSelfQuestion(o: OrganizationId, c: CourseId, q: QuestionId, a: Option[AnswerId])
+POST        /orgs/:o/courses/:c/questions/:q/answers/create           controllers.quiz.AnswerController.createSelfQuizCourseSubmit(o: OrganizationId, c: CourseId, q: QuestionId)
+
 # ----------------------
 # Course Quiz Answers
-POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/create        controllers.quiz.AnswerController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
+POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/answers/create controllers.quiz.AnswerController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 
 # ----------------------
 # Question library

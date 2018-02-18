@@ -1,4 +1,4 @@
-@(skills: Seq[models.quiz.Skill])
+@(organizationId: OrganizationId, courseId: CourseId, skills: Seq[models.quiz.Skill])
 
 @import controllers.library.QuestionLibrary.id
 @import controllers.library.QuestionLibrary.title
@@ -11,7 +11,7 @@
       </tr>
       <!-- ko foreach: $data -->
       <tr>
-        <td> <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.library.LibraryController.viewQuestion(@{id}()).url, title : @{title}() }"> </a> </td>
+        <td> <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.organization.CourseController.studentSelfQuestion(@organizationId.v, @courseId.v, @{id}()).url, title : @{title}() }"> </a> </td>
         @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}
       </tr>
       <!-- /ko -->

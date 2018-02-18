@@ -1,0 +1,27 @@
+@import helper._
+@import com.artclod.play._
+@import controllers.organization.CourseCreate
+@import controllers.quiz.QuizRename
+
+@(access: models.Access,
+        course: models.organization.Course,
+        questionFrame: models.quiz.QuestionFrame,
+        answer: controllers.quiz.AnswerJson
+)(implicit request: Request[AnyContent], user: models.user.User)
+
+@mainContent("Self Question for " + course.name, tag.courseLink(course), tag.courseLink(course)) {
+    <h2>Welcome to the self quiz page for course: @course.name </h2>
+
+    @views.html.quiz.question.answerEditor(
+        controllers.quiz.routes.AnswerController.createSelfQuizCourseSubmit(course.organizationId, course.id, questionFrame.question.id),
+        questionFrame,
+        answer)
+
+    @if(access >= models.Edit) {
+        <ul>
+        @for(skill <- questionFrame.skills){
+            <li>@skill.name</li>
+        }
+        </ul>
+    }
+}

@@ -17,7 +17,7 @@
         questions: Seq[models.quiz.Question],
         answerOp: Option[models.quiz.Answer],
         skills: Seq[models.quiz.Skill],
-        initialLibraryEntries: Seq[controllers.library.QuestionList.QuestionListResponse]
+        initialLibraryEntries: Seq[controllers.library.QuestionLibrary.QuestionLibraryResponse]
 )(implicit request: Request[AnyContent],  user: models.user.User)
 
 @mainContent("Quiz " + quiz.name, tag.courseLink(course)) {

@@ -82,6 +82,41 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
 //
 //  } } } }
 
+  def createSelfQuizCourseSubmit(organizationId: OrganizationId, courseId: CourseId, questionId: QuestionId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +& questionDAO.frameByIdEither(questionId)).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, questionFrame)) =>
+
+        AnswerCreate.form.bindFromRequest.fold(
+          errors =>
+            Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+          form => {
+            AnswerCreate.answerFormat.reads(Json.parse(form)) match {
+              case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
+              case JsSuccess(value, path) => {
+                val protoAnswerFrame = AnswerFrame(questionFrame, value, user.id)
+
+                if(protoAnswerFrame.correctUnknown) { // Here we are unable to determine if the question was answered correctly so we go back to the page
+                  Future.successful( Ok(views.html.organization.studentSelfQuestionForCourse(null, course, questionFrame, AnswerJson(protoAnswerFrame))) )
+                } else {
+                  answerDAO.updateSkillCounts(user.id, questionId, protoAnswerFrame.answer.correct).flatMap( updated => { // Keep track of the in/correct counts for each skill
+                    answerDAO.insert(protoAnswerFrame).map(answerFrame => {
+                      Redirect(controllers.organization.routes.CourseController.studentSelfQuestion(organizationId, course.id, questionFrame.question.id, Some(answerFrame.answer.id)))
+                    })
+                  })
+                }
+
+              }
+            }
+          }
+        )
+
+    }
+    }
+
+  } } } }
+
 }
 
 object AnswerCreate {

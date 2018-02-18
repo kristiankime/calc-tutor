@@ -14,7 +14,7 @@ import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
-import controllers.library.QuestionListResponses
+import controllers.library.QuestionLibraryResponses
 import controllers.organization.CourseCreate
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
@@ -26,7 +26,7 @@ import play.api.data.Forms._
 import play.api.data.Forms.jodaDate
 import play.api.data.Forms.optional
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import controllers.library.QuestionList.QuestionListResponse
+import controllers.library.QuestionLibrary.QuestionLibraryResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Right
@@ -72,7 +72,7 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp) +^ skillDAO.allSkills +^ questionDAO.questionSearchSet("%", Seq(), Seq()) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, (course2Quiz, quiz), access, answerOp, skills, initialLibraryQuestions)) =>
-        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, course2Quiz, questions, answerOp, skills, QuestionListResponses(initialLibraryQuestions))))
+        quizDAO.questionSummariesFor(quiz).map(questions => Ok(views.html.quiz.viewQuizForCourse(access, course, quiz, course2Quiz, questions, answerOp, skills, QuestionLibraryResponses(initialLibraryQuestions))))
       }
     }
 

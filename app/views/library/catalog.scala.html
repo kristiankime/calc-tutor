@@ -1,12 +1,12 @@
-@(skills: Seq[models.quiz.Skill], data: Seq[controllers.library.QuestionList.QuestionListResponse], listDisplay: Html)(implicit user: models.user.User, request: Request[AnyContent])
+@(skills: Seq[models.quiz.Skill], data: Seq[controllers.library.QuestionLibrary.QuestionLibraryResponse], listDisplay: Html)(implicit user: models.user.User, request: Request[AnyContent])
 
 @import com.artclod.play.s
-@import controllers.library.QuestionList.formatQuestionListResponse
-@import controllers.library.QuestionList.id
-@import controllers.library.QuestionList.title
-@import controllers.library.QuestionList.titleQuery
-@import controllers.library.QuestionList.requiredSkills
-@import controllers.library.QuestionList.bannedSkills
+@import controllers.library.QuestionLibrary.formatQuestionLibraryResponse
+@import controllers.library.QuestionLibrary.id
+@import controllers.library.QuestionLibrary.title
+@import controllers.library.QuestionLibrary.titleQuery
+@import controllers.library.QuestionLibrary.requiredSkills
+@import controllers.library.QuestionLibrary.bannedSkills
 @import play.api.libs.json.Json
 @import helper._
 
