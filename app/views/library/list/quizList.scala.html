@@ -6,9 +6,10 @@
 
     <table class="pure-table pure-table-striped">
       <tr>
-        <th>Name</th>
+        <th> <a href="#" data-bind="orderable: {collection: 'searchResults', field: '@{title}'}">Name</a> </th>
         <th>Add</th>
-        @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
+        @for(skill <- skills){<th> <a href="#" data-bind="orderable: {collection: 'searchResults', field: '@{title}'}" data-ot="@skill.name"> @skill.short_name </a> </th>}
+      </tr>
       </tr>
       <!-- ko foreach: searchResults -->
       <tr>
