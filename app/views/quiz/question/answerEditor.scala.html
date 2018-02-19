@@ -15,6 +15,10 @@
 
     <h4> Answer the question section@s(questionFrame.sections). When you are done hit the "Answer" Button: </h4>
 
+    <div class="warning" data-bind="visible : @{correct}() == @{controllers.quiz.AnswerJson.correctUnknown}"> Sorry the system was unable to determine if this answer was correct, please try again </div>
+    <div class="warning" data-bind="visible : @{correct}() == @{controllers.quiz.AnswerJson.correctNo}"> Sorry some (or all) of the parts of this answer were incorrect, please try again </div>
+    <div class="indicate-correct" data-bind="visible : @{correct}() == @{controllers.quiz.AnswerJson.correctYes}"> Congratulations this answer was correct </div>
+
     <div class="answer-header">
         <div class="item answer-title"> <h5> @questionFrame.question.title </h5> </div>
         <div class="item answer-description"> @questionFrame.question.descriptionHtml </div>
@@ -24,7 +28,7 @@
         @defining("$root." + AnswerCreate.sections + "()[" + sectionFrame._2 + "]") { viewModelSec : String =>
         <div class="span-answer-header answer-section">
 
-            <div class="item answer-explanation"> @sectionFrame._1.section.explanationHtml @tag.lastAnswerWas(viewModelSec + "." + correct + "()") </div>
+            <div class="item answer-explanation"> @sectionFrame._1.section.explanationHtml @tag.lastAnswerPieceWas(viewModelSec + "." + correct + "()") </div>
             @* ===== START PARTS ==== *@
             @sectionFrame._1.parts match {
 
@@ -40,7 +44,7 @@
             <div class="span-section answer-function">
                 <div class="item answer-function-summary"> @part._1.summaryHtml </div>
                 <div class="item answer-function-input">
-                    @{tag.isValid(viewModelFunc + ".invalid()")} <input data-bind="textInput: @{viewModelFunc}.@{functionRaw}" /> <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"></span> @tag.lastAnswerWas(viewModelFunc + "." + correct + "()")
+                    @{tag.isValid(viewModelFunc + ".invalid()")} <input data-bind="textInput: @{viewModelFunc}.@{functionRaw}" /> <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"></span> @tag.lastAnswerPieceWas(viewModelFunc + "." + correct + "()")
                 </div>
             </div>
             } } }
