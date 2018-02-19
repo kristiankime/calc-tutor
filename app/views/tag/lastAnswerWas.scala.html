@@ -2,4 +2,5 @@
 @*correct: <span data-bind="text: @{value}"> </span>*@
 <span class="warning" data-bind="visible : @{value} == @{controllers.quiz.AnswerJson.correctUnknown}" title="Sorry the system was unable to determine if this answer was correct, please try again"> Unknown</span>
 <span class="warning" data-bind="visible : @{value} == @{controllers.quiz.AnswerJson.correctNo}" title="Sorry this answer was incorrect, please try again"> Incorrect</span>
+<span class="indicate-correct" data-bind="visible : @{value} == @{controllers.quiz.AnswerJson.correctYes}" title="Congratulations this answer was correct"> Correct</span>
 @*<span class="warning" data-bind="visible : @{value} == @{controllers.quiz.AnswerJson.correctBlank}"> Debug Blank</span>*@

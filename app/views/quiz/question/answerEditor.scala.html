@@ -64,10 +64,10 @@
 
     <script>
         answerJsonFormSubmit = function() {
-            if(viewModel.invalid()) {
+            if(AE.viewModel.invalid()) {
                 window.alert("There are errors in the inputs, look for red *");
             } else {
-                $("#answerJson").val(ko.mapping.toJSON(viewModel));
+                $("#answerJson").val(ko.mapping.toJSON(AE.viewModel));
                 $("#answerJsonForm").submit();
             }
         }
@@ -75,15 +75,17 @@
 </section>
 
 <script type="text/javascript">
-    // Get the raw data into a var
-    var data = @Html(answerFormat.writes(answerJson).toString)
 
-    // Turn it into a view model
-    var viewModel = ko.mapping.fromJS(data);
 
     // === The Answer Enhance Module ===
     // it knows how to enhance the view model with the MathJAX computations/displays etc
     var AE = function() {
+        // Get the raw data into a var
+        var data = @Html(answerFormat.writes(answerJson).toString)
+
+        // Turn it into a view model
+        var viewModel = ko.mapping.fromJS(data);
+
         var enhancePart = function(part, si, pi) {
             // Create an id for this part
             part.id = "s" + si + "f" + pi;
@@ -137,16 +139,15 @@
             main.invalid = ko.computed(function () {
                 return _.map(main.@{AnswerCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, false);
             });
+            return main;
         }
 
         var AE = {};
         AE.enhanceMain = enhanceMain;
+        AE.viewModel = enhanceMain(viewModel);
         return AE;
     }();
 
-    // Enhance
-    AE.enhanceMain(viewModel);
-
     // then applying bindings
-    ko.applyBindings(viewModel, document.getElementById("answer-editor"));
+    ko.applyBindings(AE.viewModel, document.getElementById("answer-editor"));
 </script>
