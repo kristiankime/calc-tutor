@@ -10,7 +10,7 @@
         <th>Add</th>
         @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
       </tr>
-      <!-- ko foreach: $data -->
+      <!-- ko foreach: searchResults -->
       <tr>
         <td>
           <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.library.LibraryController.viewQuestion(@{id}()).url, title : @{title}() }"> </a>
@@ -32,7 +32,7 @@
           var r = jsRoutes.controllers.quiz.QuizController.attachAjax(organizationId, courseId, quizId, questionId);
 
           // https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899
-          var token =  $('input[name="csrfToken"]').attr('value'); @* Note this should always be inside search.scala.html so csrfToken will exist *@
+          var token =  $('input[name="csrfToken"]').attr('value'); @* Note this should always be inside search.scala.html so a csrfToken will exist *@
           $.ajaxSetup({
             beforeSend: function(xhr) {
               xhr.setRequestHeader('Csrf-Token', token);

@@ -5,11 +5,10 @@
 
     <table class="pure-table pure-table-striped">
       <tr>
-        <th>Name</th>
-        <th>Name</th>
+        <th> <a href="#" data-bind="orderable: {collection: 'searchResults', field: '@{title}'}">Name</a> </th>
         @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
       </tr>
-      <!-- ko foreach: $data -->
+      <!-- ko foreach: searchResults -->
       <tr>
         <td> <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.library.LibraryController.viewQuestion(@{id}()).url, title : @{title}() }"> </a> </td>
         @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}

@@ -6,10 +6,9 @@
     <table class="pure-table pure-table-striped">
       <tr>
         <th>Name</th>
-        <th>Name</th>
         @for(skill <- skills){<th><span data-ot="@skill.name">@skill.short_name</span></th>}
       </tr>
-      <!-- ko foreach: $data -->
+      <!-- ko foreach: searchResults -->
       <tr>
         <td> <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.organization.CourseController.studentSelfQuestion(@organizationId.v, @courseId.v, @{id}()).url, title : @{title}() }"> </a> </td>
         @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}

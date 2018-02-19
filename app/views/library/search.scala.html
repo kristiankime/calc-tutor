@@ -1,5 +1,3 @@
-@(skills: Seq[models.quiz.Skill], initialLibraryEntries: Seq[controllers.library.QuestionLibrary.QuestionLibraryResponse], listDisplay: Html)(implicit user: models.user.User, request: Request[AnyContent])
-
 @import com.artclod.play.s
 @import controllers.library.QuestionLibrary.formatQuestionLibraryResponse
 @import controllers.library.QuestionLibrary.id
@@ -10,6 +8,7 @@
 @import play.api.libs.json.Json
 @import helper.CSRF
 
+@(skills: Seq[models.quiz.Skill], initialLibraryEntries: Seq[controllers.library.QuestionLibrary.QuestionLibraryResponse], listDisplay: Html)(implicit user: models.user.User, request: Request[AnyContent])
 
   <h2> Question Library Search</h2>
 
@@ -44,7 +43,7 @@
       var data = @Html(Json.toJson(initialLibraryEntries).toString);
 
       // Turn it into a view model
-      var viewModel = ko.mapping.fromJS(data);
+      var viewModel = ko.mapping.fromJS({ searchResults : data});
 
       // https://stackoverflow.com/questions/16291456/knockout-checkboxes-with-array
       var @requiredSkills = ko.observableArray();
@@ -81,7 +80,7 @@
               contentType: "application/json; charset=utf-8",
               data: JSON.stringify(ko.mapping.toJS(QL.searchViewModel)),
               success: function(data) {
-                  ko.mapping.fromJS(data, QL.viewModel);
+                  ko.mapping.fromJS({ searchResults : data}, QL.viewModel);
               }
           });
       };
@@ -101,6 +100,6 @@
     }();
 
     // then applying bindings
-    ko.applyBindings(QL.viewModel,       document.getElementById("question-list"));
+    ko.applyBindings(QL.viewModel, document.getElementById("question-list"));
     ko.applyBindings(QL.searchViewModel, document.getElementById("question-list-search"));
   </script>
