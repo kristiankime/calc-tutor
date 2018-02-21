@@ -9,7 +9,7 @@ import controllers.organization.CourseJoin
 import controllers.quiz.{AnswerCreate, AnswerJson, QuestionCreate, QuizAvailability}
 import controllers.support.{Consented, RequireAccess}
 import dao.organization.{CourseDAO, OrganizationDAO}
-import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
+import dao.quiz._
 import dao.user.UserDAO
 import models._
 import models.organization.Course
@@ -25,7 +25,7 @@ import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
 import controllers.library.QuestionLibrary.QuestionLibraryResponse
-import models.quiz.{AnswerFrame, Question, QuestionFrame, Skill}
+import models.quiz._
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.twirl.api.Html
 import views.html.library.list.libraryList
@@ -117,32 +117,52 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
   def questionListAjax() = Action.async { request =>
     request.body.asJson.map { jsonBody =>
-      jsonBody.validate[QuestionLibraryRequest].map { questionListRequest =>
-        questionDAO.questionSearchSet(questionListRequest.titleQuery, questionListRequest.requiredSkills, questionListRequest.bannedSkills).map(qsl => {
-          Ok(Json.toJson(QuestionLibraryResponses(qsl)))
-        })
-      }.recoverTotal { e => Future.successful(BadRequest("Detected error:" + JsError.toJson(e))) }
+      jsonBody.validate[QuestionLibraryRequest].map { qLR =>
+        qLR.student match {
+          case None => questionDAO.questionSearchSet(qLR.titleQuery, qLR.requiredSkills, qLR.bannedSkills).map(qsl => { Ok(Json.toJson(QuestionLibraryResponses(qsl))) })
+          case Some(studentId) => {
+            skillDAO.skillCountsMaps(UserId(studentId)).flatMap(skillCounts => {
+              questionDAO.questionSearchSet(qLR.titleQuery, qLR.requiredSkills, qLR.bannedSkills).map(qsl => {
+                Ok(Json.toJson(QuestionLibraryResponses(skillCounts, qsl)))
+              })
+            })
+          }
+        }
+      }.recoverTotal { e => Future.successful(BadRequest("Json Parse Error:" + JsError.toJson(e))) }
     }.getOrElse( Future.successful(BadRequest("Expecting Json data")))
   }
 
 }
 
 object QuestionLibraryResponses {
+
   def apply(qsl:  Seq[(Question, Set[Skill])]): Seq[QuestionLibraryResponse] = {
-    qsl.map(qs => QuestionLibraryResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name)))
+    qsl.map(qs => QuestionLibraryResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name), None))
   }
+
+  def apply(countsMap: Map[SkillId, UserAnswerCount], qsl: Seq[(Question, Set[Skill])]) = {
+    qsl.map(qs => {
+      val prob = PFAComputations.pfaProbability(countsMap, qs._2)
+      QuestionLibraryResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name), Some(prob))
+
+    })
+  }
+
 }
 
 object QuestionLibrary {
+  // Request Fields
   val titleQuery = "titleQuery"
   val requiredSkills = "requiredSkills"
   val bannedSkills = "bannedSkills"
+  val student = "student"
+  // Response Fields
   val id = "id"
   val title = "title"
   val skills = "skills"
 
-  case class QuestionLibraryRequest(titleQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String])
-  case class QuestionLibraryResponse(id: Long, title: String, skills: Set[String])
+  case class QuestionLibraryRequest(titleQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String], student: Option[Long])
+  case class QuestionLibraryResponse(id: Long, title: String, skills: Set[String], chance: Option[Double])
 
   implicit val formatQuestionLibraryRequest = Json.format[QuestionLibraryRequest]
   implicit val formatQuestionLibraryResponse = Json.format[QuestionLibraryResponse]

@@ -147,16 +147,66 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   // ----- PFA Computations
   def pfaProbability(userId: UserId, questionId: QuestionId): Future[Double] =
     skillIdsFor(questionId).flatMap(skills => skillIdsMap.flatMap(skillData => skillCountsMaps(userId).map(skillCounts =>
-      pfaProbability(skills, skillData, skillCounts)
+      PFAComputations.pfaProbability(skills, skillData, skillCounts)
     )))
 
-  def pfaProbability(skills: Seq[SkillId], skillData: Map[SkillId, Skill], skillCounts: Map[SkillId, UserAnswerCount]): Double = {
+  // ----- Single User Skill Levels
+  def userSkillLevels(userId: UserId) : Future[Seq[(Skill, Double)]] =
+    allSkills.flatMap(as => userSkillLevels(userId, as))
+
+  def userSkillLevels(userId: UserId, allSkills: Seq[Skill]) : Future[Seq[(Skill, Double)]] =
+    skillCountsMaps(userId).map(skillCounts => userSkillLevels(allSkills, skillCounts))
+
+  def userSkillLevels(allSkills: Seq[Skill], skillCounts: Map[SkillId, UserAnswerCount]): Seq[(Skill, Double)] = {
+    allSkills.map(skillCoef => {
+      val skillCount = skillCounts.getOrElse(skillCoef.id, UserAnswerCount(null, skillCoef.id, 0 , 0))
+      (skillCoef, PFAComputations.skillComputationSigmoid(skillCoef, skillCount))
+    })
+  }
+
+  // ----- Group User Skill Levels
+  def usersSkillLevels(userIds: Seq[UserId]): Future[Seq[(Skill, Seq[Double])]] =
+    allSkills.flatMap(skills => usersSkillLevels(skills, userIds) )
+
+  def usersSkillLevels(allSkills: Seq[Skill], userIds: Seq[UserId]): Future[Seq[(Skill, Seq[Double])]] = {
+    val allUserSkillsFuture = db.run(UserAnswerCounts.filter(uac => uac.userId inSet userIds.toSet).result)
+
+    allUserSkillsFuture.map(allUserSkills => {
+      val allSkillsCountMap = allUserSkills.groupBy(_.skillId)
+
+      val allSkillsCountMapPadded = allSkillsCountMap.map(e => (e._1, e._2.padTo(userIds.size, UserAnswerCount(null, e._1, 0 , 0))) )
+
+      val allSkillsCounts = allSkills.map(sk =>
+        (sk, allSkillsCountMapPadded.getOrElse(sk.id, Seq.fill(userIds.size)(UserAnswerCount(null, sk.id, 0 , 0)))))
+
+      allSkillsCounts.map(sk => (sk._1, sk._2.map(PFAComputations.skillComputationSigmoid(sk._1,_)))  )
+    })
+  }
+
+  // ----- Single User and Group Skill Levels
+  def skillsLevelFor(userId: UserId, userIds: Seq[UserId]): Future[(Seq[(Skill, Double)], Seq[(Skill, Seq[Double])])] =
+    allSkills.flatMap(as =>
+      userSkillLevels(userId, as)
+        +#
+        usersSkillLevels(as, userIds) )
+
+}
+
+
+object PFAComputations {
+
+
+  def pfaProbability(skills: Iterable[SkillId], skillData: Map[SkillId, Skill], skillCounts: Map[SkillId, UserAnswerCount]): Double = {
     // http://pact.cs.cmu.edu/koedinger/pubs/AIED%202009%20final%20Pavlik%20Cen%20Keodinger%20corrected.pdf
     val m = pfaM(skills, skillData, skillCounts)
     1 / (1 + math.exp(-m))
   }
 
-  def pfaM(skills: Seq[SkillId], skillData: Map[SkillId, Skill], skillCounts: Map[SkillId, UserAnswerCount]): Double = {
+  def pfaProbability(countsMap: Map[SkillId, UserAnswerCount], skills: Iterable[Skill]): Double = {
+    pfaProbability(skills.map(_.id), skills.groupBy(_.id).mapValues(_.head), countsMap)
+  }
+
+  def pfaM(skills: Iterable[SkillId], skillData: Map[SkillId, Skill], skillCounts: Map[SkillId, UserAnswerCount]): Double = {
     skills.map(s => {
       val skillCoef = Objects.requireNonNull(skillData(s), "Skill id " + s + " was not in skillData coding error")
       val skillCount = skillCounts.getOrElse(s, UserAnswerCount(null, s, 0 , 0))
@@ -172,45 +222,4 @@ class SkillDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   def skillComputation(skillCoef: Skill, skillCount: UserAnswerCount) = // http://pact.cs.cmu.edu/koedinger/pubs/AIED%202009%20final%20Pavlik%20Cen%20Keodinger%20corrected.pdf
     skillCoef.β + (skillCount.correct * skillCoef.γ) + (skillCount.incorrect * skillCoef.ρ)
 
-  // ----- Single User Skill Levels
-  def userSkillLevels(userId: UserId) : Future[Seq[(Skill, Double)]] =
-    allSkills.flatMap(as => userSkillLevels(userId, as))
-
-  def userSkillLevels(userId: UserId, allSkills: Seq[Skill]) : Future[Seq[(Skill, Double)]] =
-    skillCountsMaps(userId).map(skillCounts => userSkillLevels(allSkills, skillCounts))
-
-  def userSkillLevels(allSkills: Seq[Skill], skillCounts: Map[SkillId, UserAnswerCount]): Seq[(Skill, Double)] = {
-    allSkills.map(skillCoef => {
-      val skillCount = skillCounts.getOrElse(skillCoef.id, UserAnswerCount(null, skillCoef.id, 0 , 0))
-      (skillCoef, skillComputationSigmoid(skillCoef, skillCount))
-    })
-  }
-
-  // ----- Group User Skill Levels
-  def usersSkillLevels(userIds: Seq[UserId]): Future[Seq[(Skill, Seq[Double])]] =
-    allSkills.flatMap(skills => { usersSkillLevels(skills, userIds) })
-
-  def usersSkillLevels(allSkills: Seq[Skill], userIds: Seq[UserId]): Future[Seq[(Skill, Seq[Double])]] = {
-    val allUserSkillsFuture = db.run(UserAnswerCounts.filter(uac => uac.userId inSet userIds.toSet).result)
-
-    allUserSkillsFuture.map(allUserSkills => {
-      val allSkillsCountMap = allUserSkills.groupBy(_.skillId)
-
-      val allSkillsCountMapPadded = allSkillsCountMap.map(e => (e._1, e._2.padTo(userIds.size, UserAnswerCount(null, e._1, 0 , 0))) )
-
-      val allSkillsCounts = allSkills.map(sk =>
-        (sk, allSkillsCountMapPadded.getOrElse(sk.id, Seq.fill(userIds.size)(UserAnswerCount(null, sk.id, 0 , 0)))))
-
-      allSkillsCounts.map(sk => (sk._1, sk._2.map(skillComputationSigmoid(sk._1,_)))  )
-    })
-  }
-
-  // ----- Single User and Group Skill Levels
-  def skillsLevelFor(userId: UserId, userIds: Seq[UserId]): Future[(Seq[(Skill, Double)], Seq[(Skill, Seq[Double])])] =
-    allSkills.flatMap(as =>
-      userSkillLevels(userId, as)
-        +#
-        usersSkillLevels(as, userIds) )
-
 }
-

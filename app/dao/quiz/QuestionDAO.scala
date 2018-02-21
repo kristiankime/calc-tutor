@@ -119,6 +119,22 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     })
   }
 
+//  def questionSearchSet(nameQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String]): Future[Seq[(Question, Set[Skill])]] = {
+//    val req = requiredSkills.toSet
+//    val ban = bannedSkills.toSet
+//
+//    val ret = questionSearch(nameQuery).map(s => s.groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.toSet).toSeq)
+//
+//    ret.map(questionList => {
+//      questionList.filter(question => {
+//        val skillsForQuestion = question._2.map(_.name).toSet
+//        val reqPass = req.subsetOf(skillsForQuestion)
+//        val banPass = ban.intersect(skillsForQuestion).isEmpty
+//        reqPass && banPass
+//      })
+//    })
+//  }
+
 
   // ====== Create ======
   def insert(questionFrame: QuestionFrame) : Future[QuestionFrame] = {
