@@ -5,10 +5,11 @@
 @import controllers.library.QuestionLibrary.titleQuery
 @import controllers.library.QuestionLibrary.requiredSkills
 @import controllers.library.QuestionLibrary.bannedSkills
+@import controllers.library.QuestionLibrary.student
 @import play.api.libs.json.Json
 @import helper.CSRF
 
-@(skills: Seq[models.quiz.Skill], initialLibraryEntries: Seq[controllers.library.QuestionLibrary.QuestionLibraryResponse], listDisplay: Html)(implicit user: models.user.User, request: Request[AnyContent])
+@(skills: Seq[models.quiz.Skill], initialLibraryEntries: Seq[controllers.library.QuestionLibrary.QuestionLibraryResponse], listDisplay: Html, forStudent: Option[UserId] = None)(implicit user: models.user.User, request: Request[AnyContent])
 
   <h2> Question Library Search</h2>
 
@@ -49,7 +50,7 @@
       var @requiredSkills = ko.observableArray();
       var @bannedSkills = ko.observableArray();
       var @titleQuery = ko.observable("%");
-      var searchViewModel = { @requiredSkills : @requiredSkills, @titleQuery : @titleQuery, @bannedSkills : @bannedSkills };
+      var searchViewModel = { @requiredSkills : @requiredSkills, @titleQuery : @titleQuery, @bannedSkills : @bannedSkills @for(id <- forStudent){, @{student} : @{id.v}} };
 
       var skillIndicator = function(skillsList, skillName) {
         return skillsList.includes(skillName) ? '@tag.icon("icon-checkmark3")' : '@*tag.icon("icon-cross")*@ ';

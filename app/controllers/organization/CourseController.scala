@@ -123,7 +123,9 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
     (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ skillDAO.allSkills +^ questionDAO.questionSearchSet("%", Seq(), Seq()) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((organization, course, access, allSkills, libraryQuestions)) => {
-        Future.successful( Ok(views.html.organization.studentSelfQuizForCourse(access, course, allSkills, QuestionLibraryResponses(libraryQuestions))) )
+        skillDAO.skillCountsMaps(user.id).flatMap(skillCounts => {
+          Future.successful(Ok(views.html.organization.studentSelfQuizForCourse(access, course, allSkills, QuestionLibraryResponses(skillCounts, libraryQuestions))))
+         })
       } } }
 
   } } } }

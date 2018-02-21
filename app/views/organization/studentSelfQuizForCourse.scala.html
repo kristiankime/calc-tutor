@@ -20,5 +20,5 @@
     <h2>Welcome to the self quiz page for course: @course.name </h2>
 
     <h3> Pick a Question to answer </h3>
-    @views.html.library.search(skills, initialLibraryEntries, views.html.library.list.selfQuizList(course.organizationId, course.id, skills))
+    @views.html.library.search(skills, initialLibraryEntries, views.html.library.list.selfQuizList(course.organizationId, course.id, skills), Some(user.id))
 }

@@ -86,3 +86,16 @@ ko.bindingHandlers.datetimeLocalPicker = {
 //         element.value = value().toLocalISOStringNoZ();
 //     }
 // };
+
+
+// https://stackoverflow.com/questions/7704268/formatting-rules-for-numbers-in-knockoutjs#7705174
+ko.bindingHandlers.numericText = {
+    update: function(element, valueAccessor, allBindingsAccessor) {
+        var value = ko.utils.unwrapObservable(valueAccessor());
+        var precision = ko.utils.unwrapObservable(allBindingsAccessor().precision) || ko.bindingHandlers.numericText.defaultPrecision;
+        var formattedValue = value.toFixed(precision);
+
+        ko.bindingHandlers.text.update(element, function() { return formattedValue; });
+    },
+    defaultPrecision: 2
+};

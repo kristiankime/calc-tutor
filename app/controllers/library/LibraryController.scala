@@ -160,6 +160,7 @@ object QuestionLibrary {
   val id = "id"
   val title = "title"
   val skills = "skills"
+  val chance = "chance"
 
   case class QuestionLibraryRequest(titleQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String], student: Option[Long])
   case class QuestionLibraryResponse(id: Long, title: String, skills: Set[String], chance: Option[Double])
