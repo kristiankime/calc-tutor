@@ -2,10 +2,39 @@
 
 
 @boxedContent("Sign in Username and Password") {
-    <form action="@formClient.getCallbackUrl" method="POST">
-        Name <input type="text" name="username" value="" /> <p />
-        Password <input type="password" name="password" value="" /> <p />
-        <input type="submit" name="submit" value="Submit" />
+    <form action="@formClient.getCallbackUrl" method="POST" id="login-form">
+        Name <input type="text" name="username" data-bind="textInput: name" /> <p />
+        Password <input type="password" name="password" data-bind="textInput: password" /> <p />
+        <input type="submit" class="pure-button" value="Submit" onclick="return LI.submit()">
         @views.html.helper.CSRF.formField(request)
     </form>
+    <script>
+        var LI = function(){
+            var name = ko.observable("");
+            var password = ko.observable("");
+
+            var submit = function(){
+                if(name() === "") {
+                    window.alert("name can't be empty");
+                    return false;
+                } else if(password() === "") {
+                    window.alert("password can't be empty");
+                    return false;
+                } else {
+                    // $("#login-form").submit();
+                    return true;
+                }
+            };
+
+            return {
+                submit : submit,
+                viewModel : {
+                    name: name,
+                    password: password
+                }
+            };
+        }();
+
+        ko.applyBindings(LI.viewModel, document.getElementById("login-form"));
+    </script>
 }
