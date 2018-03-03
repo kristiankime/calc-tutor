@@ -182,8 +182,8 @@ class SkillDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val skillLevels = skillDAO.userSkillLevels(Seq(skill0, skill1), Map((skill0.id, countsFor0)))
 
       skillLevels mustBe Seq(
-        (skill0, skillDAO.skillComputationSigmoid(skill0, countsFor0)),
-        (skill1, skillDAO.skillComputationSigmoid(skill1, UserAnswerCount(null, skill1.id, 0, 0)))
+        (skill0, PFAComputations.skillComputationSigmoid(skill0, countsFor0)),
+        (skill1, PFAComputations.skillComputationSigmoid(skill1, UserAnswerCount(null, skill1.id, 0, 0)))
       )
     }
 
@@ -204,8 +204,8 @@ class SkillDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val skillLevels = skillDAO.userSkillLevels(Seq(skill0, skill1), Map((skill0.id, countsFor0)))
 
       skillLevels mustBe Seq(
-        (skill0, skillDAO.skillComputationSigmoid(skill0, countsFor0)),
-        (skill1, skillDAO.skillComputationSigmoid(skill1, UserAnswerCount(null, skill1.id, 0, 0)))
+        (skill0, PFAComputations.skillComputationSigmoid(skill0, countsFor0)),
+        (skill1, PFAComputations.skillComputationSigmoid(skill1, UserAnswerCount(null, skill1.id, 0, 0)))
       )
     }
 

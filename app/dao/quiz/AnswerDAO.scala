@@ -3,11 +3,14 @@ package dao.quiz
 import javax.inject.{Inject, Singleton}
 
 import com.artclod.mathml.scalar.MathMLElem
+import com.artclod.slick.NumericBoolean
 import dao.ColumnTypeMappings
+import dao.quiz.table.AnswerTables
 import dao.user.UserDAO
 import models._
 import models.quiz.{AnswerPart, _}
 import models.support.HasOrder
+import models.user.User
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
@@ -23,15 +26,15 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO, protected val questionDAO: QuestionDAO, protected val skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userDAO: UserDAO, protected val questionDAO: QuestionDAO, protected val skillDAO: SkillDAO, protected val answerTables: AnswerTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
 
   // * ====== TABLE INSTANCES ====== *
-  val Answers = lifted.TableQuery[AnswerTable]
-  val AnswerSections = lifted.TableQuery[AnswerSectionTable]
-  val AnswerParts = lifted.TableQuery[AnswerPartTable]
+  val Answers = answerTables.Answers
+  val AnswerSections = answerTables.AnswerSections
+  val AnswerParts = answerTables.AnswerParts
 
   // * ====== QUERIES ====== *
 
@@ -144,64 +147,84 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
       case _ => Future.successful(false)
     })
 
+
+  // ======= Results ======
+  def results(userIds: Seq[UserId], questionIds: Seq[QuestionId]): Future[Seq[(UserId, QuestionId, Option[Short])]] = db.run(
+    Answers.filter(a => a.ownerId.inSet(userIds) && a.questionId.inSet(questionIds)).
+      groupBy(a => (a.ownerId, a.questionId)).map{ case(ids, group) => (ids._1, ids._2, group.map(_.correct).max )}.result
+  )
+
+  def resultsTable(users: Seq[User], questions: Seq[Question]) = {
+    results(users.map(_.id), questions.map(_.id)).map(rs => {
+      val resultsMap: Map[(UserId, QuestionId), Option[Short]] = rs.groupBy(r => (r._1, r._2)).mapValues(_.head._3)
+      val rows: Seq[QuizResultTableRow] = users.map(u => QuizResultTableRow(u, questions.map(q => resultsMap.getOrElse((u.id, q.id), None).map(NumericBoolean(_)))))
+      QuizResultTable(questions, rows)
+    })
+  }
+
   // === Support ===
 
   // * ====== TABLE CLASSES ====== *
-  class AnswerTable(tag: Tag) extends Table[Answer](tag, "answer") {
-    def id = column[AnswerId]("id", O.PrimaryKey, O.AutoInc)
-    def ownerId = column[UserId]("owner_id")
-    def questionId = column[QuestionId]("question_id")
-    def correct = column[Short]("correct")
-    def creationDate = column[DateTime]("creation_date")
-
-    def ownerIdFK = foreignKey("answer_fk__owner_id", ownerId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionIdFK = foreignKey("answer_section_fk__question_id", questionId, questionDAO.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (id, ownerId, questionId, correct, creationDate) <> (Answer.tupled, Answer.unapply)
-  }
-
-  class AnswerSectionTable(tag: Tag) extends Table[AnswerSection](tag, "answer_section") {
-    // answer related ids
-    def id = column[AnswerSectionId]("id", O.PrimaryKey, O.AutoInc)
-    def answerId = column[AnswerId]("answer_id")
-    // question related ids
-    def questionSectionId = column[QuestionSectionId]("question_section_id")
-    def questionId = column[QuestionId]("question_id")
-    // non ids
-    def choice = column[Option[Short]]("choice")
-    def correctNum = column[Short]("correct")
-    def order = column[Short]("section_order")
-
-    def answerIdFK = foreignKey("answer_section_fk__answer_id", answerId, Answers)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionSectionIdFK = foreignKey("answer_section_fk__question_section_id", questionSectionId, questionDAO.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionIdFK = foreignKey("answer_section_fk__question_id", questionId, questionDAO.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (id, answerId, questionSectionId, questionId, choice, correctNum, order) <> (AnswerSection.tupled, AnswerSection.unapply)
-  }
-
-  class AnswerPartTable(tag: Tag) extends Table[AnswerPart](tag, "answer_part") {
-    // answer related ids
-    def id = column[AnswerPartId]("id", O.PrimaryKey, O.AutoInc)
-    def answerSectionId = column[AnswerSectionId]("answer_section_id")
-    def answerId = column[AnswerId]("answer_id")
-    // question related ids
-    def questionPartId = column[QuestionPartId]("question_part_id")
-    def questionSectionId = column[QuestionSectionId]("question_section_id")
-    def questionId = column[QuestionId]("question_id")
-    // non ids
-    def functionRaw = column[String]("function_raw")
-    def functionMath = column[MathMLElem]("function_math")
-    def correctNum = column[Short]("correct")
-    def order = column[Short]("part_order")
-
-    def answerSectionIdFK = foreignKey("answer_part_fk__answer_section_id", questionSectionId, questionDAO.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def answerIdFK = foreignKey("answer_part_fk__answer_id", answerId, Answers)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionPartIdFK = foreignKey("answer_part_fk__question_part_id", questionPartId, questionDAO.QuestionPartFunctions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionSectionIdFK = foreignKey("answer_part_fk__question_section_id", questionSectionId, questionDAO.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionIdFK = foreignKey("answer_part_fk__question_id", questionId, questionDAO.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-
-    def * = (id, answerSectionId, answerId, questionPartId, questionSectionId, questionId, functionRaw, functionMath, correctNum, order) <> (AnswerPart.tupled, AnswerPart.unapply)
-  }
+//  class AnswerTable(tag: Tag) extends Table[Answer](tag, "answer") {
+//    def id = column[AnswerId]("id", O.PrimaryKey, O.AutoInc)
+//    def ownerId = column[UserId]("owner_id")
+//    def questionId = column[QuestionId]("question_id")
+//    def correct = column[Short]("correct")
+//    def creationDate = column[DateTime]("creation_date")
+//
+//    def ownerIdFK = foreignKey("answer_fk__owner_id", ownerId, userDAO.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//    def questionIdFK = foreignKey("answer_section_fk__question_id", questionId, questionDAO.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//
+//    def * = (id, ownerId, questionId, correct, creationDate) <> (Answer.tupled, Answer.unapply)
+//  }
+//
+//  class AnswerSectionTable(tag: Tag) extends Table[AnswerSection](tag, "answer_section") {
+//    // answer related ids
+//    def id = column[AnswerSectionId]("id", O.PrimaryKey, O.AutoInc)
+//    def answerId = column[AnswerId]("answer_id")
+//    // question related ids
+//    def questionSectionId = column[QuestionSectionId]("question_section_id")
+//    def questionId = column[QuestionId]("question_id")
+//    // non ids
+//    def choice = column[Option[Short]]("choice")
+//    def correctNum = column[Short]("correct")
+//    def order = column[Short]("section_order")
+//
+//    def answerIdFK = foreignKey("answer_section_fk__answer_id", answerId, Answers)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//    def questionSectionIdFK = foreignKey("answer_section_fk__question_section_id", questionSectionId, questionDAO.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//    def questionIdFK = foreignKey("answer_section_fk__question_id", questionId, questionDAO.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//
+//    def * = (id, answerId, questionSectionId, questionId, choice, correctNum, order) <> (AnswerSection.tupled, AnswerSection.unapply)
+//  }
+//
+//  class AnswerPartTable(tag: Tag) extends Table[AnswerPart](tag, "answer_part") {
+//    // answer related ids
+//    def id = column[AnswerPartId]("id", O.PrimaryKey, O.AutoInc)
+//    def answerSectionId = column[AnswerSectionId]("answer_section_id")
+//    def answerId = column[AnswerId]("answer_id")
+//    // question related ids
+//    def questionPartId = column[QuestionPartId]("question_part_id")
+//    def questionSectionId = column[QuestionSectionId]("question_section_id")
+//    def questionId = column[QuestionId]("question_id")
+//    // non ids
+//    def functionRaw = column[String]("function_raw")
+//    def functionMath = column[MathMLElem]("function_math")
+//    def correctNum = column[Short]("correct")
+//    def order = column[Short]("part_order")
+//
+//    def answerSectionIdFK = foreignKey("answer_part_fk__answer_section_id", questionSectionId, questionDAO.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//    def answerIdFK = foreignKey("answer_part_fk__answer_id", answerId, Answers)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//    def questionPartIdFK = foreignKey("answer_part_fk__question_part_id", questionPartId, questionDAO.QuestionPartFunctions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//    def questionSectionIdFK = foreignKey("answer_part_fk__question_section_id", questionSectionId, questionDAO.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//    def questionIdFK = foreignKey("answer_part_fk__question_id", questionId, questionDAO.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+//
+//    def * = (id, answerSectionId, answerId, questionPartId, questionSectionId, questionId, functionRaw, functionMath, correctNum, order) <> (AnswerPart.tupled, AnswerPart.unapply)
+//  }
 
 }
+
+case class QuizResultTable(questions: Seq[Question], rows : Seq[QuizResultTableRow]) {
+  for(row <- rows) { if(questions.size != row.results.size) { throw new IllegalArgumentException("Rows did not match header size") } }
+}
+case class QuizResultTableRow(user: User, results: Seq[Option[Boolean]])
 

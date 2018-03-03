@@ -4,8 +4,8 @@ import java.util.concurrent.TimeUnit
 
 import com.artclod.markup.Markdowner
 import com.artclod.mathml.MathML
-import com.artclod.slick.JodaUTC
-import models.{QuizId, UserId}
+import com.artclod.slick.{JodaUTC, NumericBoolean}
+import models._
 import models.organization.{Course, Organization}
 import models.quiz.{QuestionFrame, QuestionPartChoice, QuestionPartFunction, _}
 import models.user.User
@@ -93,6 +93,20 @@ object TestData {
   }
 
   // ===== Answer Frame =====
+  def answerFrameSimple(questionFrame: QuestionFrame, userId : UserId, correct: Boolean, creationDate : DateTime = JodaUTC.zero): AnswerFrame = {
+    // Here we assume the question was created by questionFrameSimple
+    val qSection0 = questionFrame.sections(0)
+    val qSection0Part0 = qSection0.parts.right.get(0)
 
+    val part = answerPart(if(correct){"<cn>1</cn>"}else{"<cn>0</cn>"}, qSection0Part0.id, qSection0.section.id, questionFrame.question.id, correct, 0)
+    val section = answerSection(None, qSection0.section.id, questionFrame.question.id, correct, 0)
+    val sections = Vector(AnswerSectionFrame(section, Vector(part), false))
+    val answer = Answer(null, userId, questionFrame.question.id,  NumericBoolean(correct), creationDate)
+    AnswerFrame(answer, sections, false)
+  }
+
+  def answerSection(choice: Option[Short], questionSectionId : QuestionSectionId, questionId: QuestionId, correct : Boolean, order: Short) = AnswerSection(null, null, questionSectionId, questionId, choice, NumericBoolean(correct), order)
+
+  def answerPart(function: String, questionPartId: QuestionPartId, questionSectionId : QuestionSectionId, questionId: QuestionId, correct : Boolean, order: Short = -1) = AnswerPart(null, null, null, questionPartId, questionSectionId, questionId, function, MathML(function).get, NumericBoolean(correct), order)
 
 }

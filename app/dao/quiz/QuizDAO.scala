@@ -155,5 +155,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     (for { c2z <- Courses2Quizzes if c2z.quizId === quiz.id && c2z.courseId === courseId } yield c2z.viewHide ).update(view)
   }
 
+  // ====== Reseluts ======
+
 }
 
