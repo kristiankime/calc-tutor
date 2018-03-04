@@ -121,6 +121,38 @@ class AnswerDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
         ))
     }
 
+    "return results for requested users, user are counted as answering a question correct as long as they have done so at least once" in {
+      val (userDAO, quizDAO, organizationDAO, courseDAO, questionDAO, skillDAO, answerDAO) = app.injector.instanceOf7[UserDAO, QuizDAO, OrganizationDAO, CourseDAO, QuestionDAO, SkillDAO, AnswerDAO]
+
+      val user0 = TestData.await(userDAO.insert(TestData.user(0)))
+      val user1 = TestData.await(userDAO.insert(TestData.user(1)))
+
+      val skill0 = TestData.await(skillDAO.insert(Skill(null, "0", "s0", 0, 0, 0)))
+      val skill1 = TestData.await(skillDAO.insert(Skill(null, "1", "s1", 0, 0, 0)))
+
+      val question0 = TestData.await(questionDAO.insert(TestData.questionFrameSimple("q0", userId = user0.id, skills = Vector(skill0, skill1))))
+      val question1 = TestData.await(questionDAO.insert(TestData.questionFrameSimple("q1", userId = user0.id, skills = Vector(skill0, skill1))))
+
+      val user0question0answer0 = TestData.await(answerDAO.insert(TestData.answerFrameSimple(question0, user0.id, false)))
+      val user0question0answer1 = TestData.await(answerDAO.insert(TestData.answerFrameSimple(question0, user0.id, true)))
+
+      val user1question0answer0 = TestData.await(answerDAO.insert(TestData.answerFrameSimple(question0, user1.id, false)))
+
+      val user1question1answer0 = TestData.await(answerDAO.insert(TestData.answerFrameSimple(question1, user1.id, true)))
+      val user1question1answer1 = TestData.await(answerDAO.insert(TestData.answerFrameSimple(question1, user1.id, false)))
+      val user1question1answer2 = TestData.await(answerDAO.insert(TestData.answerFrameSimple(question1, user1.id, true)))
+
+
+      TestData.await(answerDAO.resultsTable(Seq(user0, user1), Seq(question0.question, question1.question))).mustBe(
+        QuizResultTable(Seq(question0.question, question1.question),
+          Seq(
+            QuizResultTableRow(user0, Seq(Some(true),  None)),
+            QuizResultTableRow(user1, Seq(Some(false), Some(true)))
+          )
+        ))
+    }
+
+
   }
 
 }
