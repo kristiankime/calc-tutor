@@ -121,7 +121,7 @@
     <h3> Student Results </h3>
 
     <table class="pure-table pure-table-striped">
-        <tr> <th> Student </th> @for(q <- quizResultTable.questions){ <th> @q.title.take(10) </th> } </tr>
+        <tr> <th> Student </th> @for(q <- quizResultTable.questions){ <th> <span data-ot="@q.title">@q.title.take(10)</span> </th> } </tr>
         @for(r <- quizResultTable.rows) {
         <tr>
             <td> @r.user.nameDisplay() </td> @for(e <- r.results) { <td> @e </td> }
