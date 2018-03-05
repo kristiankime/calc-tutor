@@ -1,0 +1,23 @@
+@import models.organization.Course2Quiz
+@import helper._
+@import com.artclod.play._
+@import controllers.quiz.QuizRename
+@import controllers.quiz.QuizAvailability
+@import com.artclod.slick.JodaUTC
+@import org.joda.time.DateTime
+@import controllers.quiz.MinimalQuestionJson
+@import controllers.quiz.MinimalQuestionJson.id
+@import controllers.quiz.MinimalQuestionJson.title
+@import play.api.libs.json.Json
+
+@(access: models.Access,
+        course: models.organization.Course,
+        quiz: models.quiz.Quiz,
+        course2Quiz: Course2Quiz,
+        questions: Seq[models.quiz.Question],
+        answerOp: Option[models.quiz.Answer]
+)(implicit request: Request[AnyContent],  user: models.user.User)
+
+@mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
+@views.html.quiz.viewQuizForCourseCore(access, course, quiz, course2Quiz, questions, answerOp)
+}

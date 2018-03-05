@@ -1,0 +1,141 @@
+@import models.organization.Course2Quiz
+@import helper._
+@import com.artclod.play._
+@import controllers.quiz.QuizRename
+@import controllers.quiz.QuizAvailability
+@import com.artclod.slick.JodaUTC
+@import org.joda.time.DateTime
+@import controllers.quiz.MinimalQuestionJson
+@import controllers.quiz.MinimalQuestionJson.id
+@import controllers.quiz.MinimalQuestionJson.title
+@import play.api.libs.json.Json
+@import dao.quiz.QuizResultTable
+
+@(access: models.Access,
+        course: models.organization.Course,
+        quiz: models.quiz.Quiz,
+        course2Quiz: Course2Quiz,
+        questions: Seq[models.quiz.Question],
+        answerOp: Option[models.quiz.Answer],
+        skills: Seq[models.quiz.Skill],
+        initialLibraryEntries: Seq[controllers.library.QuestionLibrary.QuestionLibraryResponse],
+        quizResultTable: QuizResultTable
+)(implicit request: Request[AnyContent],  user: models.user.User)
+
+@mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
+@views.html.quiz.viewQuizForCourseCore(access, course, quiz, course2Quiz, questions, answerOp)
+
+
+    <h5> Rename </h5>
+    @form(controllers.quiz.routes.QuizController.rename(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
+        To rename type a new name here <input type="text" name="@QuizRename.name" value="@quiz.name"> and click <input class="pure-button" type="submit" value="rename" >
+        @views.html.helper.CSRF.formField
+    }
+
+    <div id="attach-quiz">
+    <h5> Availability </h5>
+    @form(controllers.quiz.routes.QuizController.updateAvailability(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
+        Update the availability of the quiz below <br>
+
+        <label for="@QuizAvailability.viewHide"> Hide:
+            <input type="checkbox" name="@QuizAvailability.viewHide" value="true" @if(course2Quiz.viewHide){checked} />
+            <input type="hidden" name="@QuizAvailability.viewHide" value="false"/> <br>
+        </label>
+        <!-- start date -->
+        <label for="@QuizAvailability.useStartDate">Use Start:
+            <input type="checkbox" name="@QuizAvailability.useStartDate" value="true"  data-bind="checked: @QuizAvailability.useStartDate" />
+            <input type="hidden"   name="@QuizAvailability.useStartDate" value="false"/>
+        </label>
+        <label for="@{QuizAvailability.startDate}View">Date: <input id="@{QuizAvailability.startDate}View" type="datetime-local" name="@{QuizAvailability.startDate}View" data-bind="datetimeLocalPicker : @{QuizAvailability.startDate}View, enable : @QuizAvailability.useStartDate" ></label>
+        <input type="hidden" name="@QuizAvailability.startDate" data-bind="value : @QuizAvailability.startDate" />
+        <br>
+        <!-- end date -->
+        <label for="@QuizAvailability.useEndDate">Use End:
+            <input type="checkbox" name="@QuizAvailability.useEndDate" value="true"  data-bind="checked: @QuizAvailability.useEndDate" />
+            <input type="hidden"   name="@QuizAvailability.useEndDate" value="false"/>
+        </label>
+        <label for="@{QuizAvailability.endDate}View">Date: <input id="@{QuizAvailability.endDate}View" type="datetime-local" name="@{QuizAvailability.endDate}View" data-bind="datetimeLocalPicker : @{QuizAvailability.endDate}View, enable : @QuizAvailability.useEndDate"></label>
+        <input type="hidden" name="@QuizAvailability.endDate" data-bind="value : @QuizAvailability.endDate" />
+        <br>
+
+        and click <input class="pure-button" type="submit" value="Update Availability" >
+        @views.html.helper.CSRF.formField
+    }
+    </div>
+
+
+    <script>
+        var AZ = (function() {
+            @defining(course2Quiz.startDate.getOrElse(JodaUTC.currentDay)){ start : DateTime =>
+            @defining(course2Quiz.endDate.getOrElse(JodaUTC.currentDay.plusDays(7))){ end : DateTime=>
+
+            var attachQuizModel = {
+                "@{QuizAvailability.viewHide}": ko.observable(@{course2Quiz.viewHide}),
+                // Start Date Values
+                "@{QuizAvailability.useStartDate}": ko.observable(@{course2Quiz.startDate.isDefined}),
+                "@{QuizAvailability.startDate}View": ko.observable(@tag.localDate(start)),
+                // End Date Values
+                "@{QuizAvailability.useEndDate}": ko.observable(@{course2Quiz.endDate.isDefined}),
+                "@{QuizAvailability.endDate}View": ko.observable(@tag.localDate(end))
+            };
+
+            }
+            }
+
+            attachQuizModel.@{QuizAvailability.startDate} = ko.computed(function () {
+                if(attachQuizModel.@{QuizAvailability.startDate}View().isValid()) {
+                    return attachQuizModel.@{QuizAvailability.startDate}View().toISOString();
+                } else {
+                    return null;
+                }
+            }, attachQuizModel);
+
+            attachQuizModel.@{QuizAvailability.endDate} = ko.computed(function () {
+                if(attachQuizModel.@{QuizAvailability.startDate}View().isValid()) {
+                    return attachQuizModel.@{QuizAvailability.endDate}View().toISOString();
+                } else {
+                    return null;
+                }
+            }, attachQuizModel);
+
+            // Make sure the end date is always after the start date
+            attachQuizModel.@{QuizAvailability.startDate}View.subscribe(function(newValue) {
+                if(attachQuizModel.@{QuizAvailability.startDate}View() >= attachQuizModel.@{QuizAvailability.endDate}View()) {
+                    attachQuizModel.@{QuizAvailability.endDate}View(attachQuizModel.@{QuizAvailability.startDate}View().plusDays(1));
+                }
+            });
+
+            // Make sure the start date is always before the end date
+            attachQuizModel.@{QuizAvailability.endDate}View.subscribe(function(newValue) {
+                if(attachQuizModel.@{QuizAvailability.endDate}View() <= attachQuizModel.@{QuizAvailability.startDate}View()) {
+                    attachQuizModel.@{QuizAvailability.startDate}View(attachQuizModel.@{QuizAvailability.endDate}View().plusDays(-1));
+                }
+            });
+
+            ko.applyBindings(attachQuizModel, document.getElementById("attach-quiz"));
+
+            return { viewModel : attachQuizModel };
+        }());
+    </script>
+
+    <h3> Student Results </h3>
+
+    <table class="pure-table pure-table-striped">
+        <tr> <th> Student </th> @for(q <- quizResultTable.questions){ <th> @q.title.take(10) </th> } </tr>
+        @for(r <- quizResultTable.rows) {
+        <tr>
+            <td> @r.user.nameDisplay() </td> @for(e <- r.results) { <td> @e </td> }
+        </tr>
+        }
+    </table>
+
+    <h3> Add a Question </h3>
+
+    Pick a method for Adding a question:
+    @tag.switch("addQuestionSwitch", 0,
+        ("Editor", views.html.quiz.question.questionEditor(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), skills.map(_.name))),
+        ("Json", views.html.quiz.question.questionJsonInput(controllers.quiz.routes.QuestionController.createCourseSubmit(course.organizationId, course.id, quiz.id), setOnModel=Some("viewModel"))),
+        ("Library", views.html.library.search(skills, initialLibraryEntries, views.html.library.list.quizList.apply(course.organizationId, course.id, quiz.id, skills, "CQL")))
+    )
+
+}

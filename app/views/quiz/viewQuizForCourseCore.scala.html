@@ -1,0 +1,132 @@
+@import models.organization.Course2Quiz
+@import helper._
+@import com.artclod.play._
+@import controllers.quiz.QuizRename
+@import controllers.quiz.QuizAvailability
+@import com.artclod.slick.JodaUTC
+@import org.joda.time.DateTime
+@import controllers.quiz.MinimalQuestionJson
+@import controllers.quiz.MinimalQuestionJson.id
+@import controllers.quiz.MinimalQuestionJson.title
+@import play.api.libs.json.Json
+
+@(access: models.Access,
+        course: models.organization.Course,
+        quiz: models.quiz.Quiz,
+        course2Quiz: Course2Quiz,
+        questions: Seq[models.quiz.Question],
+        answerOp: Option[models.quiz.Answer]
+)(implicit request: Request[AnyContent], user: models.user.User)
+
+    <h2>Welcome to the page for quiz: @quiz.name </h2>
+
+    @if(course2Quiz.startDate.isDefined || course2Quiz.endDate.isDefined) {
+        <div>
+            <h5> Timing </h5>
+            @for(startDate <- course2Quiz.startDate){This quiz starts on @tag.datetime(startDate)}
+            @if(course2Quiz.startDate.isDefined && course2Quiz.endDate.isDefined){and ends on}else{this quiz ends on}
+            @for(endDate <- course2Quiz.endDate){@tag.datetime(endDate)} <br>
+        </div>
+    }
+
+    @if(course2Quiz.currentlyHidden(access, JodaUTC.now)) {
+        <h4> The Quiz is currently unavailable</h4>
+        Please check again later.
+    } else {
+
+    <h4>There @are(questions) @questions.size Question@s(questions) in the quiz @tag.icon("icon-help", 'data_ot -> "Click a question to answer it")</h4>
+
+    @if(access.write){
+    <table class="pure-table pure-table-striped" id="quiz-questions">
+        <tr>
+            <th>Question</th>
+            <th>Remove</th>
+        </tr>
+        <!-- ko foreach: $data -->
+        <tr>
+            <td>
+                <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.quiz.QuestionController.view(@course.organizationId.v, @course.id.v, @quiz.id.v, @{id}()).url, title : @{title}() }" class="pure-button"></a>
+            </td>
+            <td>
+                <a class="pure-button" data-bind="click : function(){CQL.remove(@course.organizationId.v, @course.id.v, @quiz.id.v, @{id}())}"> Remove </a>
+            </td>
+        </tr>
+        <!-- /ko -->
+    </table>
+
+    <script>
+    var CQL = function() {
+        // Get the raw data into a var
+        var data = @Html(Json.toJson(MinimalQuestionJson(questions)).toString);
+
+        // Turn it into a view model
+        var viewModel = ko.mapping.fromJS(data);
+
+        // Create a function to remove questions
+        var remove = function(organizationId, courseId, quizId, questionId) {
+            // https://stackoverflow.com/questions/45470802/how-to-pass-along-csrf-token-in-an-ajax-post-request-for-a-form#45490899
+            var token =  $('input[name="csrfToken"]').attr('value');
+            $.ajaxSetup({
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('Csrf-Token', token);
+                }
+            });
+
+            var url = jsRoutes.controllers.quiz.QuestionController.removeAjax(organizationId, courseId, quizId, questionId).url; // https://www.playframework.com/documentation/2.5.x/ScalaJavascriptRouting
+
+            $.ajax({
+                dataType: "json",
+                url: url,
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(ko.mapping.toJS({})),
+                success: function(data) {
+                    ko.mapping.fromJS(data, CQL.viewModel);
+                }
+            });
+        };
+
+        var update = function(data) {
+            ko.mapping.fromJS(data, CQL.viewModel);
+        };
+
+        var CQL = {
+            viewModel : viewModel,
+            remove : remove,
+            update : update
+        };
+        return CQL;
+    }();
+
+    // then applying bindings
+    ko.applyBindings(CQL.viewModel, document.getElementById("quiz-questions"));
+    </script>
+
+    } else {
+    <table class="pure-table pure-table-striped">
+        <tr>
+            <th>Question</th>
+            @for(answer <- answerOp){<th>Correct</th>}
+            @if(access.write){<th>Remove</th>}
+        </tr>
+        @for(question <- questions){<tr>
+            <td>
+            @tag.courseQuestionLink(course, quiz, question, None)
+            </td>
+            @for(answer <- answerOp){
+                <td>
+                @tag.maybeIndicateCorrect(question, answer)
+                </td>
+            }
+            @if(access.write){
+                <td>
+                @form(controllers.quiz.routes.QuestionController.remove(course.organizationId, course.id, quiz.id, question.id), 'class -> "pure-form") {
+                    <input class="pure-button" type="submit" value="remove" > @views.html.helper.CSRF.formField
+                    }
+                </td>
+            }
+        </tr>}
+    </table>
+    }
+
+    }
