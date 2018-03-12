@@ -13,6 +13,8 @@ import org.joda.time.DateTime
 import org.pac4j.core.profile.CommonProfile
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.lifted
+import play.api.mvc.Result
+import play.api.mvc.Results.NotFound
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -47,6 +49,11 @@ class UserDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   }
 
   def byId(id : UserId): Future[Option[User]] = db.run(Users.filter(_.id === id).result.headOption)
+
+  def byIdEither(id : UserId): Future[Either[Result, User]] = db.run(Users.filter(_.id === id).result.headOption.map(_ match {
+    case Some(user) => Right(user)
+    case None => Left(NotFound(views.html.errors.notFoundPage("There was no user for user [" + id + "]" )))
+  }))
 
   def ensureByLoginId(profiles: List[CommonProfile]): Future[User] = ensureByLoginId(profiles.head) // TODO handle multiple profiles
 

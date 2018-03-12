@@ -39,6 +39,7 @@ case class AnswerSectionFrame(answerSection: AnswerSection, parts: Vector[Answer
     correctUnknown = correctUnknown
   )
 
+  def correct = parts.map(_.correct).fold(true)((a,b) => a && b)
 }
 
 object AnswerFrame {

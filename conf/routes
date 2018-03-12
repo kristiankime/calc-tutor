@@ -35,12 +35,9 @@ POST        /orgs/:o/courses/:c/quizzes                               controller
 GET         /orgs/:o/courses/:c/quizzes/:z                            controllers.quiz.QuizController.view(o: OrganizationId, c: CourseId, z: QuizId, a: Option[AnswerId])
 POST        /orgs/:o/courses/:c/quizzes/:z/rename                     controllers.quiz.QuizController.rename(o: OrganizationId, c: CourseId, z: QuizId)
 POST        /orgs/:o/courses/:c/quizzes/:z/availability               controllers.quiz.QuizController.updateAvailability(o: OrganizationId, c: CourseId, z: QuizId)
-
 #POST        /orgs/:o/courses/:c/quizzes/:z/attach/:q                  controllers.quiz.QuizController.attach(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 POST        /orgs/:o/courses/:c/quizzes/:z/attach/:q                  controllers.quiz.QuizController.attachAjax(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
-
 POST        /orgs/:o/courses/:c/quizzes/:z/remove                     controllers.quiz.QuizController.remove(o: OrganizationId, c: CourseId, z: QuizId)
-GET         /quizzes/:z/json                                          controllers.quiz.QuizController.quizJson(z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/:z/json                       controllers.quiz.QuizController.quizJsonCourse(o: OrganizationId, c: CourseId, z: QuizId)
 GET         /orgs/:o/courses/:c/quizzes/json/create                   controllers.quiz.QuizController.createJson(o: OrganizationId, c: CourseId)
 POST        /orgs/:o/courses/:c/quizzes/json/create                   controllers.quiz.QuizController.createSubmitJson(o: OrganizationId, c: CourseId)
@@ -65,6 +62,12 @@ POST        /orgs/:o/courses/:c/questions/:q/answers/create           controller
 POST        /orgs/:o/courses/:c/quizzes/:z/questions/:q/answers/create controllers.quiz.AnswerController.createCourseSubmit(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 
 # ----------------------
+# Student Summaries
+#GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q/student/:u     controllers.quiz.QuizController.studentSummary(o: OrganizationId, c: CourseId, z: QuizId, u: UserId)
+GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q/student/:s           controllers.quiz.QuestionController.studentSummary(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId, s: UserId)
+GET         /orgs/:o/courses/:c/quizzes/:z/questions/:q/answer/:a/student/:s  controllers.quiz.QuestionController.studentSummaryAnswerSpecified(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId, a: AnswerId, s: UserId)
+
+# ----------------------
 # Question library
 GET         /library                                                  controllers.library.LibraryController.list()
 GET         /library/create                                           controllers.library.LibraryController.createQuestionView()
@@ -72,6 +75,10 @@ POST        /library/create                                           controller
 GET         /library/question/:q                                      controllers.library.LibraryController.viewQuestion(q: QuestionId, a: Option[AnswerId])
 POST        /library/question/:q                                      controllers.library.LibraryController.answerQuestion(q: QuestionId)
 POST        /library/query                                            controllers.library.LibraryController.questionListAjax()
+
+# ----------------------
+# Quiz library
+GET         /quizzes/:z/json                                          controllers.quiz.QuizController.quizJson(z: QuizId)
 
 # ==============================
 # Auxiliary routes
@@ -104,5 +111,7 @@ GET         /auth/loginForm                                           controller
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                             controllers.Assets.versioned(path="/public", file: Asset)
+
+# Google site ownership verification (https://support.google.com/webmasters/answer/35179?hl=en)
 GET         /googleaea4ea0f93c23f36.html                              controllers.Assets.at(path="/public/google", file="googleaea4ea0f93c23f36.html")
 

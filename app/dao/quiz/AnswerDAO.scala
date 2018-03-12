@@ -70,6 +70,28 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     }) }) })
   }
 
+//  def correctOrLatest(questionId: QuestionId, userId: UserId): Future[Option[(Answer, Seq[Answer])]] =
+//    db.run(Answers.filter(a => a.questionId === questionId && a.ownerId === userId).sortBy(_.creationDate).result).map(answers => {
+//      if(answers.length == 0) {
+//        return None()
+//      } else {
+//      answers.find(_.correct) match {
+//        case Some(firstCorrectAnswer) => Some(firstCorrectAnswer, answers)
+//        case None => Some(answers.head, answers)
+//      }}
+//    })
+
+  def correctOrLatestEither(questionId: QuestionId, userId: UserId): Future[Either[Result,(Answer, Seq[Answer])]] =
+    db.run(Answers.filter(a => a.questionId === questionId && a.ownerId === userId).sortBy(_.creationDate).result).map(answers => {
+      if(answers.length == 0) {
+        return Future.successful( Left(NotFound(views.html.errors.notFoundPage("There was no answers for questionId=["+questionId+"] by user [" + userId + "]" ))) )
+      } else {
+        answers.find(_.correct) match {
+          case Some(firstCorrectAnswer) => Right( (firstCorrectAnswer, answers) )
+          case None => Right( (answers.head, answers) )
+        }}
+    })
+
   // ---
   def numberOfAttempts(userId: UserId, questionId: QuestionId): Future[Int] =
     db.run(Answers.filter(a => a.ownerId === userId && a.questionId === questionId).length.result)
@@ -105,16 +127,20 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   def frameByIdEither(questionId: QuestionId, answerIdOp: Option[AnswerId]): Future[Either[Result, Option[AnswerFrame]]] =
     answerIdOp match {
-      case Some(answerId) => frameById(answerId).map { _ match {
+      case Some(answerId) => frameByIdEither(questionId, answerId).map(_.right.map(Some(_)) )
+      case None => Future.successful(Right(None))
+    }
+
+  def frameByIdEither(questionId: QuestionId, answerId: AnswerId): Future[Either[Result, AnswerFrame]] =
+    frameById(answerId).map { _ match {
         case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+answerId+"]")))
         case Some(answer) =>
           if(answer.answer.questionId != questionId) {
             Left(NotFound(views.html.errors.notFoundPage("The answer for id=["+answerId+"] does not match the question for id=["+questionId+"]")))
           } else {
-            Right(Some(answer))
+            Right(answer)
           }
-      } }
-      case None => Future.successful(Right(None))
+      }
     }
 
   // ====== Create ======
@@ -154,6 +180,8 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
 
   // ======= Results ======
+
+  // ---- Table of users to questions ----
   def results(userIds: Seq[UserId], questionIds: Seq[QuestionId]): Future[Seq[(UserId, QuestionId, Option[Short])]] = db.run(
     Answers.filter(a => a.ownerId.inSet(userIds) && a.questionId.inSet(questionIds)).
       groupBy(a => (a.ownerId, a.questionId)).map{ case(ids, group) => (ids._1, ids._2, group.map(_.correct).max )}.result
@@ -167,19 +195,22 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     })
   }
 
-//  def resultsTable(users: Seq[User], quizId: QuizId): Future[QuizResultTable] = db.run {
-//    (for { q2z <- quizTables.Question2Quizzes; q <- questionTables.Questions if q2z.quizId === quizId && q2z.quizId === q.id } yield q).result
-//  }.flatMap( qs => resultsTable(users, qs) )
-
   def resultsTable(users: Seq[User], quiz: Quiz): Future[QuizResultTable] =
     quizDAO.questionSummariesFor(quiz).flatMap( qs => resultsTable(users, qs) )
 
   def resultsTable(course: Course, quiz: Quiz): Future[QuizResultTable] =
     courseDAO.studentsIn(course).flatMap(users => resultsTable(users, quiz) )
+
+  // ---- Single user summary for multiple questions ----
+//  def results(userId: UserId, questionIds: Seq[QuestionId]) = db.run(
+//    Answers.filter(a => a.ownerId === userId && a.questionId.inSet(questionIds)).
+//      groupBy(a => (a.ownerId, a.questionId)).map{ case(ids, group) => (ids._1, ids._2, group.map(_.correct).max )}.result
+//  )
+
+
 }
 
 case class QuizResultTable(questions: Seq[Question], rows : Seq[QuizResultTableRow]) {
   for(row <- rows) { if(questions.size != row.results.size) { throw new IllegalArgumentException("Rows did not match header size") } }
 }
 case class QuizResultTableRow(user: User, results: Seq[Option[Boolean]])
-

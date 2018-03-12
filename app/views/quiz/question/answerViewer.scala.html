@@ -1,0 +1,60 @@
+@import models.quiz.AnswerFrame
+@import models.quiz.QuestionFrame
+@import helper._
+@import com.artclod.play._
+@import controllers.quiz.AnswerCreate
+@import controllers.quiz.AnswerCreate.answerFormat
+@import controllers.quiz.AnswerCreate.choiceIndex
+@import controllers.quiz.AnswerCreate.functionRaw
+@import controllers.quiz.AnswerCreate.correct
+@import controllers.quiz.AnswerJson.correctUnknown
+@import controllers.quiz.AnswerJson.correctNo
+@import controllers.quiz.AnswerJson.correctBlank
+
+@(questionFrame: QuestionFrame, answerFrame : AnswerFrame)(implicit request: Request[AnyContent])
+
+<section>
+
+    @if(answerFrame.answer.correct) {
+        <div class="indicate-correct"> This answer was correct </div>
+    } else {
+        <div class="warning"> Some (or all) of the parts of this answer were incorrect </div>
+    }
+
+    <div class="answer-header">
+        <div class="item answer-title"> <h5> @questionFrame.question.title </h5> </div>
+        <div class="item answer-description"> @questionFrame.question.descriptionHtml </div>
+
+        @* ===== START SECTION ==== *@
+        @for(sectionQA <- questionFrame.sections.zip(answerFrame.sections)) {
+        <div class="span-answer-header answer-section">
+
+            <div class="item answer-explanation"> @sectionQA._1.section.explanationHtml @tag.lastAnswerPieceWasFixed(sectionQA._2.answerSection.correct) </div>
+            @* ===== START PARTS ==== *@
+            @sectionQA._1.parts match {
+
+            case Left(parts) => { @for(part <- parts.zipWithIndex) {
+            <div class="span-section answer-choice">
+                <div class="item answer-choice-select"> @if(part._2 == sectionQA._2.answerSection.choice.getOrElse(-1)){ @tag.lastAnswerPieceWasFixed(sectionQA._2.answerSection.correct) }  </div>
+                <div class="item answer-choice-summary"> @part._1.summaryHtml  </div>
+            </div>
+            } }
+
+            case Right(parts) => { @for(part <- parts.zip(sectionQA._2.parts)) {
+            <div class="span-section answer-function">
+                <div class="item answer-function-summary"> @part._1.summaryHtml </div>
+                <div class="item answer-function-input">
+                    @part._2.functionMath
+                    @tag.lastAnswerPieceWasFixed(part._2.correct)
+                </div>
+            </div>
+            } }
+
+            }
+            @* ===== END PARTS ==== *@
+        </div>
+        }
+        @* ===== END SECTION ==== *@
+    </div>
+
+</section>

@@ -117,6 +117,28 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
     } }
 
   } } } }
+
+  def studentSummary(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, studentId: UserId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& userDAO.byIdEither(studentId) +& answerDAO.correctOrLatestEither(questionId, studentId) ).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right((course, quiz, question, student, (answer, answers))) => {
+        answerDAO.frameById(answer.id).map(answerFrame => { Ok(views.html.quiz.viewQuestionSummaryForCourse(Own, course, quiz, question, answerFrame.get, student)) })
+      }
+    } }
+
+  } } } }
+
+  def studentSummaryAnswerSpecified(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerId: AnswerId, studentId: UserId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& userDAO.byIdEither(studentId) +& answerDAO.frameByIdEither(questionId, answerId)).map{ _ match {
+      case Left(notFoundResult) => notFoundResult
+      case Right((course, quiz, question, student, answer)) =>
+        Ok(views.html.quiz.viewQuestionSummaryForCourse(Own, course, quiz, question, answer, student))
+
+    } }
+
+  } } } }
 }
 
 // === QuestionJson

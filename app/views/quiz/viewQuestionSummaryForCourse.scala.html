@@ -1,0 +1,19 @@
+@import helper._
+@import com.artclod.play._
+@import controllers.organization.CourseCreate
+@import controllers.quiz.QuizRename
+
+@(access: models.Access,
+        course: models.organization.Course,
+        quiz: models.quiz.Quiz,
+        questionFrame: models.quiz.QuestionFrame,
+        answerFrame: models.quiz.AnswerFrame,
+        student: models.user.User
+)(implicit request: Request[AnyContent], user: models.user.User)
+
+@mainContent("Quiz " + quiz.name, tag.courseLink(course), tag.courseQuizLink(course, quiz, None)) {
+    <h2>Welcome to a question summary page for quiz: @quiz.name and user: @student.nameDisplay() </h2>
+
+    @views.html.quiz.question.answerViewer(questionFrame, answerFrame)
+
+}
