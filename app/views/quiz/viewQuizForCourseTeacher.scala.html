@@ -124,7 +124,7 @@
         <tr> <th> Student </th> @for(q <- quizResultTable.questions){ <th> <span data-ot="@q.title">@q.title.take(10)</span> </th> } </tr>
         @for(r <- quizResultTable.rows) {
         <tr>
-            <td> @r.user.nameDisplay() </td> @for(e <- r.results) { <td> @e </td> }
+            <td> @r.user.nameDisplay() </td> @for(e <- r.results.zip(quizResultTable.questions)) { <td> @for(c <- e._1){ <a href="@controllers.quiz.routes.QuestionController.studentSummary(course.organizationId, course.id, quiz.id, e._2.id, r.user.id)">@c</a>} </td> }
         </tr>
         }
     </table>
