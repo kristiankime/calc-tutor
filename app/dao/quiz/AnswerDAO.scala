@@ -82,7 +82,7 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 //    })
 
   def correctOrLatestEither(questionId: QuestionId, userId: UserId): Future[Either[Result,(Answer, Seq[Answer])]] =
-    db.run(Answers.filter(a => a.questionId === questionId && a.ownerId === userId).sortBy(_.creationDate).result).map(answers => {
+    db.run(Answers.filter(a => a.questionId === questionId && a.ownerId === userId).sortBy(_.creationDate.reverse).result).map(answers => {
       if(answers.length == 0) {
         return Future.successful( Left(NotFound(views.html.errors.notFoundPage("There was no answers for questionId=["+questionId+"] by user [" + userId + "]" ))) )
       } else {
