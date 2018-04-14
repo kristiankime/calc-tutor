@@ -43,25 +43,34 @@ ARTC.mathJS.text2FunctionOfX = function(mathText) {
         var pieceFuncs = [];
         var pieceRange = [];
 
+        // var funcSplit = /,\W*if\W*x\W*(<=|<)/
+        var pieceSplit = /(.*),\W*if\W*x\W*(<=|<)(.*)/
         var len = mathTextPieces.length
         for (var i = 0; i < len; i++) {
             var piece = mathTextPieces[i];
 
-
-
             if(i != (len-1)) {
-                if(!piece.includes(", if x < ")) { throw "Piecewise functions need to specify range"; }
-                var funcAndRange = piece.split(", if x < ");
+                var matches = pieceSplit.exec(piece);
+                var func = matches[1];
+                var comparator = matches[2];
+                var value = matches[3];
 
-                // console.log("range: " + funcAndRange[1] + " func: " + funcAndRange[0]);
+                // console.log(" func[" + func + "]  value[" + value + "] comparator [" + comparator + "]");
 
-                pieceFuncs.push( ARTC.mathJS.node2FunctionOfX(math.parse(funcAndRange[0])) );
-                pieceRange.push(parseInt(funcAndRange[1]));
+                pieceFuncs.push( ARTC.mathJS.node2FunctionOfX(math.parse(func)) );
+
+                // Here we use the module pattern so the intValue will be cached properly in the scope of each range check
+                pieceRange.push(function() {
+                    var intValue = parseInt(value);
+                    if(comparator === "<") {
+                        return (function(x) {return x <  intValue; });
+                    } else {
+                        return (function(x) {return x <= intValue; });
+                    }
+                }());
+
             } else {
-
                 // console.log("func: " + piece);
-
-                if(piece.includes(", if x < ")) { throw "Piecewise functions should not specify a range at the end"; }
                 pieceFuncs.push( ARTC.mathJS.node2FunctionOfX(math.parse(piece)) );
             }
         }
@@ -75,16 +84,14 @@ ARTC.mathJS.text2FunctionOfX = function(mathText) {
         // }
         // console.log(pieceFuncs[pieceFuncs.length-1]( pieceRange[pieceRange.length-1] + 1 ));
 
-
-
         return function(x) {
             for(var i=0; i< pieceRange.length; i++) {
-                if(x < pieceRange[i]) {
-                    // console.log("for x: " + x  + " used piece " + i + " value " + pieceFuncs[i](x));
+                if(pieceRange[i](x)) {
+                    // console.log("~ for x: " + x  + " used piece " + i + " value " + pieceFuncs[i](x));
                     return pieceFuncs[i](x);
                 }
             }
-            // console.log("for x: " + x + " used piece " + (pieceFuncs.length-1) + " value " +  pieceFuncs[pieceFuncs.length-1](x));
+            // console.log("* for x: " + x + " used piece " + (pieceFuncs.length-1) + " value " +  pieceFuncs[pieceFuncs.length-1](x));
             return pieceFuncs[pieceFuncs.length-1](x);
         }
     }

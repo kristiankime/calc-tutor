@@ -38,7 +38,6 @@ var testFunctionsEqual = function(f1, f2) {
     return true;
 }
 
-
 test("ARTC.mathJS.text2FunctionOfX: works on simple function", function() {
     equal(testFunctionsEqual(ARTC.mathJS.text2FunctionOfX("x"), function(x){return x;}), true);
 });
@@ -53,4 +52,8 @@ test("ARTC.mathJS.text2FunctionOfX: works on pieicewise with two parts", functio
 
 test("ARTC.mathJS.text2FunctionOfX: works on pieicewise with three parts", function() {
     equal(testFunctionsEqual(ARTC.mathJS.text2FunctionOfX("{{ x, if x < 5 // x+1, if x < 10 // x+2 }}"), function(x){ if(x<5){return x}else if(x<10){return x+1}else{return x+2;}}), true);
+});
+
+test("ARTC.mathJS.text2FunctionOfX: pieicewise <=", function() {
+    equal(testFunctionsEqual(ARTC.mathJS.text2FunctionOfX("{{ x, if x < 5 // x+1, if x <= 10 // x+2 }}"), function(x){ if(x<5){return x}else if(x<=10){return x+1}else{return x+2;}}), true);
 });
