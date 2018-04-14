@@ -82,8 +82,8 @@ ARTC.insertGraph = function (inParams) {
     //     showCopyright : false
     // };
 
-    console.log("ARTC.insertGraph");
-    console.log(params);
+    // console.log("ARTC.insertGraph");
+    // console.log(params);
 
 
     // ========================================================

@@ -34,8 +34,63 @@ ARTC.mathJS.node2FunctionOfX = function(mathJSNode) {
 };
 
 ARTC.mathJS.text2FunctionOfX = function(mathText) {
-    var node = math.parse(mathText)
-    return  ARTC.mathJS.node2FunctionOfX(node);
+    // console.log(mathText);
+
+    // Check to see if we have a piecewise function
+    if(mathText.substring(0, 2) == "{{" && mathText.endsWith("}}")) {
+        var mathTextPieces = mathText.substring(2, mathText.length-2).split("//");
+
+        var pieceFuncs = [];
+        var pieceRange = [];
+
+        var len = mathTextPieces.length
+        for (var i = 0; i < len; i++) {
+            var piece = mathTextPieces[i];
+
+
+
+            if(i != (len-1)) {
+                if(!piece.includes(", if x < ")) { throw "Piecewise functions need to specify range"; }
+                var funcAndRange = piece.split(", if x < ");
+
+                // console.log("range: " + funcAndRange[1] + " func: " + funcAndRange[0]);
+
+                pieceFuncs.push( ARTC.mathJS.node2FunctionOfX(math.parse(funcAndRange[0])) );
+                pieceRange.push(parseInt(funcAndRange[1]));
+            } else {
+
+                // console.log("func: " + piece);
+
+                if(piece.includes(", if x < ")) { throw "Piecewise functions should not specify a range at the end"; }
+                pieceFuncs.push( ARTC.mathJS.node2FunctionOfX(math.parse(piece)) );
+            }
+        }
+
+        // console.log(pieceRange);
+        // console.log(pieceFuncs);
+        //
+        // console.log("lets get some numbers");
+        // for(var i=0; i< pieceRange.length; i++) {
+        //     console.log(pieceFuncs[i](pieceRange[i]));
+        // }
+        // console.log(pieceFuncs[pieceFuncs.length-1]( pieceRange[pieceRange.length-1] + 1 ));
+
+
+
+        return function(x) {
+            for(var i=0; i< pieceRange.length; i++) {
+                if(x < pieceRange[i]) {
+                    // console.log("for x: " + x  + " used piece " + i + " value " + pieceFuncs[i](x));
+                    return pieceFuncs[i](x);
+                }
+            }
+            // console.log("for x: " + x + " used piece " + (pieceFuncs.length-1) + " value " +  pieceFuncs[pieceFuncs.length-1](x));
+            return pieceFuncs[pieceFuncs.length-1](x);
+        }
+    }
+
+    var node = math.parse(mathText);
+    return ARTC.mathJS.node2FunctionOfX(node);
 };
 
 /*
