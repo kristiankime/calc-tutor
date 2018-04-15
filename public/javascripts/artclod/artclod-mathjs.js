@@ -61,11 +61,11 @@ ARTC.mathJS.text2FunctionOfX = function(mathText) {
 
                 // Here we use the module pattern so the intValue will be cached properly in the scope of each range check
                 pieceRange.push(function() {
-                    var intValue = parseInt(value);
+                    var floatValue = parseFloat(value);
                     if(comparator === "<") {
-                        return (function(x) {return x <  intValue; });
+                        return (function(x) {return x <  floatValue; });
                     } else {
-                        return (function(x) {return x <= intValue; });
+                        return (function(x) {return x <= floatValue; });
                     }
                 }());
 

@@ -30,7 +30,7 @@ test("ARTC.mathJS.prepFuncPow: match works on nested functions", function() {
 
 var testFunctionsEqual = function(f1, f2) {
     // console.log("check equals");
-    for(var i = 0; i < 20; i++) {
+    for(var i = 0; i < 20; i = i + .1) {
         // console.log(f1(i) + " ?= " + f2(i));
 
         if(f1(i) != f2(i)) { return false; }
@@ -56,4 +56,8 @@ test("ARTC.mathJS.text2FunctionOfX: works on pieicewise with three parts", funct
 
 test("ARTC.mathJS.text2FunctionOfX: pieicewise <=", function() {
     equal(testFunctionsEqual(ARTC.mathJS.text2FunctionOfX("{{ x, if x < 5 // x+1, if x <= 10 // x+2 }}"), function(x){ if(x<5){return x}else if(x<=10){return x+1}else{return x+2;}}), true);
+});
+
+test("ARTC.mathJS.text2FunctionOfX: pieicewise with fractions", function() {
+    equal(testFunctionsEqual(ARTC.mathJS.text2FunctionOfX("{{ x, if x < .5 // x+1, if x < 10.5 // x+2 }}"), function(x){ if(x<.5){return x}else if(x<10.5){return x+1}else{return x+2;}}), true);
 });
