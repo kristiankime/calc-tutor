@@ -56,4 +56,22 @@ class CollectionPackageSpec extends PlaySpec {
       emptyList mustEqual(List("a","b"))
     }
   }
+
+  "rescaleZero2One" should {
+    "should return empty collection if collection is empty" in {
+      val emptyList = List[Double]()
+
+      com.artclod.collection.rescaleZero2One(emptyList) mustEqual (Seq())
+    }
+
+    "should return half if collection has one element" in {
+      val list = List(10d)
+      rescaleZero2One(list) mustEqual(Seq(.5d))
+    }
+
+    "should rescale with multiple elements" in {
+      val list = List(0d, 4d, 2d, 4d)
+      rescaleZero2One(list) mustEqual(Seq(0d, 1d, .5d, 1d))
+    }
+  }
 }

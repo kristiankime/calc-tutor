@@ -1,5 +1,5 @@
 @(id: String, dashboardData: Seq[(models.quiz.Skill, Seq[Double])], studentDataOp : Option[Seq[(models.quiz.Skill, Double)]] = None)
-<div id="@id" style="width: 700px;height:600px;"></div> <!-- https://ecomfe.github.io/echarts-examples/public/editor.html?c=boxplot-light-velocity2 -->
+<div id="@id" style="width:700px;height:600px;"></div> <!-- https://ecomfe.github.io/echarts-examples/public/editor.html?c=boxplot-light-velocity2 -->
 <script>
 
   (function(){
@@ -10,7 +10,7 @@
 
     // prepare the main data
     var data = echarts.dataTool.prepareBoxplotData([
-      @dashboardData.map( _._2.mkString("[", ",", "]") ).mkString(",\n")
+      @dashboardData.map(d => com.artclod.collection.rescaleZero2One(d._2).mkString("[", ",", "]") ).mkString(",\n")
     ], {
         layout: 'vertical'
     });
