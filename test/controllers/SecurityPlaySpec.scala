@@ -3,7 +3,6 @@ package controllers
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
-import play.api.Application
 import play.api.mvc.{AnyContent, Cookie}
 import play.api.test.Helpers.{AUTHORIZATION, GET, cookies, route}
 import java.nio.charset.StandardCharsets

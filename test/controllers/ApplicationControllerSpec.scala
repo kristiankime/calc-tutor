@@ -13,7 +13,6 @@ import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Cookie
 import play.api.test.FakeRequest
-import play.api.{Application, Configuration, Environment, Play}
 
 import scala.concurrent.Future
 
@@ -36,7 +35,6 @@ import play.api.mvc._
 
 import play.api.test.Helpers.{ GET => GET_REQUEST, _ }
 import play.api.test.Helpers.GET
-import play.api.Application
 import play.api.libs.ws._
 import play.api.inject.guice._
 import play.api.routing._
