@@ -99,3 +99,22 @@ ko.bindingHandlers.numericText = {
     },
     defaultPrecision: 2
 };
+
+ko.bindingHandlers.percentageToTextDifficulty = {
+    update: function(element, valueAccessor, allBindingsAccessor) {
+        var value = ko.utils.unwrapObservable(valueAccessor());
+        var diffText = "5-Very Hard";
+        if(value >= .95) {
+            diffText = "1-Very Easy";
+        } else if(value >= .85) {
+            diffText = "2-Easy";
+        } else if(value >= .75) {
+            diffText = "3-Medium";
+        } else if(value >= .5) {
+            diffText = "4-Hard";
+        } else {
+            diffText = "5-Very Hard";
+        }
+        ko.bindingHandlers.text.update(element, function() { return diffText; });
+    }
+};

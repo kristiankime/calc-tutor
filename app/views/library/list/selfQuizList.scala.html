@@ -6,13 +6,13 @@
       <tr>
           <th> <a href="#" data-bind="orderable: {collection: 'searchResults', field: '@{title}'}">Name</a> </th>
           @for(skill <- skills){<th> <a href="#" data-bind="orderable: {collection: 'searchResults', field: '@{title}'}" data-ot="@skill.name"> @skill.short_name </a> </th>}
-          <th> <a href="#" data-bind="orderable: {collection: 'searchResults', field: '@{chance}'}">Chance</a> </th>
+          <th> <a href="#" data-bind="orderable: {collection: 'searchResults', field: '@{chance}'}">Difficulty</a> </th>
       </tr>
       <!-- ko foreach: searchResults -->
       <tr>
         <td> <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.organization.CourseController.studentSelfQuestion(@organizationId.v, @courseId.v, @{id}()).url, title : @{title}() }"> </a> </td>
         @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}
-        <td data-bind="numericText: @{chance}"> </td>
+        <td data-bind="percentageToTextDifficulty: @{chance}"> </td>
       </tr>
       <!-- /ko -->
     </table>
