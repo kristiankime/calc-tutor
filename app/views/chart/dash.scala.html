@@ -63,7 +63,7 @@
         },
         xAxis: {
             type: 'value',
-            name: 'percent',
+            name: 'level',
             splitArea: {
                 show: true
             }
@@ -101,7 +101,7 @@
                     @* data : [ @{Html(dashboardData.map("{y : .5, x : \"" + _._1.name + "\"}").mkString(","))} ] *@
                     data: [@{Html(studentData.map(d => "{ coord : [" + d._2 + ", '" + d._1.name + "'] }").mkString(","))}],
                     symbol: 'triangle',
-                    symbolSize: 5,
+                    symbolSize: 10,
                     label: {
                         normal: {show: false},
                         emphasis: {show: false}
@@ -112,7 +112,8 @@
             {
                 name: 'outlier',
                 type: 'scatter',
-                data: data.outliers
+                data: data.outliers,
+                symbolSize: 5
             }
         ]
     };
