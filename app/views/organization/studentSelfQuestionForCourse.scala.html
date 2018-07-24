@@ -6,7 +6,8 @@
 @(access: models.Access,
         course: models.organization.Course,
         questionFrame: models.quiz.QuestionFrame,
-        answer: controllers.quiz.AnswerJson
+        answer: controllers.quiz.AnswerJson,
+        previousAnswers: Seq[models.quiz.Answer]
 )(implicit request: Request[AnyContent], user: models.user.User)
 
 @mainContent("Self Question for " + course.name, tag.courseLink(course), tag.courseLink(course)) {
@@ -24,4 +25,8 @@
         }
         </ul>
     }
+
+    @views.html.quiz.question.previousAnswers( (id: AnswerId) =>
+        controllers.organization.routes.CourseController.studentSelfQuestion(course.organizationId, course.id, questionFrame.question.id, Some(id)), previousAnswers )
+
 }

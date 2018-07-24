@@ -132,11 +132,11 @@ class CourseController @Inject()(val config: Config, val playSessionStore: PlayS
 
   def studentSelfQuestion(organizationId: OrganizationId, courseId: CourseId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& questionDAO.frameByIdEither(questionId) +^ courseDAO.access(user.id, courseId) +& answerDAO.frameByIdEither(questionId, answerIdOp) ).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& questionDAO.frameByIdEither(questionId) +^ courseDAO.access(user.id, courseId) +& answerDAO.frameByIdEither(questionId, answerIdOp) +^ answerDAO.attempts(user.id, questionId) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, questionFrame, access, answerOp)) => {
+      case Right((course, questionFrame, access, answerOp, attempts)) => {
         val answerJson : AnswerJson = answerOp.map(a => AnswerJson(a)).getOrElse(controllers.quiz.AnswerJson.blank(questionFrame))
-        Future.successful( Ok(views.html.organization.studentSelfQuestionForCourse(access, course, questionFrame, answerJson)) )
+        Future.successful( Ok(views.html.organization.studentSelfQuestionForCourse(access, course, questionFrame, answerJson, attempts)) )
       } } }
 
   } } } }

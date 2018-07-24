@@ -27,23 +27,7 @@
         </ul>
     }
 
-    @if(previousAnswers.nonEmpty){
-        <h4>Previous Answers</h4>
-        <table class="pure-table pure-table-striped">
-        <tr>
-            <th>Attempt</th>
-            <th>Correct</th>
-            <th>Date</th>
-        </tr>
-        @for(answerAndIndex <- previousAnswers.zipWithIndex) {
-        @defining( controllers.quiz.routes.QuestionController.view(course.organizationId, course.id, quiz.id, questionFrame.question.id, Some(answerAndIndex._1.id)) ) {  call : Call  =>
-        <tr>
-            <td>@tag.cellLink(call){ @answerAndIndex._2 }</td>
-            <td>@tag.cellLink(call){ @tag.correctIcon(answerAndIndex._1.correct) }</td>
-            <td>@tag.cellLink(call){ @tag.datetime(answerAndIndex._1.creationDate) }</td>
-        </tr>
-        }
-        }
-        </table>
-    }
+    @views.html.quiz.question.previousAnswers( (id: AnswerId) =>
+        controllers.quiz.routes.QuestionController.view(course.organizationId, course.id, quiz.id, questionFrame.question.id, Some(id)), previousAnswers )
+
 }

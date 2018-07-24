@@ -35,7 +35,7 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
 
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +& questionDAO.frameByIdEither(questionId) +^ answerDAO.attempts(user.id, questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, (course2Quiz, quiz), question, attemps)) =>
+      case Right((course, (course2Quiz, quiz), question, attempts)) =>
 
         AnswerCreate.form.bindFromRequest.fold(
           errors =>
@@ -47,7 +47,7 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
                 val protoAnswerFrame = AnswerFrame(question, value, user.id)
 
                 if(protoAnswerFrame.correctUnknown) { // Here we are unable to determine if the question was answered correctly so we go back to the page
-                  Future.successful( Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, AnswerJson(protoAnswerFrame), attemps)) )
+                  Future.successful( Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, AnswerJson(protoAnswerFrame), attempts)) )
                 } else {
                   answerDAO.updateSkillCounts(user.id, questionId, protoAnswerFrame.answer.correct).flatMap( updated => { // Keep track of the in/correct counts for each skill
                     answerDAO.insert(protoAnswerFrame).map(answerFrame => {
@@ -84,9 +84,9 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
 
   def createSelfQuizCourseSubmit(organizationId: OrganizationId, courseId: CourseId, questionId: QuestionId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& questionDAO.frameByIdEither(questionId)).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& questionDAO.frameByIdEither(questionId) +^ answerDAO.attempts(user.id, questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, questionFrame)) =>
+      case Right((course, questionFrame, attempts)) =>
 
         AnswerCreate.form.bindFromRequest.fold(
           errors =>
@@ -98,7 +98,7 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
                 val protoAnswerFrame = AnswerFrame(questionFrame, value, user.id)
 
                 if(protoAnswerFrame.correctUnknown) { // Here we are unable to determine if the question was answered correctly so we go back to the page
-                  Future.successful( Ok(views.html.organization.studentSelfQuestionForCourse(null, course, questionFrame, AnswerJson(protoAnswerFrame))) )
+                  Future.successful( Ok(views.html.organization.studentSelfQuestionForCourse(null, course, questionFrame, AnswerJson(protoAnswerFrame), attempts)) )
                 } else {
                   answerDAO.updateSkillCounts(user.id, questionId, protoAnswerFrame.answer.correct).flatMap( updated => { // Keep track of the in/correct counts for each skill
                     answerDAO.insert(protoAnswerFrame).map(answerFrame => {

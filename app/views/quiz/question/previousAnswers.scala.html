@@ -1,0 +1,24 @@
+@import helper._
+@import com.artclod.play._
+@import controllers.organization.CourseCreate
+@import controllers.quiz.QuizRename
+
+@(linkFunction: Function1[AnswerId, Call], previousAnswers: Seq[models.quiz.Answer])(implicit request: Request[AnyContent], user: models.user.User)
+
+    @if(previousAnswers.nonEmpty){
+    <h4>Previous Answers</h4>
+    <table class="pure-table pure-table-striped">
+        <tr>
+            <th>Attempt</th>
+            <th>Correct</th>
+            <th>Date</th>
+        </tr>
+        @for(answerAndIndex <- previousAnswers.zipWithIndex) {
+        <tr>
+            <td>@tag.cellLink(linkFunction(answerAndIndex._1.id)){ @answerAndIndex._2 }</td>
+            <td>@tag.cellLink(linkFunction(answerAndIndex._1.id)){ @tag.correctIcon(answerAndIndex._1.correct) }</td>
+            <td>@tag.cellLink(linkFunction(answerAndIndex._1.id)){ @tag.datetime(answerAndIndex._1.creationDate) }</td>
+        </tr>
+        }
+    </table>
+    }

@@ -1,5 +1,6 @@
 @(questionFrame: models.quiz.QuestionFrame,
-  answer: controllers.quiz.AnswerJson
+  answer: controllers.quiz.AnswerJson,
+  previousAnswers: Seq[models.quiz.Answer]
 )(implicit request: Request[AnyContent], user: models.user.User)
 
 @import helper._
@@ -20,5 +21,8 @@
         <li>@skill.name</li>
     }
     </ul>
+
+    @views.html.quiz.question.previousAnswers( (id: AnswerId) =>
+        controllers.library.routes.LibraryController.viewQuestion(questionFrame.question.id, Some(id)), previousAnswers )
 
 }

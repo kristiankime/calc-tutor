@@ -66,11 +66,11 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
   } } }
 
   def viewQuestion(questionId: QuestionId, answerIdOp: Option[AnswerId]) = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
-    (questionDAO.frameByIdEither(questionId) +& answerDAO.frameByIdEither(questionId, answerIdOp)).map( _ match {
+    (questionDAO.frameByIdEither(questionId) +& answerDAO.frameByIdEither(questionId, answerIdOp) +^ answerDAO.attempts(user.id, questionId)).map( _ match {
       case Left(notFoundResult) => notFoundResult
-      case Right((question, answerOp)) => {
+      case Right((question, answerOp, attempts)) => {
         val answerJson : AnswerJson = answerOp.map(a => AnswerJson(a)).getOrElse(controllers.quiz.AnswerJson.blank(question))
-        Ok(views.html.library.viewQuestion(question, answerJson))
+        Ok(views.html.library.viewQuestion(question, answerJson, attempts))
       }
     })
   }}}
@@ -78,9 +78,9 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
   def answerQuestion(questionId: QuestionId) = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
-    questionDAO.frameByIdEither(questionId).flatMap{ _ match {
+    (questionDAO.frameByIdEither(questionId) +^ answerDAO.attempts(user.id, questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right(question) =>
+      case Right( (question, attempts) ) =>
         AnswerCreate.form.bindFromRequest.fold(
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
@@ -90,7 +90,7 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
                 val protoAnswerFrame = AnswerFrame(question, value, user.id)
 
                 if(protoAnswerFrame.correctUnknown) { // Here we are unable to determine if the question was answered correctly so we go back to the page
-                  Future.successful( Ok(views.html.library.viewQuestion(question, AnswerJson(protoAnswerFrame))) )
+                  Future.successful( Ok(views.html.library.viewQuestion(question, AnswerJson(protoAnswerFrame), attempts)) )
                 } else {
                   answerDAO.updateSkillCounts(user.id, questionId, protoAnswerFrame.answer.correct).flatMap( updated => { // Keep track of the in/correct counts for each skill
                     answerDAO.insert(protoAnswerFrame).map(answerFrame => {
