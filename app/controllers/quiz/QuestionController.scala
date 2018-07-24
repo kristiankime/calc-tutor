@@ -58,11 +58,11 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& answerDAO.frameByIdEither(questionId, answerIdOp)).map{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& answerDAO.frameByIdEither(questionId, answerIdOp) +^ answerDAO.attempts(user.id, questionId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
-      case Right((course, quiz, question, answerOp)) =>
+      case Right((course, quiz, question, answerOp, attempts)) =>
         val answerJson : AnswerJson = answerOp.map(a => AnswerJson(a)).getOrElse(controllers.quiz.AnswerJson.blank(question))
-        Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, answerJson ))
+        Ok(views.html.quiz.viewQuestionForCourse(Own, course, quiz, question, answerJson, attempts))
     } }
 
   } } }

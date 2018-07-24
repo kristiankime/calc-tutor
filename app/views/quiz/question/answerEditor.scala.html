@@ -1,5 +1,3 @@
-@(action: play.api.mvc.Call, questionFrame: models.quiz.QuestionFrame, answerJson : controllers.quiz.AnswerJson, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
-
 @import helper._
 @import com.artclod.play._
 @import controllers.quiz.AnswerCreate
@@ -10,6 +8,8 @@
 @import controllers.quiz.AnswerJson.correctUnknown
 @import controllers.quiz.AnswerJson.correctNo
 @import controllers.quiz.AnswerJson.correctBlank
+
+@(action: play.api.mvc.Call, questionFrame: models.quiz.QuestionFrame, answerJson : controllers.quiz.AnswerJson, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
 
 <section id="answer-editor">
 
