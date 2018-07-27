@@ -15,7 +15,8 @@
         quiz: models.quiz.Quiz,
         course2Quiz: Course2Quiz,
         questions: Seq[models.quiz.Question],
-        answerOp: Option[models.quiz.Answer]
+        answerOp: Option[models.quiz.Answer],
+        answers: Map[QuestionId, Seq[models.quiz.Answer] ]
 )(implicit request: Request[AnyContent], user: models.user.User)
 
     <h2>Welcome to the page for quiz: @quiz.name </h2>
@@ -37,6 +38,7 @@
     <h4>There @are(questions) @questions.size Question@s(questions) in the quiz @tag.icon("icon-help", 'data_ot -> "Click a question to answer it")</h4>
 
     @if(access.write){
+    @*  TODO Handle Answer Op and attempts *@
     <table class="pure-table pure-table-striped" id="quiz-questions">
         <tr>
             <th>Question</th>
@@ -107,8 +109,9 @@
         <tr>
             <th>Question</th>
             @for(answer <- answerOp){<th>Correct</th>}
+            @if(answers.nonEmpty){<th>Attempts</th>}
             @if(access.write){<th>Remove</th>}
-        </tr>
+
         @for(question <- questions){<tr>
             <td>
             @tag.courseQuestionLink(course, quiz, question, None)
@@ -116,6 +119,11 @@
             @for(answer <- answerOp){
                 <td>
                 @tag.maybeIndicateCorrect(question, answer)
+                </td>
+            }
+            @if(answers.nonEmpty){
+                <td>
+                    @for(answer <- answers.getOrElse(question.id, Seq()) ){<a href="@controllers.quiz.routes.QuestionController.view(course.organizationId, course.id, quiz.id, question.id, Some(answer.id))"> @tag.correctIcon(answer.correct) </a> }
                 </td>
             }
             @if(access.write){

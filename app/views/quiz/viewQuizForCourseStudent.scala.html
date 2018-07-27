@@ -15,9 +15,10 @@
         quiz: models.quiz.Quiz,
         course2Quiz: Course2Quiz,
         questions: Seq[models.quiz.Question],
-        answerOp: Option[models.quiz.Answer]
+        answerOp: Option[models.quiz.Answer],
+        answers: Map[QuestionId, Seq[models.quiz.Answer]]
 )(implicit request: Request[AnyContent],  user: models.user.User)
 
 @mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
-@views.html.quiz.viewQuizForCourseCore(access, course, quiz, course2Quiz, questions, answerOp)
+@views.html.quiz.viewQuizForCourseCore(access, course, quiz, course2Quiz, questions, answerOp, answers)
 }

@@ -67,16 +67,20 @@ class QuizController @Inject()(val config: Config, val playSessionStore: PlaySes
 
   def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp) ).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp) +^ quizDAO.attempts(quizId, user) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, (course2Quiz, quiz), access, answerOp)) =>
+      case Right((course, (course2Quiz, quiz), access, answerOp, attempts)) =>
         quizDAO.questionSummariesFor(quiz).flatMap(questions => {
 
+
+          val attemptsMap = attempts.groupBy(_.questionId)
+          logger.error(attemptsMap.mkString(","))
+
           if(!access.write) {
-            Future.successful(Ok(views.html.quiz.viewQuizForCourseStudent(access, course, quiz, course2Quiz, questions, answerOp)))
+            Future.successful(Ok(views.html.quiz.viewQuizForCourseStudent(access, course, quiz, course2Quiz, questions, answerOp, attemptsMap)))
           } else {
             (skillDAO.allSkills +# questionDAO.questionSearchSet("%", Seq(), Seq()) +# answerDAO.resultsTable(course, quiz) ).map(v => {
-              Ok(views.html.quiz.viewQuizForCourseTeacher(access, course, quiz, course2Quiz, questions, answerOp, v._1, QuestionLibraryResponses(v._2), v._3)) })
+              Ok(views.html.quiz.viewQuizForCourseTeacher(access, course, quiz, course2Quiz, questions, answerOp, attemptsMap, v._1, QuestionLibraryResponses(v._2), v._3)) })
           }
 
         })

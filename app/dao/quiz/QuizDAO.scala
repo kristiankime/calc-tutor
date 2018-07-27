@@ -1,13 +1,12 @@
 package dao.quiz
 
 import javax.inject.{Inject, Singleton}
-
 import com.artclod.mathml.scalar.MathMLElem
 import com.artclod.slick.JodaUTC
 import dao.ColumnTypeMappings
 import dao.organization.CourseDAO
 import dao.organization.table.CourseTables
-import dao.quiz.table.{QuestionTables, QuizTables}
+import dao.quiz.table.{AnswerTables, QuestionTables, QuizTables}
 import dao.user.UserDAO
 import dao.user.table.UserTables
 import models.quiz.{User2Quiz, _}
@@ -29,7 +28,7 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val courseTables: CourseTables, protected val quizTables: QuizTables, protected val questionTables: QuestionTables, protected val questionDAO: QuestionDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val courseTables: CourseTables, protected val quizTables: QuizTables, protected val questionTables: QuestionTables, protected val questionDAO: QuestionDAO, protected val answerTables: AnswerTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
@@ -39,6 +38,7 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   val User2Quizzes = quizTables.User2Quizzes
   val Courses2Quizzes = quizTables.Courses2Quizzes
   val Question2Quizzes = quizTables.Question2Quizzes
+  val Answers = answerTables.Answers
 
   // * ====== QUERIES ====== *
 
@@ -156,8 +156,19 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
   }
 
   // ====== Results ======
-  def resultsFor(quiz: Quiz, users: Seq[User]) = {
-
+  def attempts(quizId: QuizId, user: User): Future[Seq[Answer]] = db.run {
+    (for(q2q <- Question2Quizzes; a <- Answers
+         if q2q.quizId === quizId && q2q.questionId === a.questionId && a.ownerId === user.id
+    ) yield a).sortBy(ans => (ans.ownerId, ans.creationDate))
+      .result
   }
+
+
+//  def questionSummariesFor(quiz: Quiz): Future[Seq[Question]] = db.run {
+//    (for(q2z <- Question2Quizzes; q <- questionTables.Questions if q2z.quizId === quiz.id && q2z.questionId === q.id) yield (q2z, q))
+//      .sortBy(_._1.order).map(_._2) // sort and return Question
+//      .result
+//  }
+
 }
 

@@ -17,13 +17,14 @@
         course2Quiz: Course2Quiz,
         questions: Seq[models.quiz.Question],
         answerOp: Option[models.quiz.Answer],
+        answers: Map[QuestionId, Seq[models.quiz.Answer]],
         skills: Seq[models.quiz.Skill],
         initialLibraryEntries: Seq[controllers.library.QuestionLibrary.QuestionLibraryResponse],
         quizResultTable: QuizResultTable
 )(implicit request: Request[AnyContent],  user: models.user.User)
 
 @mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
-@views.html.quiz.viewQuizForCourseCore(access, course, quiz, course2Quiz, questions, answerOp)
+@views.html.quiz.viewQuizForCourseCore(access, course, quiz, course2Quiz, questions, answerOp, answers)
 
 
     <h5> Rename </h5>
