@@ -3,8 +3,8 @@ package com.artclod
 
 
 import _root_.play.twirl.api.Html
-import _root_.play.api.data.validation.ValidationError
-import _root_.play.api.libs.json.{JsPath, JsResult}
+//import _root_.play.api.data.validation.ValidationError
+import _root_.play.api.libs.json.{JsPath, JsResult, JsonValidationError}
 import _root_.play.api.data.{Form, FormError}
 import _root_.play.api.data.format.Formatter
 import com.artclod.util.TryUtil.EitherPimp
@@ -86,7 +86,7 @@ package object play {
   implicit class JsResultPimp[T](jsResults: JsResult[T]) {
     def toTry:Try[T] = {
 
-      val jsResultsEither : Either[Seq[(JsPath, Seq[ValidationError])],T] = jsResults.asEither
+      val jsResultsEither : Either[Seq[(JsPath, Seq[JsonValidationError])],T] = jsResults.asEither
       val jsResultsEitherError  = jsResultsEither match {
         case Left(l) => Left[JsResultsError, T](JsResultsError(l))
         case Right(r) => Right[JsResultsError, T](r)

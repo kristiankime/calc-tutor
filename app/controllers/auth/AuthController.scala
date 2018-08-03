@@ -35,7 +35,7 @@ import scala.util.Success
  * This controller handles actions specifically related to Authentication and Authorization
  */
 @Singleton
-class AuthController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, val dbProfileService: DbProfileService, val loginDAO: NamePassDAO, override val ec: HttpExecutionContext)(implicit val executionContext: ExecutionContext) extends Controller with Security[CommonProfile] {
+class AuthController @Inject()(/*val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext*/ val controllerComponents: SecurityComponents, val dbProfileService: DbProfileService, val loginDAO: NamePassDAO)(implicit val executionContext: ExecutionContext) extends BaseController with Security[CommonProfile] {
 
   def signIn = Action { implicit request =>
     Ok(views.html.auth.signIn.render())
@@ -54,7 +54,7 @@ class AuthController @Inject()(val config: Config, val playSessionStore: PlaySes
         loginDAO.byName(userData.name).map( _ match {
           case Some(user) => BadRequest(views.html.auth.signUp(UserData.form.withError(UserData.nameAlreadyExist, "The name " + user.userName + " is already in use"), request))
           case None => val profile = new DbProfile()
-            profile.setId(UUID.randomUUID())
+            profile.setId(UUID.randomUUID().toString)
             profile.addAttribute(Pac4jConstants.USERNAME, userData.name)
             dbProfileService.create(profile, userData.password)
             Redirect(routes.AuthController.signIn())
@@ -71,15 +71,15 @@ class AuthController @Inject()(val config: Config, val playSessionStore: PlaySes
 //    }
 //  }
 
-  def formClient = Secure("FormClient") { profiles =>
+  def formClient = Secure("FormClient") {
     Action { implicit request =>
-      Redirect(controllers.routes.HomeController.home)
+      Redirect(_root_.controllers.routes.HomeController.home)
     }
   }
 
-  def googleClient = Secure("OidcClient") { profiles =>
+  def googleClient = Secure("OidcClient") {
     Action { implicit request =>
-      Redirect(controllers.routes.HomeController.home)
+      Redirect(_root_.controllers.routes.HomeController.home)
     }
   }
     

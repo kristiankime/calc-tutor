@@ -1,7 +1,6 @@
 package controllers.user
 
 import javax.inject.{Inject, Singleton}
-
 import com.artclod.slick.JodaUTC
 import controllers.Application
 import controllers.organization.CourseJoin
@@ -15,7 +14,7 @@ import models.organization.Course
 import models.user.User
 import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
-import org.pac4j.play.scala.Security
+import org.pac4j.play.scala.{Security, SecurityComponents}
 import org.pac4j.play.store.PlaySessionStore
 import play.api.data.Form
 import play.api.data.Forms.{mapping, optional, text, tuple, _}
@@ -23,13 +22,14 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
+
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Random, Right}
 
 @Singleton
-class SettingsController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class SettingsController @Inject()(/*val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext*/ val controllerComponents: SecurityComponents, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO)(implicit executionContext: ExecutionContext) extends BaseController with Security[CommonProfile]  {
 
-  def updateSettings() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+  def updateSettings() = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { user => Action.async { implicit request =>
 
     UserSettings.form.bindFromRequest.fold(
         errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),

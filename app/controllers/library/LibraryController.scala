@@ -1,7 +1,6 @@
 package controllers.library
 
 import javax.inject.{Inject, Singleton}
-
 import com.artclod.mathml.MathML
 import com.artclod.slick.JodaUTC
 import controllers.Application
@@ -16,7 +15,7 @@ import models.organization.Course
 import models.user.User
 import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
-import org.pac4j.play.scala.Security
+import org.pac4j.play.scala.{Security, SecurityComponents}
 import org.pac4j.play.store.PlaySessionStore
 import play.api.data.Form
 import play.api.data.Forms.{mapping, optional, text, tuple, _}
@@ -35,19 +34,19 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Random, Right, Success}
 
 @Singleton
-class LibraryController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, skillDAO: SkillDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile] {
+class LibraryController @Inject()(/*val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext*/ val controllerComponents: SecurityComponents, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, skillDAO: SkillDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends BaseController with Security[CommonProfile] {
 
-  def list() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def list() = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
     skillDAO.allSkills.flatMap(skills => { questionDAO.questionSearchSet("%", Seq(), Seq()).map(qsl => {
         Ok(views.html.library.catalog(skills, QuestionLibraryResponses(qsl), views.html.library.list.libraryList.apply(skills)))
       })})
     }}}
 
-  def createQuestionView() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def createQuestionView() = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
     skillDAO.allSkills.map(skills => Ok(views.html.library.createQuestion(skills)))
   }}}
 
-  def createQuestionSubmit() = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def createQuestionSubmit() = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
         QuestionCreate.form.bindFromRequest.fold(
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
@@ -65,7 +64,7 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
 
   } } }
 
-  def viewQuestion(questionId: QuestionId, answerIdOp: Option[AnswerId]) = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def viewQuestion(questionId: QuestionId, answerIdOp: Option[AnswerId]) = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
     (questionDAO.frameByIdEither(questionId) +& answerDAO.frameByIdEither(questionId, answerIdOp) +^ answerDAO.attempts(user.id, questionId)).map( _ match {
       case Left(notFoundResult) => notFoundResult
       case Right((question, answerOp, attempts)) => {
@@ -76,7 +75,7 @@ class LibraryController @Inject()(val config: Config, val playSessionStore: Play
   }}}
 
 
-  def answerQuestion(questionId: QuestionId) = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def answerQuestion(questionId: QuestionId) = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (questionDAO.frameByIdEither(questionId) +^ answerDAO.attempts(user.id, questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)

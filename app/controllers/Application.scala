@@ -8,6 +8,9 @@ object Application {
   val appTimeoutNum = 300 // TODO change for production
   val appTimeoutUnit = TimeUnit.SECONDS
   val appTimeout = scala.concurrent.duration.Duration(Application.appTimeoutNum, Application.appTimeoutUnit)
+
+//  val defaultSecurityClients = "RedirectUnauthenticatedClient"
+  val defaultSecurityClients = "FormClient"
 }
 
 object Version {

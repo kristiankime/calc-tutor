@@ -1,7 +1,6 @@
 package controllers.quiz
 
 import javax.inject._
-
 import _root_.controllers.support.{Consented, RequireAccess}
 import com.artclod.markup.Markdowner
 import com.artclod.mathml.MathML
@@ -11,11 +10,12 @@ import dao.user.UserDAO
 import models._
 import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
-import org.pac4j.play.scala.Security
+import org.pac4j.play.scala.{Security, SecurityComponents}
 import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
+import controllers.Application
 import controllers.organization.CourseCreate
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
@@ -29,9 +29,9 @@ import scala.util.Right
 
 
 @Singleton
-class QuestionController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class QuestionController @Inject()(/*val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext*/ val controllerComponents: SecurityComponents, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends BaseController with Security[CommonProfile]  {
 
-  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ skillDAO.skillsMap).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -56,7 +56,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& answerDAO.frameByIdEither(questionId, answerIdOp) +^ answerDAO.attempts(user.id, questionId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
@@ -82,7 +82,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   }
 
-  def questionJsonCourse(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId /* TODO figure out access to questions */ ) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
+  def questionJsonCourse(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId /* TODO figure out access to questions */ ) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
@@ -92,7 +92,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def remove(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -105,7 +105,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
   } } } }
 
 
-  def removeAjax(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def removeAjax(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
     implicit val minimalQuestionFormat = MinimalQuestionJson.minimalQuestionFormat
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
@@ -118,7 +118,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def studentSummary(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, studentId: UserId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def studentSummary(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, studentId: UserId) = RequireAccess(Edit, to=quizId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& userDAO.byIdEither(studentId) +& answerDAO.correctOrLatestEither(questionId, studentId) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -129,7 +129,7 @@ class QuestionController @Inject()(val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def studentSummaryAnswerSpecified(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerId: AnswerId, studentId: UserId) = RequireAccess(Edit, to=quizId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def studentSummaryAnswerSpecified(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerId: AnswerId, studentId: UserId) = RequireAccess(Edit, to=quizId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& userDAO.byIdEither(studentId) +& answerDAO.frameByIdEither(questionId, answerId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult

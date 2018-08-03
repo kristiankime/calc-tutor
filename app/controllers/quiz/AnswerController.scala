@@ -1,7 +1,6 @@
 package controllers.quiz
 
 import javax.inject._
-
 import _root_.controllers.support.{Consented, RequireAccess}
 import com.artclod.mathml.MathML
 import com.artclod.slick.{JodaUTC, NumericBoolean}
@@ -10,11 +9,12 @@ import dao.user.UserDAO
 import models._
 import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
-import org.pac4j.play.scala.Security
+import org.pac4j.play.scala.{Security, SecurityComponents}
 import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
+import controllers.Application
 import controllers.organization.CourseCreate
 import controllers.quiz.QuestionCreate.questionJson
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
@@ -29,9 +29,9 @@ import scala.util.{Random, Right}
 
 
 @Singleton
-class AnswerController @Inject()(val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends Controller with Security[CommonProfile]  {
+class AnswerController @Inject()(/*val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext*/ val controllerComponents: SecurityComponents, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends BaseController with Security[CommonProfile]  {
 
-  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def createCourseSubmit(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=organizationId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +& questionDAO.frameByIdEither(questionId) +^ answerDAO.attempts(user.id, questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -72,17 +72,8 @@ class AnswerController @Inject()(val config: Config, val playSessionStore: PlayS
 
   } } } }
 
-//  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { user => Action.async { implicit request =>
-//
-//    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +^ quizDAO.access(user.id, quizId)).map{ _ match {
-//      case Left(notFoundResult) => notFoundResult
-//      case Right((course, quiz, question, access)) => Ok(views.html.quiz.viewQuestionForCourse(access, course, quiz, question))
-//      }
-//    }
-//
-//  } } } }
 
-  def createSelfQuizCourseSubmit(organizationId: OrganizationId, courseId: CourseId, questionId: QuestionId) = RequireAccess(Edit, to=organizationId) { Secure("RedirectUnauthenticatedClient", "Access") { profiles => Consented(profiles, userDAO) { implicit user => Action.async { implicit request =>
+  def createSelfQuizCourseSubmit(organizationId: OrganizationId, courseId: CourseId, questionId: QuestionId) = RequireAccess(Edit, to=organizationId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& questionDAO.frameByIdEither(questionId) +^ answerDAO.attempts(user.id, questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)

@@ -13,7 +13,7 @@ import slick.driver.JdbcProfile
 
 trait ColumnTypeMappings extends HasDatabaseConfigProvider[JdbcProfile] {
 
-  val profile: JdbcProfile = dbConfig.driver
+//  override val profile: JdbcProfile = dbConfig.driver
   import profile.api._
 
   // ==========================

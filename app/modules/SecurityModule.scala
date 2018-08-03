@@ -20,6 +20,9 @@ import com.google.inject.Provides
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.quiz.QuizDAO
 import dao.user.UserDAO
+import org.pac4j.core.context.Pac4jConstants
+import org.pac4j.core.profile.CommonProfile
+import org.pac4j.play.scala.{DefaultSecurityComponents, SecurityComponents}
 import org.pac4j.sql.profile.service.DbProfileService
 
 
@@ -58,45 +61,120 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     dbProfileService
   }
 
-  @Provides def config(dbProfileService: DbProfileService, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO) : Config = {
-    val formClient = new FormClient(baseUrl + "/auth/loginForm", dbProfileService)
+  @Provides def formClient(dbProfileService: DbProfileService): FormClient = new FormClient(baseUrl + "/auth/loginForm", dbProfileService)
 
+
+  @Provides
+  def provideOidcClient: OidcClient[OidcProfile, OidcConfiguration] = {
     val oidcConfiguration = new OidcConfiguration()
     oidcConfiguration.setClientId(googleClientId)
     oidcConfiguration.setSecret(googleSecret)
     oidcConfiguration.setDiscoveryURI("https://accounts.google.com/.well-known/openid-configuration")
     oidcConfiguration.addCustomParam("prompt", "consent")
-    val oidcClient = new OidcClient[OidcProfile](oidcConfiguration)
+    val oidcClient = new OidcClient[OidcProfile, OidcConfiguration](oidcConfiguration)
     oidcClient.addAuthorizationGenerator(new RoleAdminAuthGenerator)
+    oidcClient
+  }
 
-    // Redirect if Unauthenticated
-    val redirectUnauthenticatedClient = new RedirectUnauthenticatedClient("/auth/signIn")
+  // Redirect if Unauthenticated
+//  @Provides def redirectUnauthenticatedClient = new RedirectUnauthenticatedClient("/auth/signIn")
 
-    // HTTP - this is only used in testing
-    val indirectBasicAuthClient = new IndirectBasicAuthClient(new AuthenticateInTestModeAuthenticator(configuration.getBoolean("testAuth").get ))
+  //    // HTTP - this is only used in testing
+//  @Provides def indirectBasicAuthClient: IndirectBasicAuthClient = new IndirectBasicAuthClient(new AuthenticateInTestModeAuthenticator(configuration.getBoolean("testAuth").get ))
 
-    val clients = new Clients(baseUrl + "/callback", formClient, oidcClient, redirectUnauthenticatedClient, indirectBasicAuthClient)
+
+  @Provides
+//  def provideConfig(redirectUnauthenticatedClient: RedirectUnauthenticatedClient, formClient: FormClient, indirectBasicAuthClient: IndirectBasicAuthClient, oidcClient: OidcClient[OidcProfile, OidcConfiguration],
+//                    userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO): Config = {
+    def provideConfig(formClient: FormClient, oidcClient: OidcClient[OidcProfile, OidcConfiguration],
+                      userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO): Config = {
+
+//    val clients = new Clients(baseUrl + "/callback", redirectUnauthenticatedClient, formClient, indirectBasicAuthClient, oidcClient)
+    val clients = new Clients(baseUrl + "/callback?" + Pac4jConstants.DEFAULT_CLIENT_NAME_PARAMETER + "=", formClient, oidcClient)
 
     val config = new Config(clients)
     config.addAuthorizer("Access", new AccessAuthorizer(userDAO, organizationDAO, courseDAO, quizDAO))
+//    config.addAuthorizer("admin", new RequireAnyRoleAuthorizer[Nothing]("ROLE_ADMIN"))
+//    config.addAuthorizer("custom", new CustomAuthorizer)
+//    config.addMatcher("excludedPath", new PathMatcher().excludeRegex("^/facebook/notprotected\\.html$"))
     config.setHttpActionAdapter(new DemoHttpActionAdapter())
     config
   }
+
+
+  //  @Provides def config(dbProfileService: DbProfileService, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO) : Config = {
+//    val formClient = new FormClient(baseUrl + "/auth/loginForm", dbProfileService)
+//
+//    val oidcConfiguration = new OidcConfiguration()
+//    oidcConfiguration.setClientId(googleClientId)
+//    oidcConfiguration.setSecret(googleSecret)
+//    oidcConfiguration.setDiscoveryURI("https://accounts.google.com/.well-known/openid-configuration")
+//    oidcConfiguration.addCustomParam("prompt", "consent")
+//    val oidcClient = new OidcClient[OidcProfile, OidcConfiguration](oidcConfiguration)
+//    oidcClient.addAuthorizationGenerator(new RoleAdminAuthGenerator)
+//
+//    // Redirect if Unauthenticated
+//    val redirectUnauthenticatedClient = new RedirectUnauthenticatedClient("/auth/signIn")
+//
+//    // HTTP - this is only used in testing
+//    val indirectBasicAuthClient = new IndirectBasicAuthClient(new AuthenticateInTestModeAuthenticator(configuration.getBoolean("testAuth").get ))
+//
+//    val clients = new Clients(baseUrl + "/callback", formClient, oidcClient, redirectUnauthenticatedClient, indirectBasicAuthClient)
+//
+//    val config = new Config(clients)
+//    config.addAuthorizer("Access", new AccessAuthorizer(userDAO, organizationDAO, courseDAO, quizDAO))
+//    config.setHttpActionAdapter(new DemoHttpActionAdapter())
+//    config
+//  }
+
+
+
+
+
+
+
+//  override def configure(): Unit = {
+//    // Play Cache
+//    bind(classOf[PlaySessionStore]).to(classOf[PlayCacheSessionStore])
+//
+//    // callback
+//    val callbackController = new CallbackController()
+//    callbackController.setDefaultUrl("/home")
+//    callbackController.setMultiProfile(true)
+//    bind(classOf[CallbackController]).toInstance(callbackController)
+//
+//    // logout
+//    val logoutController = new LogoutController()
+//    logoutController.setDefaultUrl("/")
+//    bind(classOf[LogoutController]).toInstance(logoutController)
+//
+//    // security components used in controllers
+//    bind(classOf[SecurityComponents]).to(classOf[DefaultSecurityComponents])
+//  }
 
   override def configure(): Unit = {
     // Play Cache
     bind(classOf[PlaySessionStore]).to(classOf[PlayCacheSessionStore])
 
+    bind(classOf[SecurityComponents]).to(classOf[DefaultSecurityComponents])
+
+//    bind(classOf[Pac4jScalaTemplateHelper[CommonProfile]])
+
     // callback
     val callbackController = new CallbackController()
     callbackController.setDefaultUrl("/home")
+//    callbackController.setDefaultUrl("/?defaulturlafterlogout")
     callbackController.setMultiProfile(true)
+//    callbackController.setDefaultClient("RedirectUnauthenticatedClient")
     bind(classOf[CallbackController]).toInstance(callbackController)
 
     // logout
     val logoutController = new LogoutController()
     logoutController.setDefaultUrl("/")
     bind(classOf[LogoutController]).toInstance(logoutController)
+
+    // security components used in controllers
+    bind(classOf[SecurityComponents]).to(classOf[DefaultSecurityComponents])
   }
 
 }
