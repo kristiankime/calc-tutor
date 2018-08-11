@@ -2,7 +2,7 @@ package controllers.organization
 
 import javax.inject._
 import _root_.controllers.support.{Consented, RequireAccess}
-import controllers.Application
+import controllers.ApplicationInfo
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.quiz.{QuizDAO, SkillDAO}
 import dao.user.UserDAO
@@ -22,7 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class OrganizationController @Inject()(/*val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext*/ val controllerComponents: SecurityComponents, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, skillDAO: SkillDAO)(implicit executionContext: ExecutionContext) extends BaseController with Security[CommonProfile]  {
 
-  def view(organizationId: OrganizationId) = Secure(Application.defaultSecurityClients).async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def view(organizationId: OrganizationId) = Secure(ApplicationInfo.defaultSecurityClients).async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
     organizationDAO(organizationId).flatMap{ organizationEither =>
       organizationEither match {
         case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -31,7 +31,7 @@ class OrganizationController @Inject()(/*val config: Config, val playSessionStor
     }
   } } }
 
-  def list() = Secure(Application.defaultSecurityClients).async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def list() = Secure(ApplicationInfo.defaultSecurityClients).async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
     // TODO here we ensure various things that need to be there are created in the system, this is a temporary hack
     skillDAO.defaultSkills.flatMap(_ => organizationDAO.allEnsureAnOrg().map{ organizations => Ok(views.html.organization.organizationList(organizations)) } )
   } } }

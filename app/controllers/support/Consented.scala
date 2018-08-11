@@ -1,7 +1,7 @@
 package controllers.support
 
 import play.api.mvc._
-import controllers.Application
+import controllers.ApplicationInfo
 import dao.user.UserDAO
 import models.user.User
 import org.pac4j.core.profile.CommonProfile
@@ -15,7 +15,7 @@ case class Consented[A](commonProfiles: List[CommonProfile], userDAO: UserDAO)(a
   var executionContext : ExecutionContext = null
 
   def apply(request: Request[A]): Future[Result] = {
-    val user = Await.result(userDAO.ensureByLoginId(commonProfiles), Application.appTimeout)
+    val user = Await.result(userDAO.ensureByLoginId(commonProfiles), ApplicationInfo.appTimeout)
     val path = request.path
     if(user.consented) {
       val action = actionFunc(user)

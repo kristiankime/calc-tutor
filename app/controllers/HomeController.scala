@@ -25,11 +25,11 @@ class HomeController @Inject()(/*val config: Config, val playSessionStore: PlayS
     Ok(views.html.index())
   }
 
-  def home = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def home = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
         courseDAO.coursesAndAccessFor(user).map(courses => Ok(views.html.home(courses)) )
   } } }
 
-  def userInfo = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def userInfo = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
       val studentIdsFuture = userDAO.studentIds()
       val skillsFuture = studentIdsFuture.flatMap(ids => skillDAO.skillsLevelFor(user.id, ids))
       val coursesAndAccessFuture = courseDAO.coursesAndAccessFor(user)

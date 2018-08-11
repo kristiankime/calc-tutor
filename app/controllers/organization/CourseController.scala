@@ -17,7 +17,7 @@ import models.organization.Course
 import play.api.data.Form
 import play.api.data.Forms._
 import com.artclod.random._
-import controllers.Application
+import controllers.ApplicationInfo
 import controllers.library.QuestionLibraryResponses
 import controllers.quiz.AnswerJson
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
@@ -31,7 +31,7 @@ class CourseController @Inject()(/*val config: Config, val playSessionStore: Pla
   implicit val randomEngine = new Random(JodaUTC.now.getMillis())
   val codeRange = (0 to 100000).toVector
 
-  def list(organizationId: OrganizationId) = RequireAccess(View, to=organizationId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def list(organizationId: OrganizationId) = RequireAccess(View, to=organizationId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (organizationDAO(organizationId) +^ courseDAO.coursesFor(organizationId)).map{ _ match {
         case Left(notFoundResult) => notFoundResult
@@ -41,7 +41,7 @@ class CourseController @Inject()(/*val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def createForm(organizationId: OrganizationId) = RequireAccess(Edit, to=organizationId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def createForm(organizationId: OrganizationId) = RequireAccess(Edit, to=organizationId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     organizationDAO(organizationId).map{ _ match {
         case Left(notFoundResult) => notFoundResult
@@ -51,7 +51,7 @@ class CourseController @Inject()(/*val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def createSubmit(organizationId: OrganizationId) = RequireAccess(Edit, to=organizationId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def createSubmit(organizationId: OrganizationId) = RequireAccess(Edit, to=organizationId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     organizationDAO(organizationId).flatMap{ _ match {
         case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -70,7 +70,7 @@ class CourseController @Inject()(/*val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def view(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=organizationId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def view(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=organizationId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ quizDAO.quizzesFor(courseId)).flatMap{ _ match {
        case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -89,7 +89,7 @@ class CourseController @Inject()(/*val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def join(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=organizationId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def join(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=organizationId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     courseDAO(organizationId, courseId).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -106,7 +106,7 @@ class CourseController @Inject()(/*val config: Config, val playSessionStore: Pla
 
   } } } } }
 
-  def studentSummary(organizationId: OrganizationId, courseId: CourseId, studentId: UserId) = RequireAccess(Edit, to=courseId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def studentSummary(organizationId: OrganizationId, courseId: CourseId, studentId: UserId) = RequireAccess(Edit, to=courseId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +& courseDAO(courseId, studentId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -118,7 +118,7 @@ class CourseController @Inject()(/*val config: Config, val playSessionStore: Pla
   } } } }
 
 
-  def studentSelfQuiz(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=courseId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def studentSelfQuiz(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=courseId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ skillDAO.allSkills +^ questionDAO.questionSearchSet("%", Seq(), Seq()) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
@@ -130,7 +130,7 @@ class CourseController @Inject()(/*val config: Config, val playSessionStore: Pla
 
   } } } }
 
-  def studentSelfQuestion(organizationId: OrganizationId, courseId: CourseId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def studentSelfQuestion(organizationId: OrganizationId, courseId: CourseId, questionId: QuestionId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& questionDAO.frameByIdEither(questionId) +^ courseDAO.access(user.id, courseId) +& answerDAO.frameByIdEither(questionId, answerIdOp) +^ answerDAO.attempts(user.id, questionId) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)

@@ -2,7 +2,7 @@ package controllers.auth
 
 import java.util.concurrent.TimeUnit
 
-import controllers.Application
+import controllers.ApplicationInfo
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.quiz.QuizDAO
 import dao.user.UserDAO
@@ -36,7 +36,7 @@ class AccessAuthorizer(userDAO: UserDAO, organizationDAO: OrganizationDAO, cours
       val requireLevel = Access.fromNum(requiredLevelStr.toShort)
 
       val allowAccessFuture = userDAO.ensureByLoginId(profile).flatMap(user => authorized(user.id, itemId, requireLevel))
-      Await.result(allowAccessFuture, Application.appTimeout)
+      Await.result(allowAccessFuture, ApplicationInfo.appTimeout)
     } else {
       true
     }

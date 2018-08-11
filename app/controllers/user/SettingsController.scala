@@ -2,7 +2,7 @@ package controllers.user
 
 import javax.inject.{Inject, Singleton}
 import com.artclod.slick.JodaUTC
-import controllers.Application
+import controllers.ApplicationInfo
 import controllers.organization.CourseJoin
 import controllers.quiz.QuizAvailability
 import controllers.support.{Consented, RequireAccess}
@@ -29,7 +29,7 @@ import scala.util.{Random, Right}
 @Singleton
 class SettingsController @Inject()(/*val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext*/ val controllerComponents: SecurityComponents, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO)(implicit executionContext: ExecutionContext) extends BaseController with Security[CommonProfile]  {
 
-  def updateSettings() = Secure(Application.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { user => Action.async { implicit request =>
+  def updateSettings() = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { user => Action.async { implicit request =>
 
     UserSettings.form.bindFromRequest.fold(
         errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),

@@ -5,7 +5,7 @@ import java.io.{PrintWriter, StringWriter}
 import javax.inject.{Inject, Singleton}
 import com.artclod.slick.JodaUTC
 import com.google.common.annotations.VisibleForTesting
-import controllers.Application
+import controllers.ApplicationInfo
 import dao.auth.NamePassDAO
 import dao.user.UserDAO
 import org.pac4j.core.config.Config
@@ -26,19 +26,19 @@ import scala.util.Failure
 @Singleton
 class ConsentController @Inject()(/*val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext*/ val controllerComponents: SecurityComponents, val dbProfileService: DbProfileService, val userDAO: UserDAO)(implicit val executionContext: ExecutionContext) extends BaseController with Security[CommonProfile] {
 
-  def consent(goTo: Option[String], errorInfo: Option[String]) = Secure(Application.defaultSecurityClients) {
+  def consent(goTo: Option[String], errorInfo: Option[String]) = Secure(ApplicationInfo.defaultSecurityClients) {
     Action { implicit request =>
       Ok(views.html.auth.consent(goTo, errorInfo))
     }
   }
 
-  def noConsent() = Secure(Application.defaultSecurityClients) {
+  def noConsent() = Secure(ApplicationInfo.defaultSecurityClients) {
     Action { implicit request =>
         Ok(views.html.auth.noConsent())
     }
   }
 
-  def consentSubmit(goTo: Option[String]) = Secure(Application.defaultSecurityClients).async { authenticatedRequest =>
+  def consentSubmit(goTo: Option[String]) = Secure(ApplicationInfo.defaultSecurityClients).async { authenticatedRequest =>
 
     val asyncAction: Action[AnyContent] = Action.async { implicit request =>
       ConsentForm.values.bindFromRequest.fold(
@@ -65,7 +65,7 @@ class ConsentController @Inject()(/*val config: Config, val playSessionStore: Pl
     asyncAction(authenticatedRequest)
   }
 
-  def revokeConsent() = Secure(Application.defaultSecurityClients).async { authenticatedRequest =>
+  def revokeConsent() = Secure(ApplicationInfo.defaultSecurityClients).async { authenticatedRequest =>
 
     val asyncAction: Action[AnyContent] = Action.async { implicit request =>
       userDAO.ensureByLoginId(authenticatedRequest.profiles).flatMap(user => userDAO.updateConsent(user, false).map(worked => Ok(views.html.auth.noConsent()))

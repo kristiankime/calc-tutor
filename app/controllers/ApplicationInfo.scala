@@ -2,12 +2,12 @@ package controllers
 
 import java.util.concurrent.TimeUnit
 
-object Application {
+object ApplicationInfo {
   val version = Version(0, 0, 0)
 
   val appTimeoutNum = 300 // TODO change for production
   val appTimeoutUnit = TimeUnit.SECONDS
-  val appTimeout = scala.concurrent.duration.Duration(Application.appTimeoutNum, Application.appTimeoutUnit)
+  val appTimeout = scala.concurrent.duration.Duration(ApplicationInfo.appTimeoutNum, ApplicationInfo.appTimeoutUnit)
 
 //  val defaultSecurityClients = "RedirectUnauthenticatedClient"
   val defaultSecurityClients = "FormClient"

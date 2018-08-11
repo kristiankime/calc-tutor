@@ -5,14 +5,19 @@ version := "0.0.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.12.2"
+
+val playPac4jVersion = "6.0.1"
+val pac4jVersion = "3.0.0"
+val playVersion = "2.6.6"
 
 // https://www.playframework.com/documentation/2.6.7/CacheMigration26
 //libraryDependencies += cacheApi
 libraryDependencies += ehcache
-
+libraryDependencies += guice // https://www.playframework.com/documentation/2.6.7/Migration26#Guice-DI-support-moved-to-separate-module
+libraryDependencies += ws
 libraryDependencies += filters // https://www.playframework.com/documentation/2.5.x/AllowedHostsFilter
-libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % Test
+libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.0" % Test
 
 // http://central.maven.org/maven2/org/pac4j/pac4j-stormpath/2.0.0/pac4j-stormpath-2.0.0.jar
 // === Start Pac4j includes ===, example project here https://github.com/pac4j/play-pac4j-scala-demo
@@ -26,20 +31,19 @@ resolvers += "Shibboleth releases"   at "https://build.shibboleth.net/nexus/cont
 //resolvers += "Sonatype snapshots repository" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
 
-libraryDependencies += "org.pac4j"  %% "play-pac4j"      % "6.0.0"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-http"      % "3.0.1"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-cas"       % "3.0.1"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-openid"    % "3.0.1" exclude("xml-apis" , "xml-apis")     withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-oauth"     % "3.0.1"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-saml"      % "3.0.1"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-oidc"      % "3.0.1" exclude("commons-io" , "commons-io") withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-gae"       % "3.0.1"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-jwt"       % "3.0.1" exclude("commons-io" , "commons-io") withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-ldap"      % "3.0.1"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-sql"       % "3.0.1"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-mongo"     % "3.0.1"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-stormpath" % "2.0.0"                                      withSources() withJavadoc()
-libraryDependencies += "org.pac4j"  %  "pac4j-sql"       % "3.0.1"                                      withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %% "play-pac4j"      % playPac4jVersion                                  withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-http"      % pac4jVersion                                      withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-cas"       % pac4jVersion                                      withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-openid"    % pac4jVersion exclude("xml-apis" , "xml-apis")     withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-oauth"     % pac4jVersion                                      withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-saml"      % pac4jVersion                                      withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-oidc"      % pac4jVersion exclude("commons-io" , "commons-io") withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-gae"       % pac4jVersion                                      withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-jwt"       % pac4jVersion exclude("commons-io" , "commons-io") withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-ldap"      % pac4jVersion                                      withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-sql"       % pac4jVersion                                      withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-mongo"     % pac4jVersion                                      withSources() withJavadoc()
+libraryDependencies += "org.pac4j"  %  "pac4j-sql"       % pac4jVersion                                      withSources() withJavadoc()
 libraryDependencies += "commons-io" %  "commons-io"      % "2.5"
 // === End Pac4j includes ===
 
@@ -53,7 +57,7 @@ libraryDependencies += "org.springframework.security" %  "spring-security-crypto
 // === End play slick / db includes ===
 
 // === Start Support libraries
-libraryDependencies += "org.planet42" %% "laika-core"          % "0.6.0" withSources() withJavadoc() // Markdown lib
+libraryDependencies += "org.planet42" %% "laika-core"          % "0.8.0" withSources() withJavadoc() // Markdown lib
 // === End Support libraries
 
 // === Start Mail libraries
@@ -65,7 +69,6 @@ libraryDependencies += jodaForms // https://www.playframework.com/documentation/
 libraryDependencies += "com.typesafe.play" %% "play-json-joda" % "2.6.0" // https://stackoverflow.com/questions/46764755/joda-datetime-format-in-play-2-6-is-not-working  https://github.com/playframework/play-json/tree/a3c7748a2e42290c8a12c8e01fc70bc0a8f54aa3/play-json-joda/src
 
 // === dependency loader ===
-libraryDependencies += guice // https://www.playframework.com/documentation/2.6.7/Migration26#Guice-DI-support-moved-to-separate-module
 
 // === memcache ===
 libraryDependencies += "com.github.mumoshu" %% "play2-memcached-play26" % "0.9.2" // memcache for Play 2.6 https://github.com/mumoshu/play2-memcached

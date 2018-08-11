@@ -77,20 +77,21 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
   }
 
   // Redirect if Unauthenticated
-//  @Provides def redirectUnauthenticatedClient = new RedirectUnauthenticatedClient("/auth/signIn")
+  @Provides def redirectUnauthenticatedClient = new RedirectUnauthenticatedClient("/auth/signIn")
 
-  //    // HTTP - this is only used in testing
-//  @Provides def indirectBasicAuthClient: IndirectBasicAuthClient = new IndirectBasicAuthClient(new AuthenticateInTestModeAuthenticator(configuration.getBoolean("testAuth").get ))
+  // HTTP - this is only used in testing
+  @Provides def indirectBasicAuthClient: IndirectBasicAuthClient = new IndirectBasicAuthClient(new AuthenticateInTestModeAuthenticator(configuration.getBoolean("testAuth").get ))
 
 
   @Provides
-//  def provideConfig(redirectUnauthenticatedClient: RedirectUnauthenticatedClient, formClient: FormClient, indirectBasicAuthClient: IndirectBasicAuthClient, oidcClient: OidcClient[OidcProfile, OidcConfiguration],
-//                    userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO): Config = {
-    def provideConfig(formClient: FormClient, oidcClient: OidcClient[OidcProfile, OidcConfiguration],
-                      userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO): Config = {
+  def provideConfig(redirectUnauthenticatedClient: RedirectUnauthenticatedClient, formClient: FormClient, indirectBasicAuthClient: IndirectBasicAuthClient, oidcClient: OidcClient[OidcProfile, OidcConfiguration],
+                    userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO): Config = {
+//    def provideConfig(formClient: FormClient, oidcClient: OidcClient[OidcProfile, OidcConfiguration],
+//                      userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO): Config = {
 
-//    val clients = new Clients(baseUrl + "/callback", redirectUnauthenticatedClient, formClient, indirectBasicAuthClient, oidcClient)
-    val clients = new Clients(baseUrl + "/callback?" + Pac4jConstants.DEFAULT_CLIENT_NAME_PARAMETER + "=", formClient, oidcClient)
+    val clients = new Clients(baseUrl + "/callback", redirectUnauthenticatedClient, formClient, indirectBasicAuthClient, oidcClient)
+//    val clients = new Clients(baseUrl + "/callback?" + Pac4jConstants.DEFAULT_CLIENT_NAME_PARAMETER + "=", formClient, oidcClient)
+//    val clients = new Clients(baseUrl + "/callback", formClient, oidcClient)
 
     val config = new Config(clients)
     config.addAuthorizer("Access", new AccessAuthorizer(userDAO, organizationDAO, courseDAO, quizDAO))
@@ -102,7 +103,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
   }
 
 
-  //  @Provides def config(dbProfileService: DbProfileService, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO) : Config = {
+//    @Provides def config(dbProfileService: DbProfileService, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO) : Config = {
 //    val formClient = new FormClient(baseUrl + "/auth/loginForm", dbProfileService)
 //
 //    val oidcConfiguration = new OidcConfiguration()

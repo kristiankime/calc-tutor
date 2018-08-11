@@ -2,7 +2,7 @@ package controllers.auth
 
 import org.pac4j.core.context.HttpConstants
 import org.pac4j.play.PlayWebContext
-import org.pac4j.play.http.{DefaultHttpActionAdapter, DefaultHttpActionAdapterFix}
+import org.pac4j.play.http.{DefaultHttpActionAdapter}
 import play.mvc.Results
 import play.mvc.Result
 
