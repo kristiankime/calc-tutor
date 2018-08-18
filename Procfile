@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/calc-tutor -Dhttp.port=${PORT} -Dplay.evolutions.db.default.autoApply=true
+web: target/universal/stage/bin/calc-tutor -Dhttp.port=disabled -Dhttps.port=443 -Dplay.evolutions.db.default.autoApply=true
