@@ -1,4 +1,4 @@
-name := """calc-tutor""" // man need to manually set intellij module name to "root" https://stackoverflow.com/questions/30605802/play-framework-2-4-and-intellij-idea#34433904
+name := """calc-tutor""" // may need to manually set intellij module name to "root" https://stackoverflow.com/questions/30605802/play-framework-2-4-and-intellij-idea#34433904
 organization := "com.artclod"
 
 version := "0.0.0-SNAPSHOT"
@@ -6,10 +6,6 @@ version := "0.0.0-SNAPSHOT"
 lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
 scalaVersion := "2.12.2"
-
-val playPac4jVersion = "6.0.1"
-val pac4jVersion = "3.0.0"
-val playVersion = "2.6.6"
 
 // https://www.playframework.com/documentation/2.6.7/CacheMigration26
 //libraryDependencies += cacheApi
@@ -30,7 +26,8 @@ resolvers += "Shibboleth releases"   at "https://build.shibboleth.net/nexus/cont
 //resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 //resolvers += "Sonatype snapshots repository" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-
+val playPac4jVersion = "6.0.1"
+val pac4jVersion = "3.0.0"
 libraryDependencies += "org.pac4j"  %% "play-pac4j"      % playPac4jVersion                                  withSources() withJavadoc()
 libraryDependencies += "org.pac4j"  %  "pac4j-http"      % pac4jVersion                                      withSources() withJavadoc()
 libraryDependencies += "org.pac4j"  %  "pac4j-cas"       % pac4jVersion                                      withSources() withJavadoc()

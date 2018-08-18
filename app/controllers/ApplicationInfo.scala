@@ -9,8 +9,8 @@ object ApplicationInfo {
   val appTimeoutUnit = TimeUnit.SECONDS
   val appTimeout = scala.concurrent.duration.Duration(ApplicationInfo.appTimeoutNum, ApplicationInfo.appTimeoutUnit)
 
-//  val defaultSecurityClients = "RedirectUnauthenticatedClient"
-  val defaultSecurityClients = "FormClient"
+  val defaultSecurityClients = "RedirectUnauthenticatedClient"
+//  val defaultSecurityClients = "FormClient"
 }
 
 object Version {
