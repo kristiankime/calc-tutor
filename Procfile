@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/calc-tutor -Dhttp.port=${PORT} -Dplay.evolutions.db.default.autoApply=true
+web: target/universal/stage/bin/calc-tutor -Dconfig.resource=application.heroku.conf -Dhttp.port=${PORT} -Dplay.evolutions.db.default.autoApply=true
