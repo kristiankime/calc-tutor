@@ -123,7 +123,8 @@ class QuestionController @Inject()(/*val config: Config, val playSessionStore: P
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& userDAO.byIdEither(studentId) +& answerDAO.correctOrLatestEither(questionId, studentId) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, quiz, question, student, (answer, answers))) => {
-        answerDAO.frameById(answer.id).map(answerFrame => { Ok(views.html.quiz.viewQuestionSummaryForCourse(Own, course, quiz, question, answerFrame.get, student)) })
+        answerDAO.frameById(answer.id).map(answerFrame => {
+          Ok(views.html.quiz.viewQuestionSummaryForCourse(Own, course, quiz, question, answerFrame.get, student, answers)) })
       }
     } }
 
@@ -131,10 +132,10 @@ class QuestionController @Inject()(/*val config: Config, val playSessionStore: P
 
   def studentSummaryAnswerSpecified(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId, answerId: AnswerId, studentId: UserId) = RequireAccess(Edit, to=quizId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& userDAO.byIdEither(studentId) +& answerDAO.frameByIdEither(questionId, answerId)).map{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId) +& userDAO.byIdEither(studentId) +& answerDAO.frameByIdEither(questionId, answerId) +^ answerDAO.attempts(studentId, questionId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
-      case Right((course, quiz, question, student, answer)) =>
-        Ok(views.html.quiz.viewQuestionSummaryForCourse(Own, course, quiz, question, answer, student))
+      case Right((course, quiz, question, student, answer, attempts)) =>
+        Ok(views.html.quiz.viewQuestionSummaryForCourse(Own, course, quiz, question, answer, student, attempts))
 
     } }
 

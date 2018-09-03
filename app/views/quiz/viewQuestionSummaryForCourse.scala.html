@@ -8,12 +8,16 @@
         quiz: models.quiz.Quiz,
         questionFrame: models.quiz.QuestionFrame,
         answerFrame: models.quiz.AnswerFrame,
-        student: models.user.User
+        student: models.user.User,
+        previousAnswers: Seq[models.quiz.Answer]
 )(implicit request: Request[AnyContent], user: models.user.User)
 
 @mainContent("Quiz " + quiz.name, tag.courseLink(course), tag.courseQuizLink(course, quiz, None)) {
     <h2>Welcome to a question summary page for quiz: @quiz.name and user: @student.nameDisplay() </h2>
 
     @views.html.quiz.question.answerViewer(questionFrame, answerFrame)
+
+    @views.html.quiz.question.previousAnswers( (answerId: AnswerId) =>
+        controllers.quiz.routes.QuestionController.studentSummaryAnswerSpecified(course.organizationId, course.id, quiz.id, questionFrame.question.id, answerId, student.id), previousAnswers)
 
 }

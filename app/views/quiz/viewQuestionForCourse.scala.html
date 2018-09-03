@@ -27,7 +27,7 @@
         </ul>
     }
 
-    @views.html.quiz.question.previousAnswers( (id: AnswerId) =>
-        controllers.quiz.routes.QuestionController.view(course.organizationId, course.id, quiz.id, questionFrame.question.id, Some(id)), previousAnswers )
+    @views.html.quiz.question.previousAnswers( (answerId: AnswerId) =>
+        controllers.quiz.routes.QuestionController.studentSummaryAnswerSpecified(course.organizationId, course.id, quiz.id, questionFrame.question.id, answerId, user.id), previousAnswers )
 
 }
