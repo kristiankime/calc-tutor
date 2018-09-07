@@ -14,6 +14,7 @@ import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
+import com.artclod.util.ofthree.{First, Second, Third}
 import controllers.ApplicationInfo
 import controllers.organization.CourseCreate
 import controllers.quiz.QuestionCreate.questionJson
@@ -132,6 +133,7 @@ object AnswerCreate {
   val functionMath = "functionMath"
 
   implicit val answerPartFunctionFormat = Json.format[AnswerPartFunctionJson]
+  implicit val answerPartSequenceFormat = Json.format[AnswerPartSequenceJson]
   implicit val answerSectionFormat = Json.format[AnswerSectionJson]
   implicit val answerFormat = Json.format[AnswerJson]
 }
@@ -165,21 +167,22 @@ object AnswerJson {
 }
 
 // === AnswerSectionJson
-case class AnswerSectionJson(choiceIndex: Int, functions: Vector[AnswerPartFunctionJson], correct: Int)
+case class AnswerSectionJson(choiceIndex: Int, functions: Vector[AnswerPartFunctionJson], sequences: Vector[AnswerPartSequenceJson], correct: Int)
 
 object AnswerSectionJson {
   val rand = new Random(System.currentTimeMillis())
 
   def blank(sectionFrame: QuestionSectionFrame): AnswerSectionJson =
-    AnswerSectionJson(choiceIndex = sectionFrame.choiceSize.map(v => rand.nextInt(v)).getOrElse(AnswerJson.noChoiceSelected), functions=AnswerPartFunctionJson.blank(sectionFrame.parts), correct = AnswerJson.correctBlank)
+    AnswerSectionJson(choiceIndex = sectionFrame.choiceSize.map(v => rand.nextInt(v)).getOrElse(AnswerJson.noChoiceSelected), functions=AnswerPartFunctionJson.blank(sectionFrame.parts), sequences = AnswerPartSequenceJson.blank(sectionFrame.parts), correct = AnswerJson.correctBlank)
 
-  def apply(correct: Int, choiceIndex: Int, parts: AnswerPartFunctionJson*) : AnswerSectionJson =
-    AnswerSectionJson(choiceIndex, Vector(parts:_*), correct)
+  def apply(correct: Int, choiceIndex: Int, functionParts: Vector[AnswerPartFunctionJson], sequenceParts: Vector[AnswerPartSequenceJson]) : AnswerSectionJson =
+    AnswerSectionJson(choiceIndex, Vector(functionParts:_*), Vector(sequenceParts:_*), correct)
 
   def apply(answerSectionFrame: AnswerSectionFrame) : AnswerSectionJson =
     AnswerSectionJson(
       choiceIndex = answerSectionFrame.answerSection.choice.getOrElse(AnswerJson.noChoiceSelected).toShort,
       functions = answerSectionFrame.parts.map(p => AnswerPartFunctionJson(p)),
+      sequences = answerSectionFrame.parts.map(p => AnswerPartSequenceJson(p)),
       correct = answerSectionFrame.answerSection.correctNum )
 
 }
@@ -189,9 +192,10 @@ case class AnswerPartFunctionJson(functionRaw: String, functionMath: String, cor
 
 object AnswerPartFunctionJson {
 
-  def blank(functionParts: Either[_, Vector[QuestionPartFunction]]): Vector[AnswerPartFunctionJson] = functionParts match {
-    case Left(_) => Vector()
-    case Right(fps) => fps.map(p => AnswerPartFunctionJson("", "", AnswerJson.correctBlank))
+  def blank(functionParts: OneOfThree[_, Vector[QuestionPartFunction], _]): Vector[AnswerPartFunctionJson] = functionParts match {
+    case First(_) => Vector()
+    case Second(fps) => fps.map(p => AnswerPartFunctionJson("", "", AnswerJson.correctBlank))
+    case Third(_) => Vector()
   }
 
   def apply(function: String, correct: Int) : AnswerPartFunctionJson =
@@ -199,5 +203,24 @@ object AnswerPartFunctionJson {
 
   def apply(answerPartFunction: AnswerPart) : AnswerPartFunctionJson =
     AnswerPartFunctionJson(answerPartFunction.functionRaw, answerPartFunction.functionMath.toString, answerPartFunction.correctNum)
+
+}
+
+// === AnswerPartSequenceJson
+case class AnswerPartSequenceJson(sequenceStr: String, correct: Int)
+
+object AnswerPartSequenceJson {
+
+  def blank(sequenceParts: OneOfThree[_, _, Vector[QuestionPartSequence]]): Vector[AnswerPartSequenceJson] = sequenceParts match {
+    case First(_) => Vector()
+    case Second(_) => Vector()
+    case Third(seq) => seq.map(p => AnswerPartSequenceJson(p.sequenceStr, AnswerJson.correctBlank))
+  }
+
+  def apply(sequence: String, correct: Int) : AnswerPartSequenceJson =
+    AnswerPartSequenceJson(sequence, correct)
+
+  def apply(answerPartSequence: AnswerPart) : AnswerPartSequenceJson =
+    AnswerPartSequenceJson(answerPartSequence.sequenceStr, answerPartSequence.correctNum)
 
 }

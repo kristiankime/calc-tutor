@@ -1,8 +1,10 @@
 package models.quiz
 
+import com.artclod.math.SequenceParse
 import com.artclod.mathml.{Inconclusive, MathML, No, Yes}
 import com.artclod.slick.{JodaUTC, NumericBoolean}
-import controllers.quiz.{AnswerJson, AnswerPartFunctionJson, AnswerSectionJson}
+import com.artclod.util.ofthree.{First, Second, Third}
+import controllers.quiz.{AnswerJson, AnswerPartFunctionJson, AnswerPartSequenceJson, AnswerSectionJson}
 import models._
 import models.support.HasOrder
 import org.joda.time.DateTime
@@ -57,17 +59,28 @@ object AnswerFrame {
   private def sectionFrame(sectionFrame: QuestionSectionFrame, answerSectionJson: AnswerSectionJson, index: Short) =  {
     val questionSection = sectionFrame.section
     sectionFrame.parts match {
-      case Left(choices) => {
+      case First(choices) => {
         val choiceIndex = answerSectionJson.choiceIndex.toInt // TODO can throw
         val correctIndex = choices.indexWhere(c => c.correct)
         val answerSection = AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, choice=Some(choiceIndex.toShort), correctNum=NumericBoolean(choiceIndex == correctIndex), order=index)
         AnswerSectionFrame(answerSection, Vector(), false)
       }
-      case Right(functions) => {
+      case Second(functions) => {
         if(answerSectionJson.functions.size != functions.size) {
           throw new IllegalArgumentException("function parts were not the same size")
         }
-        val parts = answerSectionJson.functions.zip(functions).zipWithIndex.map(fs => answerPart(fs._1._1, fs._1._2, fs._2.toShort))
+        val parts = answerSectionJson.functions.zip(functions).zipWithIndex.map(fs => answerPartFunction(fs._1._1, fs._1._2, fs._2.toShort))
+        val correct = parts.map(p => p.correctNum).reduce(math.min(_, _).toShort)
+        val answerSection = AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, choice=None, correctNum=correct, order=index)
+        val correctUnknown = correct <= NumericBoolean.Unknown
+        AnswerSectionFrame(answerSection, parts, correctUnknown)
+      }
+
+      case Third(sequences) => {
+        if(answerSectionJson.sequences.size != sequences.size) {
+          throw new IllegalArgumentException("sequences parts were not the same size")
+        }
+        val parts = answerSectionJson.sequences.zip(sequences).zipWithIndex.map(fs => answerPartSequence(fs._1._1, fs._1._2, fs._2.toShort))
         val correct = parts.map(p => p.correctNum).reduce(math.min(_, _).toShort)
         val answerSection = AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, choice=None, correctNum=correct, order=index)
         val correctUnknown = correct <= NumericBoolean.Unknown
@@ -76,7 +89,7 @@ object AnswerFrame {
     }
   }
 
-  private def answerPart(answerPartFunctionJson: AnswerPartFunctionJson, questionPartFunction: QuestionPartFunction, order: Short) : AnswerPart = {
+  private def answerPartFunction(answerPartFunctionJson: AnswerPartFunctionJson, questionPartFunction: QuestionPartFunction, order: Short) : AnswerPart = {
     val functionMath = MathML(answerPartFunctionJson.functionMath).get
 
     val correct = (questionPartFunction.functionMath ?= functionMath) match {
@@ -84,6 +97,24 @@ object AnswerFrame {
       case No => NumericBoolean.F
       case Inconclusive => NumericBoolean.Unknown
     }
+
+    AnswerPart(id=null, answerSectionId=null, answerId=null,
+      questionPartId=questionPartFunction.id, sectionId=questionPartFunction.sectionId, questionId = questionPartFunction.questionId,
+      functionRaw=answerPartFunctionJson.functionRaw, functionMath = functionMath, correctNum = correct, sequenceStr = null, order = order
+    )
+  }
+
+  private def answerPartSequence(answerPartSequenceJson: AnswerPartSequenceJson, questionPartSequence: QuestionPartSequence, order: Short) : AnswerPart = {
+    val answerVals = SequenceParse(answerPartSequenceJson.sequenceStr)
+    val questionVals = SequenceParse(questionPartSequence.sequenceStr)
+
+//    val functionMath = MathML(answerPartFunctionJson.functionMath).get
+//
+//    val correct = (questionPartFunction.functionMath ?= functionMath) match {
+//      case Yes => NumericBoolean.T
+//      case No => NumericBoolean.F
+//      case Inconclusive => NumericBoolean.Unknown
+//    }
 
     AnswerPart(id=null, answerSectionId=null, answerId=null,
       questionPartId=questionPartFunction.id, sectionId=questionPartFunction.sectionId, questionId = questionPartFunction.questionId,

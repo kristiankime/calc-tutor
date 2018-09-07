@@ -15,6 +15,7 @@ import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc._
 import play.libs.concurrent.HttpExecutionContext
 import com.artclod.util._
+import com.artclod.util.ofthree.{First, Second, Third}
 import controllers.ApplicationInfo
 import controllers.organization.CourseCreate
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
@@ -175,37 +176,47 @@ object QuestionJson {
 }
 
 // === QuestionSectionJson
-case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, choiceOrFunction: String, correctChoiceIndex: Int, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson]) {
-  choiceOrFunction match {
+case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, partType: String, correctChoiceIndex: Int, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson], sequences: Vector[QuestionPartSequenceJson]) {
+  partType match {
     case QuestionCreate.choice => {
       if(correctChoiceIndex < 0 || correctChoiceIndex >= choices.size){ throw new IllegalArgumentException("Choice index was no in correct range")}
       if(choices.size == 0) {throw new IllegalArgumentException() }
     }
     case QuestionCreate.function => null
-    case _ => throw new IllegalArgumentException("choiceOrFunction was not recognized type [" + choiceOrFunction + "]")
+    case QuestionCreate.sequence => null
+    case _ => throw new IllegalArgumentException("partType was not recognized type [" + partType + "]")
   }
 }
 
 object QuestionSectionJson {
 
-  def apply(explanation: String, correctChoiceIndex : Int = -1)(choices: QuestionPartChoiceJson*)(functions: QuestionPartFunctionJson*) : QuestionSectionJson = {
-    (correctChoiceIndex, choices.nonEmpty, functions.nonEmpty) match {
-     case(i,  true,  false) if i >= 0 && i < choices.size => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice,   correctChoiceIndex, Vector(choices:_*), Vector())
-     case(-1, false, true )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector(functions:_*))
+  def apply(explanation: String, correctChoiceIndex : Int = -1)(choices: QuestionPartChoiceJson*)(functions: QuestionPartFunctionJson*)(sequences: QuestionPartSequenceJson*)  : QuestionSectionJson = {
+    (correctChoiceIndex, choices.nonEmpty, functions.nonEmpty, sequences.nonEmpty) match {
+     case(i,  true,  false, false) if i >= 0 && i < choices.size => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice,   correctChoiceIndex, Vector(choices:_*), Vector()            , Vector())
+     case(-1, false, true, false )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector(functions:_*), Vector())
+     case(-1, false, false, true )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector()            , Vector(sequences:_*))
+
      case _ => throw new IllegalArgumentException("Not a valid QuestionSectionJson combo")
     }
   }
 
   def apply(questionSectionFrame: QuestionSectionFrame) : QuestionSectionJson = {
-    val choices : Vector[QuestionPartChoiceJson] = questionSectionFrame.parts.left.getOrElse(Vector()).map(c => QuestionPartChoiceJson(c))
-    val functions : Vector[QuestionPartFunctionJson] = questionSectionFrame.parts.right.getOrElse(Vector()).map(f => QuestionPartFunctionJson(f))
+    val choices   : Vector[QuestionPartChoiceJson]   = questionSectionFrame.parts.first.getOrElse(Vector()).map(c => QuestionPartChoiceJson(c))
+    val functions : Vector[QuestionPartFunctionJson] = questionSectionFrame.parts.second.getOrElse(Vector()).map(f => QuestionPartFunctionJson(f))
+    val sequences : Vector[QuestionPartSequenceJson] = questionSectionFrame.parts.third.getOrElse(Vector()).map(f => QuestionPartSequenceJson(f))
+
     QuestionSectionJson(
       questionSectionFrame.section.explanationRaw,
       questionSectionFrame.section.explanationHtml.toString,
-      if(questionSectionFrame.parts.isLeft){QuestionCreate.choice}else{QuestionCreate.function},
+      questionSectionFrame.parts match {
+        case First(a)  => QuestionCreate.choice
+        case Second(a) => QuestionCreate.function
+        case Third(a)  => QuestionCreate.sequence
+      },
       questionSectionFrame.correctIndex.getOrElse(-1),
       choices,
-      functions)
+      functions,
+      sequences)
   }
 
 }
@@ -239,6 +250,21 @@ object QuestionPartFunctionJson {
 
 }
 
+// === QuestionPartSequenceJson
+case class QuestionPartSequenceJson(summaryRaw: String, summaryHtml: String, sequence: String)
+
+object QuestionPartSequenceJson {
+
+  def apply(summary: String, sequence: String) : QuestionPartSequenceJson = QuestionPartSequenceJson(summary, Markdowner.string(summary), sequence)
+
+  def apply(questionPartSequence: QuestionPartSequence) : QuestionPartSequenceJson =
+    QuestionPartSequenceJson(
+      questionPartSequence.summaryRaw,
+      questionPartSequence.summaryHtml.toString,
+      questionPartSequence.sequenceStr)
+
+}
+
 object QuestionCreate {
   val questionJson = "question-json"
 
@@ -268,12 +294,14 @@ object QuestionCreate {
   val functionRaw = "functionRaw"
   val functionMath = "functionMath"
 
-  // Function versus choice
+  // Part Type
   val function = "function"
   val choice = "choice"
+  val sequence = "sequence"
 
   implicit val questionPartChoiceFormat = Json.format[QuestionPartChoiceJson]
   implicit val questionPartFunctionFormat = Json.format[QuestionPartFunctionJson]
+  implicit val questionPartSequenceFormat = Json.format[QuestionPartSequenceJson]
   implicit val questionSectionFormat = Json.format[QuestionSectionJson]
   implicit val questionFormat = Json.format[QuestionJson]
 }

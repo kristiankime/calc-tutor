@@ -3,9 +3,11 @@ package models.quiz
 import com.artclod.mathml.MathML
 import com.artclod.mathml.scalar.MathMLElem
 import com.artclod.slick.{JodaUTC, NumericBoolean}
-import controllers.quiz.{QuestionJson, QuestionPartChoiceJson, QuestionPartFunctionJson, QuestionSectionJson}
+import com.artclod.util.OneOfThree
+import com.artclod.util.ofthree.{First, Second, Third}
+import controllers.quiz._
 import models.support.HasOrder
-import models.{QuestionPartId, QuestionId, QuestionSectionId, UserId}
+import models.{QuestionId, QuestionPartId, QuestionSectionId, UserId}
 import org.joda.time.DateTime
 import play.twirl.api.Html
 
@@ -43,15 +45,16 @@ object QuestionFrame {
       explanationHtml = Html(section.explanationHtml),
       order = index.toShort)
 
-    val parts = section.choiceOrFunction match {
+    val parts : OneOfThree[ Vector[QuestionPartChoice], Vector[QuestionPartFunction], Vector[QuestionPartSequence] ] = section.partType match {
       case "choice" => {
         if(section.correctChoiceIndex >= section.choices.size || section.correctChoiceIndex < 0) {
           throw new IllegalArgumentException("section.correctChoiceIndex did not match any section [" + section.correctChoiceIndex + "] " + section.choices.size)
         }
-        Left(section.choices.zipWithIndex.map(f => partChoice(f._1, f._2, NumericBoolean(section.correctChoiceIndex == f._2))))
+        First(section.choices.zipWithIndex.map(f => partChoice(f._1, f._2, NumericBoolean(section.correctChoiceIndex == f._2))))
       }
-      case "function" => Right(section.functions.zipWithIndex.map(f => partFunction(f._1, f._2)))
-      case _ => throw new IllegalArgumentException("section.choiceOrFunction was not recognized [" + section.choiceOrFunction + "]")
+      case "function" => Second(section.functions.zipWithIndex.map(f => partFunction(f._1, f._2)))
+      case "sequence" => Third(section.sequences.zipWithIndex.map(f => partSequence(f._1, f._2)))
+      case _ => throw new IllegalArgumentException("section.partType was not recognized [" + section.partType + "]")
     }
 
     QuestionSectionFrame(questionSection, parts)
@@ -74,6 +77,13 @@ object QuestionFrame {
       order = index.toShort)
   }
 
+  private def partSequence(part: QuestionPartSequenceJson, index: Int) : QuestionPartSequence = {
+    QuestionPartSequence(id = null, sectionId = null, questionId = null,
+      summaryRaw = part.summaryRaw,
+      summaryHtml = Html(part.summaryHtml),
+      sequenceStr = part.sequence,
+      order = index.toShort)
+  }
 
   // ---- utility functions
   def checkInOrder(items : Seq[HasOrder[_]], message: String) {
@@ -86,44 +96,49 @@ object QuestionFrame {
 
 
 // ======= QuestionSectionFrame
-case class QuestionSectionFrame(section: QuestionSection, parts: Either[Vector[QuestionPartChoice], Vector[QuestionPartFunction]]) extends HasOrder[QuestionSectionFrame] {
+case class QuestionSectionFrame(section: QuestionSection, parts: OneOfThree[ Vector[QuestionPartChoice], Vector[QuestionPartFunction], Vector[QuestionPartSequence] ]) extends HasOrder[QuestionSectionFrame] {
 
   override def order = section.order
 
   def correctIndex = parts match {
-    case Left(choices) => Some(choices.indexWhere(_.correctChoice == NumericBoolean.T))
-    case Right(functions) => None
+    case First(choices) => Some(choices.indexWhere(_.correctChoice == NumericBoolean.T))
+    case Second(functions) => None
+    case Third(sequences) => None
   }
 
   def choiceSize = parts match {
-    case Left(choices) => Some(choices.size)
-    case Right(functions) => None
+    case First(choices) => Some(choices.size)
+    case Second(functions) => None
+    case Third(sequences) => None
   }
 
-  def choiceOrFunction = parts match {
-    case Left(choices) => "choice"
-    case Right(functions) => "function"
+  def partKind = parts match {
+    case First(choices) => "choice"
+    case Second(functions) => "function"
+    case Third(sequences) => "sequence"
   }
 
   def id(sectionId: QuestionSectionId) = QuestionSectionFrame(
     section = section.copy(id = sectionId),
     parts = parts match {
-      case Left(ps) => Left(ps.map(p => p.copy(sectionId=sectionId)))
-      case Right(ps) => Right(ps.map(p => p.copy(sectionId=sectionId)))
+      case First(ps)  => First(ps.map(p => p.copy(sectionId=sectionId)))
+      case Second(ps) => Second(ps.map(p => p.copy(sectionId=sectionId)))
+      case Third(ps)  => Third(ps.map(p => p.copy(sectionId=sectionId)))
     }
   )
 
   def questionId(questionId: QuestionId) = QuestionSectionFrame(
     section = section.copy(questionId = questionId),
     parts = parts match {
-      case Left(ps) => Left(ps.map(p => p.copy(questionId=questionId)))
-      case Right(ps) => Right(ps.map(p => p.copy(questionId=questionId)))
+      case First(ps)  => First(ps.map(p => p.copy(questionId=questionId)))
+      case Second(ps) => Second(ps.map(p => p.copy(questionId=questionId)))
+      case Third(ps)  => Third(ps.map(p => p.copy(questionId=questionId)))
     }
   )
 
   // ==== throw errors for bad formulation
   parts match {
-    case Left(partChoices) => {
+    case First(partChoices) => {
       if(partChoices.isEmpty) {
         throw new IllegalArgumentException("There were no partChoices");
       } else if (!partChoices.map(_.correctChoice == NumericBoolean.T).fold(false)((a, b) => a || b)) {
@@ -131,11 +146,18 @@ case class QuestionSectionFrame(section: QuestionSection, parts: Either[Vector[Q
       }
       QuestionFrame.checkInOrder(partChoices, "partChoices")
     }
-    case Right(functionChoices) => {
+    case Second(functionChoices) => {
       if(functionChoices.isEmpty) {
         throw new IllegalArgumentException("There were no functionChoices");
       }
       QuestionFrame.checkInOrder(functionChoices, "functionChoices")
+    }
+
+    case Third(sequenceChoices) => {
+      if(sequenceChoices.isEmpty) {
+        throw new IllegalArgumentException("There were no sequenceChoices");
+      }
+      QuestionFrame.checkInOrder(sequenceChoices, "sequenceChoices")
     }
   }
 
@@ -143,12 +165,14 @@ case class QuestionSectionFrame(section: QuestionSection, parts: Either[Vector[Q
 
 object QuestionSectionFrame {
 
-  def apply(section: QuestionSection, choices: Seq[QuestionPartChoice], functions: Seq[QuestionPartFunction]): QuestionSectionFrame  =
-    (choices.nonEmpty, functions.nonEmpty) match {
-      case (false, false) => throw new IllegalArgumentException("functions and choices were both null")
-      case (true, true) => throw new IllegalArgumentException("both functions and choices had values functions = " + functions + " choices = " + choices)
-      case (true, false) => QuestionSectionFrame(section, Left( Vector(choices:_*).sorted ))
-      case (false, true) => QuestionSectionFrame(section, Right( Vector(functions:_*).sorted ))
+  def apply(section: QuestionSection, choices: Seq[QuestionPartChoice], functions: Seq[QuestionPartFunction], sequences: Seq[QuestionPartSequence]): QuestionSectionFrame  =
+    (choices.nonEmpty, functions.nonEmpty, sequences.nonEmpty) match {
+      case (false, false, false) => throw new IllegalArgumentException("functions, choices and sequence were all null")
+      case (true, true, true) => throw new IllegalArgumentException("functions, choices and sequence all had values: functions = " + functions + " choices = " + choices + " sequences = " + sequences)
+      case (true, false, false) => QuestionSectionFrame(section, First( Vector(choices:_*).sorted ))
+      case (false, true, false) => QuestionSectionFrame(section, Second( Vector(functions:_*).sorted ))
+      case (false, false, true) => QuestionSectionFrame(section, Third( Vector(sequences:_*).sorted ))
+      case _  => throw new IllegalArgumentException("two of functions, choices and sequence had values: functions = " + functions + " choices = " + choices + " sequences = " + sequences)
     }
 
 }

@@ -7,9 +7,8 @@ import models._
 import play.twirl.api.Html
 
 case class AnswerPart(// =================== Ids ====================
-                      id: AnswerPartId, answerSectionId: AnswerSectionId, answerId:   AnswerId,
-                      questionPartId:       QuestionPartId, sectionId:       QuestionSectionId, questionId: QuestionId,
+                      id: AnswerPartId, answerSectionId: AnswerSectionId, answerId: AnswerId, questionPartId: QuestionPartId, sectionId: QuestionSectionId, questionId: QuestionId,
                       // =============== Answer stuff ===============
-                      functionRaw: String, functionMath: MathMLElem, correctNum: Short, order: Short) extends HasOrder[AnswerPart] {
+                      functionRaw: String, functionMath: MathMLElem, correctNum: Short, sequenceStr:String, order: Short) extends HasOrder[AnswerPart] {
   def correct = NumericBoolean(correctNum)
 }

@@ -1,8 +1,9 @@
 package dao.quiz
 
 import javax.inject.{Inject, Singleton}
-
 import com.artclod.mathml.scalar.MathMLElem
+import com.artclod.util.OneOfThree
+import com.artclod.util.ofthree.{First, Second, Third}
 import controllers.quiz.{QuestionPartChoiceJson, QuestionPartFunctionJson}
 import dao.ColumnTypeMappings
 import dao.quiz.table.{QuestionTables, SkillTables}
@@ -37,6 +38,7 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   val QuestionSections = questionTables.QuestionSections
   val QuestionPartChoices = questionTables.QuestionPartChoices
   val QuestionPartFunctions = questionTables.QuestionPartFunctions
+  val QuestionPartSequences = questionTables.QuestionPartSequences
 
   // * ====== QUERIES ====== *
 
@@ -49,18 +51,22 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def functionPartsId(id : QuestionId): Future[Seq[QuestionPartFunction]] = db.run(QuestionPartFunctions.filter(_.questionId === id).result)
 
+  def sequencePartsId(id : QuestionId): Future[Seq[QuestionPartSequence]] = db.run(QuestionPartSequences.filter(_.questionId === id).result)
+
   def frameById(id : QuestionId): Future[Option[QuestionFrame]] = {
     val questionFuture = byId(id)
     val sectionsFuture = sectionsById(id)
     val choicePartsFuture = choicePartsId(id)
     val functionPartsFuture = functionPartsId(id)
+    val sequencePartsFuture = sequencePartsId(id)
     val skillsFuture = skillDAO.skillsFor(id)
 
-    questionFuture.flatMap(questionOp => { sectionsFuture.flatMap(sections => { choicePartsFuture.flatMap( choiceParts => { functionPartsFuture.flatMap( functionParts => { skillsFuture.map( skills => {
+    questionFuture.flatMap(questionOp => { sectionsFuture.flatMap(sections => { choicePartsFuture.flatMap( choiceParts => { functionPartsFuture.flatMap( functionParts => { sequencePartsFuture.flatMap( sequenceParts => { skillsFuture.map( skills => {
       val secId2Fp = functionParts.groupBy(p => p.sectionId)
       val secId2Cp = choiceParts.groupBy(p => p.sectionId)
+      val secId2Sp = sequenceParts.groupBy(p => p.sectionId)
 
-      val sectionFrames = sections.map(section => QuestionSectionFrame(section, secId2Cp.getOrElse(section.id, Seq()), secId2Fp.getOrElse(section.id, Seq())))
+      val sectionFrames = sections.map(section => QuestionSectionFrame(section, secId2Cp.getOrElse(section.id, Seq()), secId2Fp.getOrElse(section.id, Seq()), secId2Sp.getOrElse(section.id, Seq())))
 
       val questionFrameOp : Option[QuestionFrame] = questionOp.map(question => {
         sectionFrames.nonEmpty match {
@@ -71,7 +77,7 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
       questionFrameOp
 
-    }) }) }) }) })
+    }) }) }) }) }) })
   }
 
   //--- Skills for question
@@ -154,8 +160,9 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   def insert(sectionFrame: QuestionSectionFrame) : Future[QuestionSectionFrame] = {
     insert(sectionFrame.section).flatMap(section => {
       (sectionFrame.id(section.id).parts match {
-        case Left(ps) => insertChoices(ps).map(p => Left(Vector(p:_*).sorted))
-        case Right(ps) => insertFunctions(ps).map(p => Right(Vector(p:_*).sorted))
+        case First(ps)  => insertChoices(ps).map(p   => First[  Vector[QuestionPartChoice], Vector[QuestionPartFunction], Vector[QuestionPartSequence] ](Vector(p:_*).sorted))
+        case Second(ps) => insertFunctions(ps).map(p => Second[ Vector[QuestionPartChoice], Vector[QuestionPartFunction], Vector[QuestionPartSequence] ](Vector(p:_*).sorted))
+        case Third(ps)  => insertSequences(ps).map(p => Third[  Vector[QuestionPartChoice], Vector[QuestionPartFunction], Vector[QuestionPartSequence] ](Vector(p:_*).sorted))
       }).map(parts => QuestionSectionFrame(section = section, parts = parts) )
     })
   }
@@ -176,5 +183,8 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     (QuestionPartFunctions returning QuestionPartFunctions.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= questionPartFunctions
   }
 
+  def insertSequences(questionPartSequence: Seq[QuestionPartSequence]): Future[Seq[QuestionPartSequence]] = db.run {
+    (QuestionPartSequences returning QuestionPartSequences.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= questionPartSequence
+  }
 }
 

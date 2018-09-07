@@ -33,6 +33,7 @@ class QuestionTables @Inject()(protected val dbConfigProvider: DatabaseConfigPro
   val QuestionSections = lifted.TableQuery[QuestionSectionTable]
   val QuestionPartChoices = lifted.TableQuery[QuestionPartChoiceTable]
   val QuestionPartFunctions = lifted.TableQuery[QuestionPartFunctionTable]
+  val QuestionPartSequences = lifted.TableQuery[QuestionPartSequenceTable]
 
   // * ====== TABLE CLASSES ====== *
   class QuestionTable(tag: Tag) extends Table[Question](tag, "question") {
@@ -91,5 +92,19 @@ class QuestionTables @Inject()(protected val dbConfigProvider: DatabaseConfigPro
     def * = (id, sectionId, questionId, summaryRaw, summaryHtml, functionRaw, functionMath, order) <> (QuestionPartFunction.tupled, QuestionPartFunction.unapply)
   }
 
+  class QuestionPartSequenceTable(tag: Tag) extends Table[QuestionPartSequence](tag, "question_part_sequence") {
+    def id = column[QuestionPartId]("id", O.PrimaryKey, O.AutoInc)
+    def sectionId = column[QuestionSectionId]("section_id")
+    def questionId = column[QuestionId]("question_id")
+    def summaryRaw = column[String]("summary_raw")
+    def summaryHtml = column[Html]("summary_html")
+    def sequenceStr = column[String]("sequence_str")
+    def order = column[Short]("part_order")
+
+    def sectionIdFK = foreignKey("question_part_sequence_fk__section_id", sectionId, QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionIdFK = foreignKey("question_part_sequence_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+
+    def * = (id, sectionId, questionId, summaryRaw, summaryHtml, sequenceStr, order) <> (QuestionPartSequence.tupled, QuestionPartSequence.unapply)
+  }
 }
 
