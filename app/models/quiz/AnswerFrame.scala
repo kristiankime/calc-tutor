@@ -20,10 +20,10 @@ case class AnswerFrame(answer: Answer, sections: Vector[AnswerSectionFrame], cor
 
 }
 
-case class AnswerSectionFrame(answerSection: AnswerSection, parts: Vector[AnswerPart], correctUnknown: Boolean) extends HasOrder[AnswerSectionFrame] {
+case class AnswerSectionFrame(answerSection: AnswerSection, functionParts: Vector[AnswerPartFunction], sequenceParts: Vector[AnswerPartSequence], correctUnknown: Boolean) extends HasOrder[AnswerSectionFrame] {
   override def order = answerSection.order
 
-  (answerSection.choice.nonEmpty, parts.nonEmpty ) match {
+  (answerSection.choice.nonEmpty, functionParts.nonEmpty ) match {
     case (true, true) => {throw new IllegalArgumentException("Answer was had both choice and parts")}
     case (false, false) => {throw new IllegalArgumentException("Answer was had neither choice not parts")}
     case _ : (Boolean, Boolean) => { "All good" }
@@ -31,17 +31,19 @@ case class AnswerSectionFrame(answerSection: AnswerSection, parts: Vector[Answer
 
   def id(sectionId: AnswerSectionId) = AnswerSectionFrame(
     answerSection = answerSection.copy(id = sectionId),
-    parts = parts.map(p => p.copy(answerSectionId=sectionId)),
+    functionParts = functionParts.map(p => p.copy(answerSectionId=sectionId)),
+    sequenceParts = sequenceParts.map(p => p.copy(answerSectionId=sectionId)),
     correctUnknown = correctUnknown
   )
 
   def answerId(answerId: AnswerId) = AnswerSectionFrame(
     answerSection = answerSection.copy(answerId = answerId),
-    parts = parts.map(p => p.copy(answerId=answerId)),
+    functionParts = functionParts.map(p => p.copy(answerId=answerId)),
+    sequenceParts = sequenceParts.map(p => p.copy(answerId=answerId)),
     correctUnknown = correctUnknown
   )
 
-  def correct = parts.map(_.correct).fold(true)((a,b) => a && b)
+  def correct = functionParts.map(_.correct).fold(true)((a, b) => a && b)
 }
 
 object AnswerFrame {
@@ -63,7 +65,7 @@ object AnswerFrame {
         val choiceIndex = answerSectionJson.choiceIndex.toInt // TODO can throw
         val correctIndex = choices.indexWhere(c => c.correct)
         val answerSection = AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, choice=Some(choiceIndex.toShort), correctNum=NumericBoolean(choiceIndex == correctIndex), order=index)
-        AnswerSectionFrame(answerSection, Vector(), false)
+        AnswerSectionFrame(answerSection, Vector(), Vector(), false)
       }
       case Second(functions) => {
         if(answerSectionJson.functions.size != functions.size) {
@@ -73,7 +75,7 @@ object AnswerFrame {
         val correct = parts.map(p => p.correctNum).reduce(math.min(_, _).toShort)
         val answerSection = AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, choice=None, correctNum=correct, order=index)
         val correctUnknown = correct <= NumericBoolean.Unknown
-        AnswerSectionFrame(answerSection, parts, correctUnknown)
+        AnswerSectionFrame(answerSection, parts, Vector(), correctUnknown)
       }
 
       case Third(sequences) => {
@@ -84,12 +86,12 @@ object AnswerFrame {
         val correct = parts.map(p => p.correctNum).reduce(math.min(_, _).toShort)
         val answerSection = AnswerSection(id=null, answerId=null, sectionId=questionSection.id, questionId=questionSection.questionId, choice=None, correctNum=correct, order=index)
         val correctUnknown = correct <= NumericBoolean.Unknown
-        AnswerSectionFrame(answerSection, parts, correctUnknown)
+        AnswerSectionFrame(answerSection, Vector(), parts, correctUnknown)
       }
     }
   }
 
-  private def answerPartFunction(answerPartFunctionJson: AnswerPartFunctionJson, questionPartFunction: QuestionPartFunction, order: Short) : AnswerPart = {
+  private def answerPartFunction(answerPartFunctionJson: AnswerPartFunctionJson, questionPartFunction: QuestionPartFunction, order: Short) : AnswerPartFunction = {
     val functionMath = MathML(answerPartFunctionJson.functionMath).get
 
     val correct = (questionPartFunction.functionMath ?= functionMath) match {
@@ -98,27 +100,20 @@ object AnswerFrame {
       case Inconclusive => NumericBoolean.Unknown
     }
 
-    AnswerPart(id=null, answerSectionId=null, answerId=null,
+    AnswerPartFunction(id=null, answerSectionId=null, answerId=null,
       questionPartId=questionPartFunction.id, sectionId=questionPartFunction.sectionId, questionId = questionPartFunction.questionId,
-      functionRaw=answerPartFunctionJson.functionRaw, functionMath = functionMath, correctNum = correct, sequenceStr = null, order = order
+      functionRaw=answerPartFunctionJson.functionRaw, functionMath = functionMath, correctNum = correct, order = order
     )
   }
 
-  private def answerPartSequence(answerPartSequenceJson: AnswerPartSequenceJson, questionPartSequence: QuestionPartSequence, order: Short) : AnswerPart = {
+  private def answerPartSequence(answerPartSequenceJson: AnswerPartSequenceJson, questionPartSequence: QuestionPartSequence, order: Short) : AnswerPartSequence = {
     val answerVals = SequenceParse(answerPartSequenceJson.sequenceStr)
     val questionVals = SequenceParse(questionPartSequence.sequenceStr)
+    val correct = NumericBoolean(answerVals == questionVals)
 
-//    val functionMath = MathML(answerPartFunctionJson.functionMath).get
-//
-//    val correct = (questionPartFunction.functionMath ?= functionMath) match {
-//      case Yes => NumericBoolean.T
-//      case No => NumericBoolean.F
-//      case Inconclusive => NumericBoolean.Unknown
-//    }
-
-    AnswerPart(id=null, answerSectionId=null, answerId=null,
-      questionPartId=questionPartFunction.id, sectionId=questionPartFunction.sectionId, questionId = questionPartFunction.questionId,
-      functionRaw=answerPartFunctionJson.functionRaw, functionMath = functionMath, correctNum = correct, order = order
+    AnswerPartSequence(id=null, answerSectionId=null, answerId=null,
+      questionPartId=questionPartSequence.id, sectionId=questionPartSequence.sectionId, questionId = questionPartSequence.questionId,
+      sequenceStr = answerPartSequenceJson.sequenceStr, correctNum = correct, order = order
     )
   }
 

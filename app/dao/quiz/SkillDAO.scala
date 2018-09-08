@@ -11,7 +11,7 @@ import dao.user.UserDAO
 import dao.user.table.UserTables
 import models._
 import models.organization.{Course, Course2Quiz}
-import models.quiz.{AnswerPart, _}
+import models.quiz.{AnswerPartFunction, _}
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result

@@ -11,7 +11,7 @@ import dao.quiz.table.{AnswerTables, QuestionTables, QuizTables}
 import dao.user.UserDAO
 import dao.user.table.UserTables
 import models._
-import models.quiz.{AnswerPart, _}
+import models.quiz.{AnswerPartFunction, _}
 import models.support.HasOrder
 import models.user.User
 import org.joda.time.DateTime
@@ -39,7 +39,8 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   // * ====== TABLE INSTANCES ====== *
   val Answers = answerTables.Answers
   val AnswerSections = answerTables.AnswerSections
-  val AnswerParts = answerTables.AnswerParts
+  val AnswerPartsFunctions = answerTables.AnswerPartFunctions
+  val AnswerPartSequences = answerTables.AnswerPartSequences
 
   // * ====== QUERIES ====== *
 
@@ -48,17 +49,23 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   def sectionsById(id : AnswerId): Future[Seq[AnswerSection]] = db.run(AnswerSections.filter(_.answerId === id).result)
 
-  def partsId(id : AnswerId): Future[Seq[AnswerPart]] = db.run(AnswerParts.filter(_.answerId === id).result)
+  def functionPartsId(id : AnswerId): Future[Seq[AnswerPartFunction]] = db.run(AnswerPartsFunctions.filter(_.answerId === id).result)
+  def sequencePartsId(id : AnswerId): Future[Seq[AnswerPartSequence]] = db.run(AnswerPartSequences.filter(_.answerId === id).result)
 
   def frameById(id : AnswerId): Future[Option[AnswerFrame]] = {
     val answerFuture = byId(id)
     val sectionsFuture = sectionsById(id)
-    val partsFuture = partsId(id)
+    val functionPartsFuture = functionPartsId(id)
+    val sequencePartsFuture = sequencePartsId(id)
 
-    answerFuture.flatMap(answerOp => { sectionsFuture.flatMap(sections => { partsFuture.map( parts => {
-      val secId2parts: Map[AnswerSectionId, Seq[AnswerPart]] = parts.groupBy(p => p.answerSectionId)
+    answerFuture.flatMap(answerOp => { sectionsFuture.flatMap(sections => { functionPartsFuture.flatMap( functionParts => { sequencePartsFuture.map( sequenceParts => {
+      val secId2FunctionParts: Map[AnswerSectionId, Seq[AnswerPartFunction]] = functionParts.groupBy(p => p.answerSectionId)
+      val secId2SequenceParts: Map[AnswerSectionId, Seq[AnswerPartSequence]] = sequenceParts.groupBy(p => p.answerSectionId)
 
-      val sectionFrames = sections.map(section => AnswerSectionFrame(section, secId2parts.getOrElse(section.id, Seq()).toVector.sorted, false))
+      val sectionFrames = sections.map(section => AnswerSectionFrame(section,
+        secId2FunctionParts.getOrElse(section.id, Seq()).toVector.sorted,
+        secId2SequenceParts.getOrElse(section.id, Seq()).toVector.sorted,
+        false))
 
       answerOp.map(answer => {
         sectionFrames.nonEmpty match {
@@ -67,7 +74,7 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
         }
       })
 
-    }) }) })
+    }) }) }) })
   }
 
 //  def correctOrLatest(questionId: QuestionId, userId: UserId): Future[Option[(Answer, Seq[Answer])]] =
@@ -157,8 +164,14 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   def insert(sectionFrame: AnswerSectionFrame) : Future[AnswerSectionFrame] = {
     insert(sectionFrame.answerSection).flatMap(section => {
-      insert(sectionFrame.id(section.id).parts).map(parts =>
-        AnswerSectionFrame(answerSection = section, parts = parts.toVector.sorted, false) )
+      insertFunction(sectionFrame.id(section.id).functionParts).flatMap(functionParts =>
+        insertSequence(sectionFrame.id(section.id).sequenceParts).map(sequenceParts =>
+
+          AnswerSectionFrame(answerSection = section,
+            functionParts = functionParts.toVector.sorted,
+            sequenceParts = sequenceParts.toVector.sorted,
+            false)))
+
     })
   }
 
@@ -170,8 +183,12 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
     (AnswerSections returning AnswerSections.map(_.id) into ((needsId, id) => needsId.copy(id = id))) += answerSection
   )
 
-  def insert(answerParts: Seq[AnswerPart]): Future[Seq[AnswerPart]] = db.run {
-    (AnswerParts returning AnswerParts.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= answerParts
+  def insertFunction(answerParts: Seq[AnswerPartFunction]): Future[Seq[AnswerPartFunction]] = db.run {
+    (AnswerPartsFunctions returning AnswerPartsFunctions.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= answerParts
+  }
+
+  def insertSequence(answerParts: Seq[AnswerPartSequence]): Future[Seq[AnswerPartSequence]] = db.run {
+    (AnswerPartSequences returning AnswerPartSequences.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= answerParts
   }
 
   // ----

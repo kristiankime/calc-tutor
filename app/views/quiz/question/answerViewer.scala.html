@@ -10,6 +10,8 @@
 @import controllers.quiz.AnswerJson.correctUnknown
 @import controllers.quiz.AnswerJson.correctNo
 @import controllers.quiz.AnswerJson.correctBlank
+@import com.artclod.util.OneOfThree
+@import com.artclod.util.ofthree._
 
 @(questionFrame: QuestionFrame, answerFrame : AnswerFrame)(implicit request: Request[AnyContent])
 
@@ -33,14 +35,14 @@
             @* ===== START PARTS ==== *@
             @sectionQA._1.parts match {
 
-            case Left(parts) => { @for(part <- parts.zipWithIndex) {
+            case First(parts) => { @for(part <- parts.zipWithIndex) {
             <div class="span-section answer-choice">
                 <div class="item answer-choice-select"> @if(part._2 == sectionQA._2.answerSection.choice.getOrElse(-1)){ @tag.lastAnswerPieceWasFixed(sectionQA._2.answerSection.correct) }  </div>
                 <div class="item answer-choice-summary"> @part._1.summaryHtml  </div>
             </div>
             } }
 
-            case Right(parts) => { @for(part <- parts.zip(sectionQA._2.parts)) {
+            case Second(parts) => { @for(part <- parts.zip(sectionQA._2.functionParts)) {
             <div class="span-section answer-function">
                 <div class="item answer-function-summary"> @part._1.summaryHtml </div>
                 <div class="item answer-function-input">
@@ -48,6 +50,16 @@
                     @tag.lastAnswerPieceWasFixed(part._2.correct)
                 </div>
             </div>
+            } }
+
+            case Third(parts) => { @for(part <- parts.zip(sectionQA._2.sequenceParts)) {
+                <div class="span-section answer-sequence">
+                    <div class="item answer-sequence-summary"> @part._1.summaryHtml </div>
+                    <div class="item answer-sequence-input">
+                        part._2.sequenceStr
+                        @tag.lastAnswerPieceWasFixed(part._2.correct)
+                    </div>
+                </div>
             } }
 
             }

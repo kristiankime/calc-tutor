@@ -7,7 +7,7 @@ import dao.ColumnTypeMappings
 import dao.user.UserDAO
 import dao.user.table.UserTables
 import models._
-import models.quiz.{AnswerPart, _}
+import models.quiz.{AnswerPartFunction, _}
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
@@ -30,7 +30,8 @@ class AnswerTables @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
   // * ====== TABLE INSTANCES ====== *
   val Answers = lifted.TableQuery[AnswerTable]
   val AnswerSections = lifted.TableQuery[AnswerSectionTable]
-  val AnswerParts = lifted.TableQuery[AnswerPartTable]
+  val AnswerPartFunctions = lifted.TableQuery[AnswerPartFunctionTable]
+  val AnswerPartSequences = lifted.TableQuery[AnswerPartSequenceTable]
 
   // * ====== TABLE CLASSES ====== *
   class AnswerTable(tag: Tag) extends Table[Answer](tag, "answer") {
@@ -65,7 +66,7 @@ class AnswerTables @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     def * = (id, answerId, questionSectionId, questionId, choice, correctNum, order) <> (AnswerSection.tupled, AnswerSection.unapply)
   }
 
-  class AnswerPartTable(tag: Tag) extends Table[AnswerPart](tag, "answer_part") {
+  class AnswerPartFunctionTable(tag: Tag) extends Table[AnswerPartFunction](tag, "answer_part_function") {
     // answer related ids
     def id = column[AnswerPartId]("id", O.PrimaryKey, O.AutoInc)
     def answerSectionId = column[AnswerSectionId]("answer_section_id")
@@ -86,8 +87,30 @@ class AnswerTables @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     def questionSectionIdFK = foreignKey("answer_part_fk__question_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
     def questionIdFK = foreignKey("answer_part_fk__question_id", questionId, questionTables.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, answerSectionId, answerId, questionPartId, questionSectionId, questionId, functionRaw, functionMath, correctNum, order) <> (AnswerPart.tupled, AnswerPart.unapply)
+    def * = (id, answerSectionId, answerId, questionPartId, questionSectionId, questionId, functionRaw, functionMath, correctNum, order) <> (AnswerPartFunction.tupled, AnswerPartFunction.unapply)
   }
 
+  class AnswerPartSequenceTable(tag: Tag) extends Table[AnswerPartSequence](tag, "answer_part_sequence") {
+    // answer related ids
+    def id = column[AnswerPartId]("id", O.PrimaryKey, O.AutoInc)
+    def answerSectionId = column[AnswerSectionId]("answer_section_id")
+    def answerId = column[AnswerId]("answer_id")
+    // question related ids
+    def questionPartId = column[QuestionPartId]("question_part_id")
+    def questionSectionId = column[QuestionSectionId]("question_section_id")
+    def questionId = column[QuestionId]("question_id")
+    // non ids
+    def sequenceStr = column[String]("sequence_str")
+    def correctNum = column[Short]("correct")
+    def order = column[Short]("part_order")
+
+    def answerSectionIdFK = foreignKey("answer_part_fk__answer_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def answerIdFK = foreignKey("answer_part_fk__answer_id", answerId, Answers)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionPartIdFK = foreignKey("answer_part_fk__question_part_id", questionPartId, questionTables.QuestionPartFunctions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionSectionIdFK = foreignKey("answer_part_fk__question_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionIdFK = foreignKey("answer_part_fk__question_id", questionId, questionTables.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+
+    def * = (id, answerSectionId, answerId, questionPartId, questionSectionId, questionId, sequenceStr, correctNum, order) <> (AnswerPartSequence.tupled, AnswerPartSequence.unapply)
+  }
 }
 

@@ -89,5 +89,25 @@
 .answer-function-summary { grid-area: answer-function-summary; }
 .answer-function-input { grid-area: answer-function-input; }
 
+/* ========== FUNCTIONS CSS ========== */
+.answer-sequence {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  grid-template-rows: auto;
+  grid-gap: 5px;
+
+  grid-template-areas:
+          "answer-sequence-summary answer-sequence-input";
+
+  grid-auto-rows: auto;
+
+  background-color: @light;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.answer-sequence-summary { grid-area: answer-sequence-summary; }
+.answer-sequence-input { grid-area: answer-sequence-input; }
+
 /* ========== GENERAL ========== */
 /* see question-grid */

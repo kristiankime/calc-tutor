@@ -2,13 +2,12 @@ package models.quiz
 
 import com.artclod.mathml.scalar.MathMLElem
 import com.artclod.slick.NumericBoolean
-import models.support.HasOrder
 import models._
-import play.twirl.api.Html
+import models.support.HasOrder
 
-case class AnswerPart(// =================== Ids ====================
+case class AnswerPartSequence(// =================== Ids ====================
                       id: AnswerPartId, answerSectionId: AnswerSectionId, answerId: AnswerId, questionPartId: QuestionPartId, sectionId: QuestionSectionId, questionId: QuestionId,
                       // =============== Answer stuff ===============
-                      functionRaw: String, functionMath: MathMLElem, correctNum: Short, sequenceStr:String, order: Short) extends HasOrder[AnswerPart] {
+                      sequenceStr: String, correctNum: Short,  order: Short) extends HasOrder[AnswerPartSequence] {
   def correct = NumericBoolean(correctNum)
 }

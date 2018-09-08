@@ -124,13 +124,15 @@ object AnswerCreate {
   val sections = "sections"
 
   // Section
-  val choiceOrFunction = "choiceOrFunction"
+  val partType = "partType"
   val choiceIndex = "choiceIndex"
   val functions = "functions"
+  val sequences = "sequences"
 
   // Parts
   val functionRaw = "functionRaw"
   val functionMath = "functionMath"
+  val sequenceStr = "sequenceStr"
 
   implicit val answerPartFunctionFormat = Json.format[AnswerPartFunctionJson]
   implicit val answerPartSequenceFormat = Json.format[AnswerPartSequenceJson]
@@ -181,8 +183,8 @@ object AnswerSectionJson {
   def apply(answerSectionFrame: AnswerSectionFrame) : AnswerSectionJson =
     AnswerSectionJson(
       choiceIndex = answerSectionFrame.answerSection.choice.getOrElse(AnswerJson.noChoiceSelected).toShort,
-      functions = answerSectionFrame.parts.map(p => AnswerPartFunctionJson(p)),
-      sequences = answerSectionFrame.parts.map(p => AnswerPartSequenceJson(p)),
+      functions = answerSectionFrame.functionParts.map(p => AnswerPartFunctionJson(p)),
+      sequences = answerSectionFrame.sequenceParts.map(p => AnswerPartSequenceJson(p)),
       correct = answerSectionFrame.answerSection.correctNum )
 
 }
@@ -201,7 +203,7 @@ object AnswerPartFunctionJson {
   def apply(function: String, correct: Int) : AnswerPartFunctionJson =
     AnswerPartFunctionJson(function, MathML(function).get.toString, correct)
 
-  def apply(answerPartFunction: AnswerPart) : AnswerPartFunctionJson =
+  def apply(answerPartFunction: AnswerPartFunction) : AnswerPartFunctionJson =
     AnswerPartFunctionJson(answerPartFunction.functionRaw, answerPartFunction.functionMath.toString, answerPartFunction.correctNum)
 
 }
@@ -220,7 +222,7 @@ object AnswerPartSequenceJson {
   def apply(sequence: String, correct: Int) : AnswerPartSequenceJson =
     AnswerPartSequenceJson(sequence, correct)
 
-  def apply(answerPartSequence: AnswerPart) : AnswerPartSequenceJson =
+  def apply(answerPartSequence: AnswerPartSequence) : AnswerPartSequenceJson =
     AnswerPartSequenceJson(answerPartSequence.sequenceStr, answerPartSequence.correctNum)
 
 }

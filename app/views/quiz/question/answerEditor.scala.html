@@ -4,10 +4,14 @@
 @import controllers.quiz.AnswerCreate.answerFormat
 @import controllers.quiz.AnswerCreate.choiceIndex
 @import controllers.quiz.AnswerCreate.functionRaw
+@import controllers.quiz.AnswerCreate.sequenceStr
 @import controllers.quiz.AnswerCreate.correct
 @import controllers.quiz.AnswerJson.correctUnknown
 @import controllers.quiz.AnswerJson.correctNo
 @import controllers.quiz.AnswerJson.correctBlank
+@import com.artclod.util.OneOfThree
+@import com.artclod.util.ofthree._
+
 
 @(action: play.api.mvc.Call, questionFrame: models.quiz.QuestionFrame, answerJson : controllers.quiz.AnswerJson, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
 
@@ -32,19 +36,29 @@
             @* ===== START PARTS ==== *@
             @sectionFrame._1.parts match {
 
-            case Left(parts) => { @for(part <- parts.zipWithIndex) {
+            case First(parts) => { @for(part <- parts.zipWithIndex) {
             <div class="span-section answer-choice">
                 <div class="item answer-choice-select"> <input type="radio" name="@{"s"+sectionFrame._2}" id="@{"s"+sectionFrame._2+"c"+part._2}" value="@part._2" data-bind="checked: @{viewModelSec}.choiceIndexString"> </div>
                 <div class="item answer-choice-summary"> @part._1.summaryHtml </div>
             </div>
             } }
 
-            case Right(parts) => { @for(part <- parts.zipWithIndex) {
+            case Second(parts) => { @for(part <- parts.zipWithIndex) {
             @defining(viewModelSec + "." + AnswerCreate.functions + "()[" + part._2 + "]") { viewModelFunc : String =>
             <div class="span-section answer-function">
                 <div class="item answer-function-summary"> @part._1.summaryHtml </div>
                 <div class="item answer-function-input">
                     @{tag.isValid(viewModelFunc + ".invalid()")} <input data-bind="textInput: @{viewModelFunc}.@{functionRaw}" /> <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"></span> @tag.lastAnswerPieceWas(viewModelFunc + "." + correct + "()")
+                </div>
+            </div>
+            } } }
+
+            case Third(parts) => { @for(part <- parts.zipWithIndex) {
+            @defining(viewModelSec + "." + AnswerCreate.sequences + "()[" + part._2 + "]") { viewModelFunc : String =>
+            <div class="span-section answer-sequence">
+                <div class="item answer-sequence-summary"> @part._1.summaryHtml </div>
+                <div class="item answer-sequence-input">
+                    @{tag.isValid(viewModelFunc + ".invalid()")} <input data-bind="textInput: @{viewModelFunc}.@{sequenceStr}" /> <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"></span> @tag.lastAnswerPieceWas(viewModelFunc + "." + correct + "()")
                 </div>
             </div>
             } } }
@@ -55,7 +69,6 @@
         } }
         @* ===== END SECTION ==== *@
     </div>
-</div>
 
 
     @form(action, 'id -> "answerJsonForm", 'class -> "pure-form") {
@@ -90,7 +103,7 @@
         // Turn it into a view model
         var viewModel = ko.mapping.fromJS(data);
 
-        var enhancePart = function(part, si, pi) {
+        var enhanceFunctionPart = function(part, si, pi) {
             // Create an id for this part
             part.id = "s" + si + "f" + pi;
 
@@ -108,6 +121,22 @@
 
             // Force an update for part.invalid
             func.valueHasMutated();
+        }
+
+        var enhanceSequencePart = function(part, si, pi) {
+            // Create an id for this part
+            part.id = "s" + si + "s" + pi;
+
+            part.invalid = ko.observable(true); // will be updated by subscribe below
+            // Set up the mathjax updates
+            var sequ = part.@{AnswerCreate.sequenceStr};
+            sequ.subscribe(function (newValue) {
+                var result = ARTC.string2Numbers(newValue);
+                part.invalid(!result.success);
+            });
+
+            // Force an update for part.invalid
+            sequ.valueHasMutated();
         }
 
         var enhanceSection = function(section, si) {
