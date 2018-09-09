@@ -30,13 +30,13 @@
             <div class="item explanation-output"> <span data-bind="mathjax: @QuestionCreate.explanationHtml"> </span> </div>
             <div class="item section-controls">
                 <a href='#' data-bind='click: function(data, event) { QE.removeSection($parent, data) }' class="pure-button">Remove This Section</a>
-                <input type="radio" value="choice"  data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> @QuestionCreate.choice </input>
-                <input type="radio" value="function" data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.choiceOrFunction" class="pure-radio" /> @QuestionCreate.function </input>
-                <!-- ko if: @{QuestionCreate.choiceOrFunction}() == '@QuestionCreate.choice' --> <a href='#' data-bind='click: QE.addChoicePart' class="pure-button">Add Choice</a> <!-- /ko -->
-                <!-- ko if: @{QuestionCreate.choiceOrFunction}() == '@QuestionCreate.function' --> <a href='#' data-bind='click: QE.addFunctionPart' class="pure-button">Add Function</a> <!-- /ko -->
+                <input type="radio" value="choice"  data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.partType" class="pure-radio" /> @QuestionCreate.choice </input>
+                <input type="radio" value="function" data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.partType" class="pure-radio" /> @QuestionCreate.function </input>
+                <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.choice' --> <a href='#' data-bind='click: QE.addChoicePart' class="pure-button">Add Choice</a> <!-- /ko -->
+                <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.function' --> <a href='#' data-bind='click: QE.addFunctionPart' class="pure-button">Add Function</a> <!-- /ko -->
             </div>
 
-            <!-- ko if: @{QuestionCreate.choiceOrFunction}() == '@QuestionCreate.choice' -->
+            <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.choice' -->
             <!-- ko foreach: @QuestionCreate.choices -->
             <div class="span-section question-choice">
                 <div class="item summary-input"> Summary @tag.isValid("invalid"): <br> <textarea type="text" class="expanding" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
@@ -47,7 +47,7 @@
             <!-- /ko -->
             <!-- /ko -->
 
-            <!-- ko if: @{QuestionCreate.choiceOrFunction}() == '@QuestionCreate.function' -->
+            <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.function' -->
             <!-- ko foreach: @QuestionCreate.functions -->
             <div class="span-section question-function">
                 <div class="item summary-input"> Summary @tag.isValid("summaryInvalid"): <br> <textarea type="text" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
@@ -216,7 +216,7 @@
                     var choicesInvalid   = _.map(section.@{QuestionCreate.choices}(),   function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
                     var functionsInvalid = _.map(section.@{QuestionCreate.functions}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
 
-                    if(section.@{QuestionCreate.choiceOrFunction}() == "@QuestionCreate.choice") {
+                    if(section.@{QuestionCreate.partType}() == "@QuestionCreate.choice") {
                         return choicesInvalid;
                     } else {
                         return functionsInvalid;
@@ -276,10 +276,11 @@
                 var newSection = ko.mapping.fromJS({
                     @QuestionCreate.explanationRaw     : "",
                     @QuestionCreate.explanationHtml    : ARTC.markdown(secId, ""),
-                    @QuestionCreate.choiceOrFunction   : "@QuestionCreate.choice",
+                    @QuestionCreate.partType   : "@QuestionCreate.choice",
                     @QuestionCreate.correctChoiceIndex : 0,
                     @QuestionCreate.choices            : [],
-                    @QuestionCreate.functions          : []
+                    @QuestionCreate.functions          : [],
+                    @QuestionCreate.sequences          : []
                 });
                 enhanceSection(main, newSection, main.idGenerator);
                 var secs = main.@{QuestionCreate.sections}
@@ -339,11 +340,11 @@
                 ko.applyBindings(QE.viewModel, document.getElementById("question-editor"));
             }
 
-            // === Exposed update method
             var clearSections = function() {
                 QE.viewModel.@{QuestionCreate.sections}.removeAll();
             }
 
+            // === Exposed update method
             QE.updateViewModel = function(data) {
                 // Create the basic form
                 var model = ko.mapping.fromJS(data);

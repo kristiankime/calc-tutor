@@ -190,31 +190,12 @@ case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, 
 
 object QuestionSectionJson {
 
-//  def apply(explanation: String, correctChoiceIndex : Int = -1)(choices: QuestionPartChoiceJson*)(functions: QuestionPartFunctionJson*)(sequences: QuestionPartSequenceJson*)  : QuestionSectionJson = {
-//    (correctChoiceIndex, choices.nonEmpty, functions.nonEmpty, sequences.nonEmpty) match {
-//      case(i,  true,  false, false) if i >= 0 && i < choices.size => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice,   correctChoiceIndex, Vector(choices:_*), Vector()            , Vector())
-//      case(-1, false, true, false )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector(functions:_*), Vector())
-//      case(-1, false, false, true )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector()            , Vector(sequences:_*))
-//
-//      case _ => throw new IllegalArgumentException("Not a valid QuestionSectionJson combo")
-//    }
-//  }
-
   def ch(explanation: String, correctChoiceIndex : Int, choices: QuestionPartChoiceJson*)  : QuestionSectionJson =
     if (correctChoiceIndex >= 0 && correctChoiceIndex < choices.size)
       QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice, correctChoiceIndex, Vector(choices: _*), Vector(), Vector())
     else {
       throw new IllegalArgumentException("Not a valid QuestionSectionJson combo")
     }
-
-//
-//    (correctChoiceIndex, choices.nonEmpty, functions.nonEmpty, sequences.nonEmpty) match {
-//      case(i,  true,  false, false) if i >= 0 && i < choices.size => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice,   correctChoiceIndex, Vector(choices:_*), Vector()            , Vector())
-//      case(-1, false, true, false )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector(functions:_*), Vector())
-//      case(-1, false, false, true )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector()            , Vector(sequences:_*))
-//
-//      case _ => throw new IllegalArgumentException("Not a valid QuestionSectionJson combo")
-//    }
 
   def fn(explanation: String, functions: QuestionPartFunctionJson*)  : QuestionSectionJson =
       QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function, -1, Vector(), Vector(functions:_*), Vector())
@@ -225,7 +206,7 @@ object QuestionSectionJson {
   def apply(questionSectionFrame: QuestionSectionFrame) : QuestionSectionJson = {
     val choices   : Vector[QuestionPartChoiceJson]   = questionSectionFrame.parts.first.getOrElse(Vector()).map(c => QuestionPartChoiceJson(c))
     val functions : Vector[QuestionPartFunctionJson] = questionSectionFrame.parts.second.getOrElse(Vector()).map(f => QuestionPartFunctionJson(f))
-    val sequences : Vector[QuestionPartSequenceJson] = questionSectionFrame.parts.third.getOrElse(Vector()).map(f => QuestionPartSequenceJson(f))
+    val sequences : Vector[QuestionPartSequenceJson] = questionSectionFrame.parts.third.getOrElse(Vector()).map(s => QuestionPartSequenceJson(s))
 
     QuestionSectionJson(
       questionSectionFrame.section.explanationRaw,
@@ -273,7 +254,7 @@ object QuestionPartFunctionJson {
 }
 
 // === QuestionPartSequenceJson
-case class QuestionPartSequenceJson(summaryRaw: String, summaryHtml: String, sequence: String)
+case class QuestionPartSequenceJson(summaryRaw: String, summaryHtml: String, sequenceStr: String)
 
 object QuestionPartSequenceJson {
 
@@ -305,20 +286,22 @@ object QuestionCreate {
   // Section
   val explanationRaw = "explanationRaw"
   val explanationHtml = "explanationHtml"
-  val choiceOrFunction = "choiceOrFunction"
+  val partType = "partType"
   val correctChoiceIndex = "correctChoiceIndex"
   val choices = "choices"
   val functions = "functions"
+  val sequences = "sequences"
 
   // Parts
   val summaryRaw = "summaryRaw"
   val summaryHtml = "summaryHtml"
   val functionRaw = "functionRaw"
   val functionMath = "functionMath"
+  val sequenceStr = "sequenceStr"
 
   // Part Type
-  val function = "function"
   val choice = "choice"
+  val function = "function"
   val sequence = "sequence"
 
   implicit val questionPartChoiceFormat = Json.format[QuestionPartChoiceJson]

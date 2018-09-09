@@ -81,7 +81,7 @@ object QuestionFrame {
     QuestionPartSequence(id = null, sectionId = null, questionId = null,
       summaryRaw = part.summaryRaw,
       summaryHtml = Html(part.summaryHtml),
-      sequenceStr = part.sequence,
+      sequenceStr = part.sequenceStr,
       order = index.toShort)
   }
 
