@@ -30,10 +30,20 @@
             <div class="item explanation-output"> <span data-bind="mathjax: @QuestionCreate.explanationHtml"> </span> </div>
             <div class="item section-controls">
                 <a href='#' data-bind='click: function(data, event) { QE.removeSection($parent, data) }' class="pure-button">Remove This Section</a>
-                <input type="radio" value="choice"  data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.partType" class="pure-radio" /> @QuestionCreate.choice </input>
-                <input type="radio" value="function" data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.partType" class="pure-radio" /> @QuestionCreate.function </input>
-                <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.choice' --> <a href='#' data-bind='click: QE.addChoicePart' class="pure-button">Add Choice</a> <!-- /ko -->
+
+                <select data-bind="value: @QuestionCreate.partType">
+                    <option value="@QuestionCreate.choice">   @QuestionCreate.choice   </option>
+                    <option value="@QuestionCreate.function"> @QuestionCreate.function </option>
+                    <option value="@QuestionCreate.sequence"> @QuestionCreate.sequence </option>
+                </select>
+@* Trying out select instead of radio buttons
+                <input type="radio" value="@QuestionCreate.choice"   data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.partType" class="pure-radio" /> @QuestionCreate.choice   </input>
+                <input type="radio" value="@QuestionCreate.function" data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.partType" class="pure-radio" /> @QuestionCreate.function </input>
+                <input type="radio" value="@QuestionCreate.sequence" data-bind="name: @QuestionCreate.id, checked: @QuestionCreate.partType" class="pure-radio" /> @QuestionCreate.sequence </input>
+*@
+                <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.choice'   --> <a href='#' data-bind='click: QE.addChoicePart'   class="pure-button">Add Choice</a>   <!-- /ko -->
                 <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.function' --> <a href='#' data-bind='click: QE.addFunctionPart' class="pure-button">Add Function</a> <!-- /ko -->
+                <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.sequence' --> <a href='#' data-bind='click: QE.addSequencePart' class="pure-button">Add Sequence</a> <!-- /ko -->
             </div>
 
             <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.choice' -->
@@ -59,6 +69,17 @@
             <!-- /ko -->
             <!-- /ko -->
 
+            <!-- ko if: @{QuestionCreate.partType}() == '@QuestionCreate.sequence' -->
+            <!-- ko foreach: @QuestionCreate.sequences -->
+            <div class="span-section question-sequence">
+                <div class="item summary-input"> Summary @tag.isValid("summaryInvalid"): <br> <textarea type="text" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
+                <div class="item summary-output"> <span data-bind="mathjax: @QuestionCreate.summaryHtml"> </span> </div>
+                <div class="item sequence-input"> Sequence @tag.isValid("sequenceInvalid") : <input data-bind="textInput: @QuestionCreate.sequenceStr" /> </div>
+                <div class="item sequence-output"><span data-bind="html: @{QuestionCreate.sequenceStr}Display"> </span> </div>
+                <div class="item sequence-controls"><a href='#' data-bind='click: function(data, event) { QE.removeSequencePart($parent, data) }' class="pure-button">Remove This Part</a> </div>
+            </div>
+            <!-- /ko -->
+            <!-- /ko -->
         </div>
         <!-- /ko -->
 
@@ -178,6 +199,52 @@
                 });
             }
 
+            // ===================================================
+            // ============ Sequence Part Enhancement ============
+            // ===================================================
+            var sequencePartId = function (section, num) {
+                return section.@QuestionCreate.id + "s" + num;
+            }
+
+            var enhanceSequencePart = function (section, part, num) {
+                part.@QuestionCreate.id = sequencePartId(section, num); // Note here we overwrite the id
+
+                setupDetails(part, part.@QuestionCreate.id, "@QuestionCreate.summaryRaw", "@QuestionCreate.summaryHtml");
+
+                // Do we have a summary?
+                part.summaryInvalid = ko.computed(function () {
+                    return part.@{QuestionCreate.summaryRaw}() == "";
+                });
+
+                // Update the sequence display & value (and validity)
+                part.sequenceInvalid = ko.observable( true ); // This will be updated manually by subscribe below
+                var seq = part.@{QuestionCreate.sequenceStr};
+                seq.subscribe(function (newValue) {
+                    var results = ARTC.string2Numbers(newValue);
+                    if(results.success) {
+                        part.@{QuestionCreate.sequenceStr}Display( results.values.join(", ") );
+                    }
+                    part.sequenceInvalid(!results.success);
+                });
+
+                part.invalid = ko.computed(function () {
+                    return part.summaryInvalid() || part.sequenceInvalid()  ;
+                });
+
+                part.@{QuestionCreate.sequenceStr}Display = ko.observable();
+
+                // Force an update for part.sequenceInvalid
+                seq.valueHasMutated();
+            }
+
+            // Remove this part
+            QE.removeSequencePart = function (section, part) {
+                var parts = section.@{QuestionCreate.sequences};
+                parts.remove(function (p) {
+                    return p.id === part.id;
+                });
+            }
+
             // =============================================
             // ============ Section Enhancement ============
             // =============================================
@@ -189,6 +256,7 @@
             var enhanceSection = function (main, section, num) {
                 section.choiceIdGenerator = section.@{QuestionCreate.choices}.length;
                 section.functionIdGenerator = section.@{QuestionCreate.functions}.length;
+                section.sequenceIdGenerator = section.@{QuestionCreate.sequences}.length;
 
                 // Set the id for consistency
                 section.@QuestionCreate.id = sectionId(num); // Note here we overwrite the id
@@ -204,6 +272,11 @@
                     enhanceFunctionPart(section, section.@{QuestionCreate.functions}()[i], i);
                 }
 
+                // Update any existing Sequence Parts (ie make sure they are enhanced)
+                for (var i = 0; i < section.@{QuestionCreate.sequences}().length; i++) {
+                    enhanceSequencePart(section, section.@{QuestionCreate.sequences}()[i], i);
+                }
+
                 // --- End Update Parts ---
                 setupDetails(section, section.@QuestionCreate.id, "@QuestionCreate.explanationRaw", "@QuestionCreate.explanationHtml");
 
@@ -215,11 +288,16 @@
                     var explanationInvalid = section.explanationInvalid();
                     var choicesInvalid   = _.map(section.@{QuestionCreate.choices}(),   function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
                     var functionsInvalid = _.map(section.@{QuestionCreate.functions}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
+                    var sequencesInvalid = _.map(section.@{QuestionCreate.sequences}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, explanationInvalid);
 
                     if(section.@{QuestionCreate.partType}() == "@QuestionCreate.choice") {
                         return choicesInvalid;
-                    } else {
+                    } else if (section.@{QuestionCreate.partType}() == "@QuestionCreate.function") {
                         return functionsInvalid;
+                    } else if (section.@{QuestionCreate.partType}() == "@QuestionCreate.sequence") {
+                        return sequencesInvalid;
+                    } else {
+                        throw "@{QuestionCreate.partType} was not a recognized type " + section.@{QuestionCreate.partType}();
                     }
                 });
             }
@@ -255,6 +333,22 @@
 
                 var funcs = section.@{QuestionCreate.functions};
                 funcs.push(newFunction);
+            }
+
+            // add new sequence part
+            QE.addSequencePart = function(section) {
+                var sequenceId = sequencePartId(section, section.sequenceIdGenerator++); // note this increments the idGenerator
+
+                var newSequence = ko.mapping.fromJS({
+                    @QuestionCreate.summaryRaw   : "",
+                    @QuestionCreate.summaryHtml  : ARTC.markdown(sequenceId, ""),
+                    @QuestionCreate.sequenceStr  : ""
+                } );
+
+                enhanceSequencePart(section, newSequence, section.sequenceIdGenerator);
+
+                var funcs = section.@{QuestionCreate.sequences};
+                funcs.push(newSequence);
             }
             // --- End Add new parts ----
 

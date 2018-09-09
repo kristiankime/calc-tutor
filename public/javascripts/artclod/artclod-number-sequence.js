@@ -13,16 +13,22 @@ if (!ARTC) {
  */
 ARTC.string2Numbers = function (string) {
     if(!string) {
-        return { success : false, values : [], error : "string was falsey" + string }
+        return { success : false, values : [], error : "string was falsey [" + string + "]"}
     }
     var numStrArray = string.split(";");
     var values = [];
     for(var i=0; i<numStrArray.length; i++) {
         try {
-            values.push(parseFloat(numStrArray[i].trim().replace(/,/g, '')))
+            var numStr = numStrArray[i].trim().replace(/,/g, '');
+            var numPF = parseFloat(numStr);
+            var numNum = Number(numStr);
+            if(isNaN(numPF) || isNaN(numNum)) {
+                return { success : false, values : [], error : "Could not parse [" + numStrArray[i] + "]"};
+            }
+            values.push(numNum);
         } catch (e) {
-            return { success : false, values : [], error : e }
+            return { success : false, values : [], error : e };
         }
     }
-    return { success : true, values : values }
+    return { success : true, values : values };
 }

@@ -105,6 +105,30 @@
 .function-output { grid-area: function-output; }
 .function-controls { grid-area: function-controls; }
 
+/* ========== SEQUENCES CSS ========== */
+.question-sequence {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  grid-gap: 5px;
+
+  grid-template-areas:
+          "summary-input     summary-output"
+          "sequence-input    sequence-output"
+          "sequence-controls .";
+
+  grid-auto-rows: auto;
+
+  background-color: @light;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.sequence-input { grid-area: sequence-input; }
+.sequence-output { grid-area: sequence-output; }
+.sequence-controls { grid-area: sequence-controls; }
+
+
 /* ========== GENERAL ========== */
 .item {
   background-color: @white;
