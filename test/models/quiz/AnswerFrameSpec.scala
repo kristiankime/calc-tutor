@@ -4,7 +4,7 @@ import com.artclod.mathml.MathML
 import com.artclod.slick.{JodaUTC, NumericBoolean}
 import controllers.quiz._
 import dao.TestData
-import dao.TestData.{questionPartChoice, questionPartFunction, questionSectionFrame}
+import dao.TestData.{questionPartChoice, questionPartFunction, questionSectionFrameFn, questionSectionFrameCh, questionSectionFrameSe}
 import models.UserId
 import org.joda.time.DateTime
 import org.scalatestplus.play._
@@ -13,8 +13,9 @@ import play.twirl.api.Html
 class AnswerFrameSpec extends PlaySpec {
 
   val correctNA = Int.MinValue
-  val blankChoices : Seq[QuestionPartChoice] = Seq()
-  val blankFunctions : Seq[QuestionPartFunction] = Seq()
+  val blankChoices : Seq[QuestionPartChoice] = Vector()
+  val blankFunctions : Seq[QuestionPartFunction] = Vector()
+  val blankSequences : Seq[QuestionPartSequence] = Vector()
 
 //	"blank creation" should {
 //
@@ -39,7 +40,7 @@ class AnswerFrameSpec extends PlaySpec {
 
     "figure out if questions is answered correctly with one section with two choices (correct)" in {
       val questionFrame = TestData.questionFrame("title", "description", UserId(0), JodaUTC.zero, Seq(TestData.skill("a")),
-        Seq(questionSectionFrame("ex")(questionPartChoice("sum 1", NumericBoolean.F), questionPartChoice("sum 2", NumericBoolean.T))(blankFunctions:_*)) )
+        Seq(questionSectionFrameCh("ex")(questionPartChoice("sum 1", NumericBoolean.F), questionPartChoice("sum 2", NumericBoolean.T))) )
 
       val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, 1) ) // Here we are guessing 1 which is correct
       val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
@@ -50,7 +51,7 @@ class AnswerFrameSpec extends PlaySpec {
 
     "figure out if questions is answered correctly with one section with two choices (incorrect)" in {
       val questionFrame = TestData.questionFrame("title", "description", UserId(0), JodaUTC.zero, Seq(TestData.skill("a")),
-        Seq( questionSectionFrame("ex")(questionPartChoice("sum 1", NumericBoolean.F), questionPartChoice("sum 2", NumericBoolean.T))(blankFunctions:_*)) )
+        Seq( questionSectionFrameCh("ex")(questionPartChoice("sum 1", NumericBoolean.F), questionPartChoice("sum 2", NumericBoolean.T))) )
 
       val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, 0) ) // Here we are guessing 0 which is incorrect
       val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
@@ -61,21 +62,21 @@ class AnswerFrameSpec extends PlaySpec {
 
     "figure out if questions is answered correctly with one section with two functions (correct)" in {
       val questionFrame = TestData.questionFrame("title", "description", UserId(0), JodaUTC.zero, Seq(TestData.skill("a")),
-       Seq(questionSectionFrame("ex")(blankChoices:_*)(questionPartFunction("sum 1","<cn>1</cn>"), questionPartFunction("sum 2", "<cn>2</cn>"))))
+       Seq(questionSectionFrameFn("ex")(questionPartFunction("sum 1","<cn>1</cn>"), questionPartFunction("sum 2", "<cn>2</cn>"))))
 
-      val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, -1, AnswerPartFunctionJson("<cn>1</cn>", correctNA), AnswerPartFunctionJson("<cn>2</cn>", correctNA)) )
+      val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, -1, Vector(AnswerPartFunctionJson("<cn>1</cn>", correctNA), AnswerPartFunctionJson("<cn>2</cn>", correctNA)), Vector()) )
       val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
-      val correctedAnswerJson = AnswerJson(AnswerJson.correctYes, AnswerSectionJson(AnswerJson.correctYes, -1, AnswerPartFunctionJson("<cn>1</cn>", AnswerJson.correctYes), AnswerPartFunctionJson("<cn>2</cn>", AnswerJson.correctYes)) )
+      val correctedAnswerJson = AnswerJson(AnswerJson.correctYes, AnswerSectionJson(AnswerJson.correctYes, -1, Vector(AnswerPartFunctionJson("<cn>1</cn>", AnswerJson.correctYes), AnswerPartFunctionJson("<cn>2</cn>", AnswerJson.correctYes)), Vector()) )
 
       AnswerJson(computedAnswerFrame) mustEqual(correctedAnswerJson)
     }
 
     "figure out if questions is answered correctly with one section with two functions (one correct one incorrect)" in {
       val questionFrame = TestData.questionFrame("title", "description", UserId(0), JodaUTC.zero, Seq(TestData.skill("a")),
-        Seq(questionSectionFrame("ex")(blankChoices:_*)(questionPartFunction("sum 1","<cn>1</cn>"), questionPartFunction("sum 2", "<cn>3</cn>")))) // Here 3 is wrong
-      val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, -1, AnswerPartFunctionJson("<cn>1</cn>", correctNA), AnswerPartFunctionJson("<cn>2</cn>", correctNA)) )
+        Seq(questionSectionFrameFn("ex")(questionPartFunction("sum 1","<cn>1</cn>"), questionPartFunction("sum 2", "<cn>3</cn>")))) // Here 3 is wrong
+      val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, -1, Vector(AnswerPartFunctionJson("<cn>1</cn>", correctNA), AnswerPartFunctionJson("<cn>2</cn>", correctNA)), Vector()) )
       val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
-      val correctedAnswerJson = AnswerJson(AnswerJson.correctNo, AnswerSectionJson(AnswerJson.correctNo, -1, AnswerPartFunctionJson("<cn>1</cn>", AnswerJson.correctYes), AnswerPartFunctionJson("<cn>2</cn>", AnswerJson.correctNo)) )
+      val correctedAnswerJson = AnswerJson(AnswerJson.correctNo, AnswerSectionJson(AnswerJson.correctNo, -1, Vector(AnswerPartFunctionJson("<cn>1</cn>", AnswerJson.correctYes), AnswerPartFunctionJson("<cn>2</cn>", AnswerJson.correctNo)), Vector()) )
 
       AnswerJson(computedAnswerFrame) mustEqual(correctedAnswerJson)
     }
@@ -83,11 +84,13 @@ class AnswerFrameSpec extends PlaySpec {
     "figure out if questions is answered correctly (all parts are correct)" in {
 
       val questionFrame = TestData.questionFrame("title", "description", UserId(0), JodaUTC.zero, Seq(TestData.skill("a")),
-        Seq(questionSectionFrame("explanation 1")(questionPartChoice("summary 1-1", NumericBoolean.T))(),
-        questionSectionFrame("explanation 2")()(questionPartFunction("summary 2-1", "<cn>1</cn>")),
-        questionSectionFrame("explanation 3")(questionPartChoice("summary 3-1", NumericBoolean.F), questionPartChoice("summary 3-2", NumericBoolean.T))(),
-        questionSectionFrame("explanation 4")()(questionPartFunction("summary 4-1", "<cn>2</cn>"), (questionPartFunction("summary 4-2", "<cn>3</cn>")))
-      ))
+        Seq(
+          questionSectionFrameCh("explanation 1")(questionPartChoice("summary 1-1", NumericBoolean.T)),
+          questionSectionFrameFn("explanation 2")(questionPartFunction("summary 2-1", "<cn>1</cn>")),
+          questionSectionFrameCh("explanation 3")(questionPartChoice("summary 3-1", NumericBoolean.F), questionPartChoice("summary 3-2", NumericBoolean.T)),
+          questionSectionFrameFn("explanation 4")(questionPartFunction("summary 4-1", "<cn>2</cn>"), (questionPartFunction("summary 4-2", "<cn>3</cn>")) )
+        )
+      )
 
       val guessAnswerJson =
         AnswerJson(correctNA,

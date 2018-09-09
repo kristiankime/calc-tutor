@@ -60,9 +60,8 @@ package ofthree {
     override def isThird  = false
 
     override def first  = FirstProjection(this)
-    override def second = throw new NoSuchElementException("First is not a Second")
-    override def third  = throw new NoSuchElementException("First is not a Third")
-
+    override def second = SecondProjection(this)
+    override def third  = ThirdProjection(this)
   }
 
   case class Second[A,B,C](value: B) extends OneOfThree[A,B,C] {
@@ -70,9 +69,9 @@ package ofthree {
     override def isSecond = true
     override def isThird  = false
 
-    override def first  = throw new NoSuchElementException("Second is not a First")
+    override def first  = FirstProjection(this)
     override def second = SecondProjection(this)
-    override def third  = throw new NoSuchElementException("Second is not a Third")
+    override def third  = ThirdProjection(this)
   }
 
   case class Third[A,B,C](value: C) extends OneOfThree[A,B,C] {
@@ -80,8 +79,8 @@ package ofthree {
     override def isSecond = false
     override def isThird  = true
 
-    override def first  = throw new NoSuchElementException("Third is not a First")
-    override def second = throw new NoSuchElementException("Third is not a Second")
+    override def first  = FirstProjection(this)
+    override def second = SecondProjection(this)
     override def third  = ThirdProjection(this)
   }
 }

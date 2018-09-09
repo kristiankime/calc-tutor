@@ -11,7 +11,10 @@ object SequenceParse {
 //  val allInf = positiveInfinityStrings ++ negativeInfinityStrings
 //  val allInfForRegex = allInf.map(infStr =>  infStr.replace("+", "\\+") );
 
-  def apply(str: String): Try[Vector[Double]] = null
+  def apply(str: String): Try[Vector[Double]] = {
+    val split = str.split(";").toVector
+    Try(split.map(_.replace(",", "").toDouble))
+  }
 //    if(     positiveInfinityStrings.contains(str.toLowerCase)) { Success(Double.PositiveInfinity)}
 //    else if(negativeInfinityStrings.contains(str.toLowerCase)) { Success(Double.NegativeInfinity)}
 //    else{                                                            Try(str.toDouble)           }

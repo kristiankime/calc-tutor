@@ -3,7 +3,7 @@ package dao.quiz
 import _root_.support.{CleanDatabaseAfterEach, EnhancedInjector}
 import com.artclod.slick.{JodaUTC, NumericBoolean}
 import dao.TestData
-import dao.TestData.{questionPartChoice, questionPartFunction, questionSectionFrame}
+import dao.TestData.{questionPartChoice, questionPartFunction, questionSectionFrameFn, questionSectionFrameCh, questionSectionFrameSe}
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
 import models.quiz.{Answer, Question, Skill, UserAnswerCount}

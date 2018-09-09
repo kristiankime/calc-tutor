@@ -7,21 +7,13 @@ import scala.util.Success
 class SequenceParseSpec extends PlaySpec {
 
   "SequenceParse.apply(String)" should {
-      "parse 1;2;3" in { SequenceParse("1;2;3") mustEqual(Success(Vector(1,2,3))) }
+      "parse ; separated integers" in { SequenceParse("1;2;3") mustEqual(Success(Vector(1.0, 2.0, 3.0))) }
 
-//    "parse inf" in { DoubleParse("inf") mustEqual( Success(Double.PositiveInfinity)) }
-//    "parse Inf" in { DoubleParse("Inf") mustEqual( Success(Double.PositiveInfinity)) }
-//    "parse infinity" in { DoubleParse("infinity") mustEqual( Success(Double.PositiveInfinity)) }
-//    "parse positive infinity" in { DoubleParse("positive infinity") mustEqual( Success(Double.PositiveInfinity)) }
-//    "parse pos inf" in { DoubleParse("pos inf") mustEqual( Success(Double.PositiveInfinity)) }
-//    "parse +inf" in { DoubleParse("+inf") mustEqual( Success(Double.PositiveInfinity)) }
-//
-//    "parse negative infinity" in { DoubleParse("negative infinity") mustEqual( Success(Double.NegativeInfinity)) }
-//    "parse neg inf" in { DoubleParse("neg inf") mustEqual( Success(Double.NegativeInfinity)) }
-//    "parse -inf" in { DoubleParse("-inf") mustEqual( Success(Double.NegativeInfinity)) }
-//
-//    "parse 3" in { DoubleParse("3") mustEqual( Success(3d)) }
-//    "parse 3.1" in { DoubleParse("3.1") mustEqual( Success(3.1d)) }
+      "handle decimal values" in { SequenceParse("1.1;2.2;3.3") mustEqual(Success(Vector(1.1, 2.2, 3.3))) }
+
+      "handle white space" in { SequenceParse("1.1; 2.2; 3.3") mustEqual(Success(Vector(1.1, 2.2, 3.3))) }
+
+      "handle commas" in { SequenceParse("1,000.1; 2,000.2; 3,000.3") mustEqual(Success(Vector(1000.1, 2000.2, 3000.3))) }
   }
 
 }

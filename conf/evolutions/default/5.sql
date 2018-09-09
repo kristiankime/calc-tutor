@@ -42,6 +42,17 @@ CREATE TABLE question_part_function
   part_order SMALLINT NOT NULL
 );
 
+CREATE TABLE question_part_sequence
+(
+  id SERIAL NOT NULL PRIMARY KEY,
+  section_id INT NOT NULL REFERENCES question_section(id),
+  question_id INT NOT NULL REFERENCES question(id),
+  summary_raw VARCHAR NOT NULL,
+  summary_html VARCHAR NOT NULL,
+  sequence_str VARCHAR NOT NULL,
+  part_order SMALLINT NOT NULL
+);
+
 CREATE TABLE question_2_quiz
 (
   question_id INT NOT NULL REFERENCES question(id),
@@ -55,8 +66,8 @@ CREATE TABLE question_2_quiz
 # --- !Downs
 
 DROP TABLE question_2_quiz CASCADE;
+DROP TABLE question_part_sequence CASCADE;
 DROP TABLE question_part_function CASCADE;
 DROP TABLE question_part_choice CASCADE;
 DROP TABLE question_section CASCADE;
 DROP TABLE question CASCADE;
-

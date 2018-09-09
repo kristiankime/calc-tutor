@@ -50,6 +50,7 @@ CREATE TABLE answer_part_sequence
 
 # --- !Downs
 
-DROP TABLE answer_part CASCADE;
+DROP TABLE answer_part_sequence CASCADE;
+DROP TABLE answer_part_function CASCADE;
 DROP TABLE answer_section CASCADE;
 DROP TABLE answer CASCADE;

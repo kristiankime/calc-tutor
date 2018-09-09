@@ -190,15 +190,37 @@ case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, 
 
 object QuestionSectionJson {
 
-  def apply(explanation: String, correctChoiceIndex : Int = -1)(choices: QuestionPartChoiceJson*)(functions: QuestionPartFunctionJson*)(sequences: QuestionPartSequenceJson*)  : QuestionSectionJson = {
-    (correctChoiceIndex, choices.nonEmpty, functions.nonEmpty, sequences.nonEmpty) match {
-     case(i,  true,  false, false) if i >= 0 && i < choices.size => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice,   correctChoiceIndex, Vector(choices:_*), Vector()            , Vector())
-     case(-1, false, true, false )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector(functions:_*), Vector())
-     case(-1, false, false, true )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector()            , Vector(sequences:_*))
+//  def apply(explanation: String, correctChoiceIndex : Int = -1)(choices: QuestionPartChoiceJson*)(functions: QuestionPartFunctionJson*)(sequences: QuestionPartSequenceJson*)  : QuestionSectionJson = {
+//    (correctChoiceIndex, choices.nonEmpty, functions.nonEmpty, sequences.nonEmpty) match {
+//      case(i,  true,  false, false) if i >= 0 && i < choices.size => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice,   correctChoiceIndex, Vector(choices:_*), Vector()            , Vector())
+//      case(-1, false, true, false )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector(functions:_*), Vector())
+//      case(-1, false, false, true )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector()            , Vector(sequences:_*))
+//
+//      case _ => throw new IllegalArgumentException("Not a valid QuestionSectionJson combo")
+//    }
+//  }
 
-     case _ => throw new IllegalArgumentException("Not a valid QuestionSectionJson combo")
+  def ch(explanation: String, correctChoiceIndex : Int, choices: QuestionPartChoiceJson*)  : QuestionSectionJson =
+    if (correctChoiceIndex >= 0 && correctChoiceIndex < choices.size)
+      QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice, correctChoiceIndex, Vector(choices: _*), Vector(), Vector())
+    else {
+      throw new IllegalArgumentException("Not a valid QuestionSectionJson combo")
     }
-  }
+
+//
+//    (correctChoiceIndex, choices.nonEmpty, functions.nonEmpty, sequences.nonEmpty) match {
+//      case(i,  true,  false, false) if i >= 0 && i < choices.size => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.choice,   correctChoiceIndex, Vector(choices:_*), Vector()            , Vector())
+//      case(-1, false, true, false )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector(functions:_*), Vector())
+//      case(-1, false, false, true )                               => QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function,                -1 ,           Vector(), Vector()            , Vector(sequences:_*))
+//
+//      case _ => throw new IllegalArgumentException("Not a valid QuestionSectionJson combo")
+//    }
+
+  def fn(explanation: String, functions: QuestionPartFunctionJson*)  : QuestionSectionJson =
+      QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function, -1, Vector(), Vector(functions:_*), Vector())
+
+  def se(explanation: String, correctChoiceIndex : Int = -1)(choices: QuestionPartChoiceJson*)(functions: QuestionPartFunctionJson*)(sequences: QuestionPartSequenceJson*)  : QuestionSectionJson =
+    QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function, -1, Vector(), Vector(), Vector(sequences:_*))
 
   def apply(questionSectionFrame: QuestionSectionFrame) : QuestionSectionJson = {
     val choices   : Vector[QuestionPartChoiceJson]   = questionSectionFrame.parts.first.getOrElse(Vector()).map(c => QuestionPartChoiceJson(c))

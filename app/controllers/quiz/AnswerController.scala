@@ -177,8 +177,14 @@ object AnswerSectionJson {
   def blank(sectionFrame: QuestionSectionFrame): AnswerSectionJson =
     AnswerSectionJson(choiceIndex = sectionFrame.choiceSize.map(v => rand.nextInt(v)).getOrElse(AnswerJson.noChoiceSelected), functions=AnswerPartFunctionJson.blank(sectionFrame.parts), sequences = AnswerPartSequenceJson.blank(sectionFrame.parts), correct = AnswerJson.correctBlank)
 
+  def apply(correct: Int, choiceIndex: Int): AnswerSectionJson =
+    AnswerSectionJson(choiceIndex, Vector(), Vector(), correct)
+
   def apply(correct: Int, choiceIndex: Int, functionParts: Vector[AnswerPartFunctionJson], sequenceParts: Vector[AnswerPartSequenceJson]) : AnswerSectionJson =
     AnswerSectionJson(choiceIndex, Vector(functionParts:_*), Vector(sequenceParts:_*), correct)
+
+  def apply(correct: Int, choiceIndex: Int, functionParts: AnswerPartFunctionJson*) : AnswerSectionJson =
+    AnswerSectionJson(choiceIndex, Vector(functionParts:_*), Vector(), correct)
 
   def apply(answerSectionFrame: AnswerSectionFrame) : AnswerSectionJson =
     AnswerSectionJson(
