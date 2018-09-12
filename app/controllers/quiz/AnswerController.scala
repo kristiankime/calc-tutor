@@ -222,11 +222,8 @@ object AnswerPartSequenceJson {
   def blank(sequenceParts: OneOfThree[_, _, Vector[QuestionPartSequence]]): Vector[AnswerPartSequenceJson] = sequenceParts match {
     case First(_) => Vector()
     case Second(_) => Vector()
-    case Third(seq) => seq.map(p => AnswerPartSequenceJson(p.sequenceStr, AnswerJson.correctBlank))
+    case Third(seq) => seq.map(p => AnswerPartSequenceJson("", AnswerJson.correctBlank))
   }
-
-  def apply(sequence: String, correct: Int) : AnswerPartSequenceJson =
-    AnswerPartSequenceJson(sequence, correct)
 
   def apply(answerPartSequence: AnswerPartSequence) : AnswerPartSequenceJson =
     AnswerPartSequenceJson(answerPartSequence.sequenceStr, answerPartSequence.correctNum)

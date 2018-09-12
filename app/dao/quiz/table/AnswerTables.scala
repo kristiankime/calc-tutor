@@ -81,11 +81,11 @@ class AnswerTables @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     def correctNum = column[Short]("correct")
     def order = column[Short]("part_order")
 
-    def answerSectionIdFK = foreignKey("answer_part_fk__answer_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def answerIdFK = foreignKey("answer_part_fk__answer_id", answerId, Answers)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionPartIdFK = foreignKey("answer_part_fk__question_part_id", questionPartId, questionTables.QuestionPartFunctions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionSectionIdFK = foreignKey("answer_part_fk__question_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionIdFK = foreignKey("answer_part_fk__question_id", questionId, questionTables.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def answerSectionIdFK = foreignKey("answer_part_function_fk__answer_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def answerIdFK = foreignKey("answer_part_function_fk__answer_id", answerId, Answers)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionPartIdFK = foreignKey("answer_part_function_fk__question_part_id", questionPartId, questionTables.QuestionPartFunctions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionSectionIdFK = foreignKey("answer_part_function_fk__question_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionIdFK = foreignKey("answer_part_function_fk__question_id", questionId, questionTables.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
     def * = (id, answerSectionId, answerId, questionPartId, questionSectionId, questionId, functionRaw, functionMath, correctNum, order) <> (AnswerPartFunction.tupled, AnswerPartFunction.unapply)
   }
@@ -104,11 +104,11 @@ class AnswerTables @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     def correctNum = column[Short]("correct")
     def order = column[Short]("part_order")
 
-    def answerSectionIdFK = foreignKey("answer_part_fk__answer_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def answerIdFK = foreignKey("answer_part_fk__answer_id", answerId, Answers)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionPartIdFK = foreignKey("answer_part_fk__question_part_id", questionPartId, questionTables.QuestionPartFunctions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionSectionIdFK = foreignKey("answer_part_fk__question_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
-    def questionIdFK = foreignKey("answer_part_fk__question_id", questionId, questionTables.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def answerSectionIdFK = foreignKey("answer_part_sequence_fk__answer_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def answerIdFK = foreignKey("answer_part_sequence_fk__answer_id", answerId, Answers)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionPartIdFK = foreignKey("answer_part_sequence_fk__question_part_id", questionPartId, questionTables.QuestionPartFunctions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionSectionIdFK = foreignKey("answer_part_sequence_fk__question_section_id", questionSectionId, questionTables.QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def questionIdFK = foreignKey("answer_part_sequence_fk__question_id", questionId, questionTables.Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
     def * = (id, answerSectionId, answerId, questionPartId, questionSectionId, questionId, sequenceStr, correctNum, order) <> (AnswerPartSequence.tupled, AnswerPartSequence.unapply)
   }

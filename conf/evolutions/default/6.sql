@@ -39,7 +39,7 @@ CREATE TABLE answer_part_sequence
   id SERIAL NOT NULL PRIMARY KEY,
   answer_section_id INT NOT NULL REFERENCES answer_section(id),
   answer_id INT NOT NULL REFERENCES answer(id),
-  question_part_id INT NOT NULL REFERENCES question_part_function(id),
+  question_part_id INT NOT NULL REFERENCES question_part_sequence(id),
   question_section_id INT NOT NULL REFERENCES question_section(id),
   question_id INT NOT NULL REFERENCES question(id),
   sequence_str VARCHAR NOT NULL,

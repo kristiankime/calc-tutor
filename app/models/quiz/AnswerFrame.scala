@@ -23,11 +23,12 @@ case class AnswerFrame(answer: Answer, sections: Vector[AnswerSectionFrame], cor
 case class AnswerSectionFrame(answerSection: AnswerSection, functionParts: Vector[AnswerPartFunction], sequenceParts: Vector[AnswerPartSequence], correctUnknown: Boolean) extends HasOrder[AnswerSectionFrame] {
   override def order = answerSection.order
 
-  (answerSection.choice.nonEmpty, functionParts.nonEmpty ) match {
-    case (true, true) => {throw new IllegalArgumentException("Answer was had both choice and parts")}
-    case (false, false) => {throw new IllegalArgumentException("Answer was had neither choice not parts")}
-    case _ : (Boolean, Boolean) => { "All good" }
-  }
+  val isChoice = NumericBoolean(answerSection.choice.nonEmpty)
+  val isFunc = NumericBoolean(functionParts.nonEmpty)
+  val isSeq = NumericBoolean(sequenceParts.nonEmpty)
+
+  val typeTotal = isChoice + isFunc + isSeq
+  if(typeTotal != 1.toShort) { throw new IllegalArgumentException("There should have been only one part type for answer section " + answerSection)}
 
   def id(sectionId: AnswerSectionId) = AnswerSectionFrame(
     answerSection = answerSection.copy(id = sectionId),

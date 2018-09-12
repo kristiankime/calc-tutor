@@ -61,7 +61,12 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     val sequencePartsFuture = sequencePartsId(id)
     val skillsFuture = skillDAO.skillsFor(id)
 
-    questionFuture.flatMap(questionOp => { sectionsFuture.flatMap(sections => { choicePartsFuture.flatMap( choiceParts => { functionPartsFuture.flatMap( functionParts => { sequencePartsFuture.flatMap( sequenceParts => { skillsFuture.map( skills => {
+    questionFuture.flatMap(questionOp => {
+      sectionsFuture.flatMap(sections => {
+        choicePartsFuture.flatMap( choiceParts => {
+          functionPartsFuture.flatMap( functionParts => {
+            sequencePartsFuture.flatMap( sequenceParts => {
+              skillsFuture.map( skills => {
       val secId2Fp = functionParts.groupBy(p => p.sectionId)
       val secId2Cp = choiceParts.groupBy(p => p.sectionId)
       val secId2Sp = sequenceParts.groupBy(p => p.sectionId)

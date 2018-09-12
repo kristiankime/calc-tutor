@@ -54,11 +54,11 @@
             } } }
 
             case Third(parts) => { @for(part <- parts.zipWithIndex) {
-            @defining(viewModelSec + "." + AnswerCreate.sequences + "()[" + part._2 + "]") { viewModelFunc : String =>
+            @defining(viewModelSec + "." + AnswerCreate.sequences + "()[" + part._2 + "]") { viewModelSeq : String =>
             <div class="span-section answer-sequence">
                 <div class="item answer-sequence-summary"> @part._1.summaryHtml </div>
                 <div class="item answer-sequence-input">
-                    @{tag.isValid(viewModelFunc + ".invalid()")} <input data-bind="textInput: @{viewModelFunc}.@{sequenceStr}" /> <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"></span> @tag.lastAnswerPieceWas(viewModelFunc + "." + correct + "()")
+                    @{tag.isValid(viewModelSeq + ".invalid()")} <input data-bind="textInput: @{viewModelSeq}.@{sequenceStr}" /> @*<span data-bind="attr: { 'id' : @{viewModelFunc}.id }"></span>*@ @tag.lastAnswerPieceWas(viewModelSeq + "." + correct + "()")
                 </div>
             </div>
             } } }
@@ -155,11 +155,18 @@
 
             for (var pi = 0; pi < section.@{AnswerCreate.functions}().length; pi++) {
                 var partModel = section.@{AnswerCreate.functions}()[pi];
-                enhancePart(partModel, si, pi);
+                enhanceFunctionPart(partModel, si, pi);
+            }
+
+            for (var pi = 0; pi < section.@{AnswerCreate.sequences}().length; pi++) {
+                var partModel = section.@{AnswerCreate.sequences}()[pi];
+                enhanceSequencePart(partModel, si, pi);
             }
 
             section.invalid = ko.computed(function () {
-                return _.map(section.@{AnswerCreate.functions}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, false);
+                var fncInvalid = _.map(section.@{AnswerCreate.functions}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, false);
+                var seqInvalid = _.map(section.@{AnswerCreate.sequences}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, false);
+                return fncInvalid || seqInvalid;
             });
         }
 
