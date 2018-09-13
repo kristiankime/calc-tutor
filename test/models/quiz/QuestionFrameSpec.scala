@@ -2,9 +2,9 @@ package models.quiz
 
 import com.artclod.mathml.MathML
 import com.artclod.slick.{JodaUTC, NumericBoolean}
-import com.artclod.util.ofthree.{First, Second}
+import com.artclod.util.ofthree.{First, Second, Third}
 import controllers.quiz
-import controllers.quiz.{QuestionJson, QuestionPartChoiceJson, QuestionPartFunctionJson, QuestionSectionJson}
+import controllers.quiz._
 import dao.TestData
 import models.UserId
 import org.scalatestplus.play._
@@ -35,7 +35,7 @@ class QuestionFrameSpec extends PlaySpec {
     "convert successfully with one choice section" in {
       // Json
       val questionPartChoiceJson = QuestionPartChoiceJson("summaryRaw", "summaryHtml")
-      val questionSectionJson = QuestionSectionJson("explanationRaw", "explanationHtml", "choice", 0, Vector(questionPartChoiceJson), Vector(), Vector())
+      val questionSectionJson = QuestionSectionJson("explanationRaw", "explanationHtml", QuestionCreate.choice, 0, Vector(questionPartChoiceJson), Vector(), Vector())
       val questionJson = QuestionJson("title", "questionRaw", "questionHtml", Vector(questionSectionJson), Vector("a"))
 
       // Scala
@@ -53,7 +53,7 @@ class QuestionFrameSpec extends PlaySpec {
     "convert successfully with one function section" in {
       // Json
       val questionPartFunctionJson = QuestionPartFunctionJson("summaryRaw", "summaryHtml", "1", "<cn>1</cn>")
-      val questionSectionJson = QuestionSectionJson("explanationRaw", "explanationHtml", "function", 0, Vector(), Vector(questionPartFunctionJson), Vector())
+      val questionSectionJson = QuestionSectionJson("explanationRaw", "explanationHtml", QuestionCreate.function, 0, Vector(), Vector(questionPartFunctionJson), Vector())
       val questionJson = QuestionJson("title", "questionRaw", "questionHtml", Vector(questionSectionJson), Vector("a"))
 
       // Scala
@@ -68,7 +68,25 @@ class QuestionFrameSpec extends PlaySpec {
       QuestionFrame(questionJson, UserId(0), skillMap, JodaUTC.zero) mustBe(questionFrame)
     }
 
-    "convert successfully with one multiple sections" in {
+    "convert successfully with one sequence section" in {
+      // Json
+      val questionPartSequenceJson = QuestionPartSequenceJson("summaryRaw", "summaryHtml", "1;2")
+      val questionSectionJson = QuestionSectionJson("explanationRaw", "explanationHtml", QuestionCreate.sequence, 0, Vector(), Vector(), Vector(questionPartSequenceJson))
+      val questionJson = QuestionJson("title", "questionRaw", "questionHtml", Vector(questionSectionJson), Vector("a"))
+
+      // Scala
+      val skills = Vector(TestData.skill("a"))
+      val skillMap = skills.groupBy(_.name).mapValues(_.head)
+      val questionPartSequence = QuestionPartSequence(null, null, null, "summaryRaw", Html("summaryHtml"), "1;2", 0)
+      val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
+      val sectionFrame = QuestionSectionFrame(questionSection, Third(Vector(questionPartSequence)))
+      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(sectionFrame), skills)
+
+      // Test
+      QuestionFrame(questionJson, UserId(0), skillMap, JodaUTC.zero) mustBe(questionFrame)
+    }
+
+    "convert successfully with multiple sections" in {
       // Json
       val questionJson =
         QuestionJson("title", "description",
@@ -122,11 +140,12 @@ class QuestionFrameSpec extends PlaySpec {
       // Json
       val questionJson =
         QuestionJson("title", "description",
-          Vector(
+            Vector[QuestionSectionJson](
             QuestionSectionJson.ch("explanation 1", 0, QuestionPartChoiceJson("summary 1-1")),
             QuestionSectionJson.fn("explanation 2", QuestionPartFunctionJson("summary 2-1", "<cn>1</cn>")),
             QuestionSectionJson.ch("explanation 3", 1, QuestionPartChoiceJson("summary 3-1"), QuestionPartChoiceJson("summary 3-2")),
-            QuestionSectionJson.fn("explanation 4", QuestionPartFunctionJson("summary 4-1", "<cn>2</cn>"), QuestionPartFunctionJson("summary 4-2", "<cn>3</cn>"))
+            QuestionSectionJson.fn("explanation 4", QuestionPartFunctionJson("summary 4-1", "<cn>2</cn>"), QuestionPartFunctionJson("summary 4-2", "<cn>3</cn>")),
+            QuestionSectionJson.se("explanation 5", QuestionPartSequenceJson("summary 5-1", "1;2"))
           ),
           Vector("a")
         )

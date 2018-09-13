@@ -200,8 +200,8 @@ object QuestionSectionJson {
   def fn(explanation: String, functions: QuestionPartFunctionJson*)  : QuestionSectionJson =
       QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function, -1, Vector(), Vector(functions:_*), Vector())
 
-  def se(explanation: String, correctChoiceIndex : Int = -1)(choices: QuestionPartChoiceJson*)(functions: QuestionPartFunctionJson*)(sequences: QuestionPartSequenceJson*)  : QuestionSectionJson =
-    QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.function, -1, Vector(), Vector(), Vector(sequences:_*))
+  def se(explanation: String, sequences: QuestionPartSequenceJson*)  : QuestionSectionJson =
+    QuestionSectionJson(explanation, Markdowner.string(explanation), QuestionCreate.sequence, -1, Vector(), Vector(), Vector(sequences:_*))
 
   def apply(questionSectionFrame: QuestionSectionFrame) : QuestionSectionJson = {
     val choices   : Vector[QuestionPartChoiceJson]   = questionSectionFrame.parts.first.getOrElse(Vector()).map(c => QuestionPartChoiceJson(c))
