@@ -1,1 +1,1 @@
-@(correct: Boolean)@if(correct){ @tag.icon("icon-checkmark3", 'class -> "indicate-correct", 'data_ot -> "This answer was correct") }else{ @tag.icon("icon-warning2", 'class -> "warning", 'data_ot -> "This answer was wrong") }
+@(correct: Boolean)@if(correct){ @tag.correctYes() }else{ @tag.correctNo() }

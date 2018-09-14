@@ -60,11 +60,11 @@
             </td>
             <td>
                 <!-- ko foreach: $data.@{attempts} -->
-                <a data-bind="attr: { href: jsRoutes.controllers.quiz.QuestionController.view(@course.organizationId.v, @course.id.v, @quiz.id.v, $parent.@{id}(), @{id}()).url }" class="pure-button">X</a>
+                <a data-bind="attr: { href: jsRoutes.controllers.quiz.QuestionController.view(@course.organizationId.v, @course.id.v, @quiz.id.v, $parent.@{id}(), @{id}()).url }" class="pure-button">
+                    <span data-bind="visible: $data.@{correct}()"> @tag.correctYes() </span>
+                    <span data-bind="visible: !($data.@{correct}())"> @tag.correctNo() </span>
+                </a>
                 <!-- /ko -->
-                @*
-                @for(answer <- answers.getOrElse(question.id, Seq()) ){<a href="@controllers.quiz.routes.QuestionController.view(course.organizationId, course.id, quiz.id, question.id, Some(answer.id))"> @tag.correctIcon(answer.correct) </a>, }
-                *@
             </td>
             <td>
                 <a class="pure-button" data-bind="click : function(){CQL.remove(@course.organizationId.v, @course.id.v, @quiz.id.v, @{id}())}"> Remove </a>
