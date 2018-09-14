@@ -93,7 +93,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
 //                    userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO): Config = {
 //    val clients = new Clients(baseUrl + "/callback", redirectUnauthenticatedClient, formClient, indirectBasicAuthClient)
 
-      val config = new Config(clients)
+    val config = new Config(clients)
     config.addAuthorizer("Access", new AccessAuthorizer(userDAO, organizationDAO, courseDAO, quizDAO))
     config.setHttpActionAdapter(new DemoHttpActionAdapter())
     config

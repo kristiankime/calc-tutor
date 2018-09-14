@@ -8,6 +8,8 @@
 @import controllers.quiz.MinimalQuestionJson
 @import controllers.quiz.MinimalQuestionJson.id
 @import controllers.quiz.MinimalQuestionJson.title
+@import controllers.quiz.MinimalQuestionJson.correct
+@import controllers.quiz.MinimalQuestionJson.attempts
 @import play.api.libs.json.Json
 
 @(access: models.Access,
@@ -42,12 +44,27 @@
     <table class="pure-table pure-table-striped" id="quiz-questions">
         <tr>
             <th>Question</th>
+
+            <th>Correct</th>
+            <th>Answer</th>
+
             <th>Remove</th>
         </tr>
         <!-- ko foreach: $data -->
         <tr>
             <td>
                 <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.quiz.QuestionController.view(@course.organizationId.v, @course.id.v, @quiz.id.v, @{id}()).url, title : @{title}() }" class="pure-button"></a>
+            </td>
+            <td>
+                <span data-bind="visible: $data.@{correct}"> @tag.indicateCorrect() </span>
+            </td>
+            <td>
+                <!-- ko foreach: $data.@{attempts} -->
+                <a data-bind="attr: { href: jsRoutes.controllers.quiz.QuestionController.view(@course.organizationId.v, @course.id.v, @quiz.id.v, $parent.@{id}(), @{id}()).url }" class="pure-button">X</a>
+                <!-- /ko -->
+                @*
+                @for(answer <- answers.getOrElse(question.id, Seq()) ){<a href="@controllers.quiz.routes.QuestionController.view(course.organizationId, course.id, quiz.id, question.id, Some(answer.id))"> @tag.correctIcon(answer.correct) </a>, }
+                *@
             </td>
             <td>
                 <a class="pure-button" data-bind="click : function(){CQL.remove(@course.organizationId.v, @course.id.v, @quiz.id.v, @{id}())}"> Remove </a>
@@ -59,7 +76,7 @@
     <script>
     var CQL = function() {
         // Get the raw data into a var
-        var data = @Html(Json.toJson(MinimalQuestionJson(questions)).toString);
+        var data = @Html(Json.toJson(MinimalQuestionJson.s(questions, answerOp, answers)).toString);
 
         // Turn it into a view model
         var viewModel = ko.mapping.fromJS(data);

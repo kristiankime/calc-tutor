@@ -134,12 +134,12 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
   def attachAjax(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
     import MinimalQuestionJson.minimalQuestionFormat
 
-    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId) +^ quizDAO.attempts(quizId, user)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, quiz, question)) =>
+      case Right((course, quiz, question, attempts)) =>
         quizDAO.attach(question, quiz, user.id).flatMap(_ =>
           quizDAO.questionSummariesFor(quiz).map(questions =>
-            Ok(Json.toJson(MinimalQuestionJson(questions)))))
+            Ok(Json.toJson(MinimalQuestionJson.s(questions, None, attempts.groupBy(_.questionId))))))
       }
     }
 

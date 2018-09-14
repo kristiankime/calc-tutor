@@ -109,12 +109,12 @@ class QuestionController @Inject()(/*val config: Config, val playSessionStore: P
   def removeAjax(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
     implicit val minimalQuestionFormat = MinimalQuestionJson.minimalQuestionFormat
 
-    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId) +^ quizDAO.attempts(quizId, user)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, quiz, question)) =>
+      case Right((course, quiz, question, attempts)) =>
         quizDAO.detach(question.id, quiz).flatMap(_ =>
           quizDAO.questionSummariesFor(quiz).map(questions =>
-            Ok(Json.toJson(MinimalQuestionJson(questions)))))
+            Ok(Json.toJson(MinimalQuestionJson.s(questions, None, attempts.groupBy(_.questionId))))))
     } }
 
   } } } }
@@ -144,16 +144,28 @@ class QuestionController @Inject()(/*val config: Config, val playSessionStore: P
 }
 
 // === QuestionJson
-case class MinimalQuestionJson(id: Long, title: String)
+case class MinimalQuestionJson(id: Long, title: String, correct: Option[Long], attempts: Seq[MinimalAttemptsJson])
+case class MinimalAttemptsJson(id: Long, correct: Boolean)
 
 object MinimalQuestionJson {
   val id = "id"
   val title = "title"
+  val correct = "correct"
+  val attempts = "attempts"
 
-  def apply(question: Question): MinimalQuestionJson = { MinimalQuestionJson(question.id.v, question.title) }
+  def apply(question: Question, answer: Option[Answer], attempts: Seq[Answer]): MinimalQuestionJson = {
+    MinimalQuestionJson(question.id.v, question.title, answer.map(_.id.v), attempts.map(a => MinimalAttemptsJson(a.id.v, a.correct)))
+  }
 
-  def apply(questions: Seq[Question]): Seq[MinimalQuestionJson] = { questions.map(apply(_)) }
+  def s(questions: Seq[Question], answerOp: Option[models.quiz.Answer], answers: Map[QuestionId, Seq[models.quiz.Answer]]): Seq[MinimalQuestionJson] = {
+    questions.map(q => {
+      val correct = answerOp.flatMap(a => if(a.questionId == q.id){Some(a)}else{None})
+      val attempts = answers.getOrElse(q.id, Seq())
+      apply(q, correct, attempts)
+    })
+  }
 
+  implicit val minimalAttemptsFormat = Json.format[MinimalAttemptsJson]
   implicit val minimalQuestionFormat = Json.format[MinimalQuestionJson]
 }
 

@@ -1,1 +1,1 @@
-@(question: models.quiz.Question, answer: models.quiz.Answer)@if(question.id == answer.questionId){ @tag.icon("icon-checkmark3", 'class -> "indicate-correct", 'data_ot -> "You just answered this question correctly!") You answered correctly }
+@(question: models.quiz.Question, answer: models.quiz.Answer)@if(question.id == answer.questionId){ @tag.indicateCorrect() }
