@@ -86,7 +86,7 @@ object TestData {
 
   def questionPartFunction(summary: String, function: String, order: Short = -1) = QuestionPartFunction(null, null, null, summary, Markdowner.html(summary), function, MathML(function).get, order)
 
-  def questionPartSequnce(summary: String, sequence: String, order: Short = -1) = QuestionPartSequence(null, null, null, summary, Markdowner.html(summary), sequence, order)
+  def questionPartSequence(summary: String, sequenceStr: String, sequenceMath: String, order: Short = -1) = QuestionPartSequence(null, null, null, summary, Markdowner.html(summary), sequenceStr, sequenceMath, order)
 
   // --- update ids ---
   def copyIds(questionFrameNoIds: QuestionFrame, questionFrameWithIds: QuestionFrame) : QuestionFrame =  {

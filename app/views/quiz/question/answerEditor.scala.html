@@ -5,13 +5,15 @@
 @import controllers.quiz.AnswerCreate.choiceIndex
 @import controllers.quiz.AnswerCreate.functionRaw
 @import controllers.quiz.AnswerCreate.sequenceStr
+@import controllers.quiz.AnswerCreate.sequenceMath
 @import controllers.quiz.AnswerCreate.correct
+@import controllers.quiz.AnswerCreate.id
 @import controllers.quiz.AnswerJson.correctUnknown
 @import controllers.quiz.AnswerJson.correctNo
 @import controllers.quiz.AnswerJson.correctBlank
 @import com.artclod.util.OneOfThree
 @import com.artclod.util.ofthree._
-
+@import models.quiz.util.SequenceTokenOrMath.separator
 
 @(action: play.api.mvc.Call, questionFrame: models.quiz.QuestionFrame, answerJson : controllers.quiz.AnswerJson, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
 
@@ -48,7 +50,7 @@
             <div class="span-section answer-function">
                 <div class="item answer-function-summary"> @part._1.summaryHtml </div>
                 <div class="item answer-function-input">
-                    @{tag.isValid(viewModelFunc + ".invalid()")} <input data-bind="textInput: @{viewModelFunc}.@{functionRaw}" /> <span data-bind="attr: { 'id' : @{viewModelFunc}.id }"></span> @tag.lastAnswerPieceWas(viewModelFunc + "." + correct + "()")
+                    @{tag.isValid(viewModelFunc + ".invalid()")} <input data-bind="textInput: @{viewModelFunc}.@{functionRaw}" /> <span data-bind="attr: { 'id' : @{viewModelFunc+"."+id} }"></span> @tag.lastAnswerPieceWas(viewModelFunc + "." + correct + "()")
                 </div>
             </div>
             } } }
@@ -58,7 +60,7 @@
             <div class="span-section answer-sequence">
                 <div class="item answer-sequence-summary"> @part._1.summaryHtml </div>
                 <div class="item answer-sequence-input">
-                    @{tag.isValid(viewModelSeq + ".invalid()")} <input data-bind="textInput: @{viewModelSeq}.@{sequenceStr}" /> @*<span data-bind="attr: { 'id' : @{viewModelFunc}.id }"></span>*@ @tag.lastAnswerPieceWas(viewModelSeq + "." + correct + "()")
+                    @{tag.isValid(viewModelSeq + ".invalid()")} <input data-bind="textInput: @{viewModelSeq}.@{sequenceStr}" /> <span data-bind="attr: { 'id' : @{viewModelSeq +"."+id} }"></span> @tag.lastAnswerPieceWas(viewModelSeq + "." + correct + "()")
                 </div>
             </div>
             } } }
@@ -131,8 +133,22 @@
             // Set up the mathjax updates
             var sequ = part.@{AnswerCreate.sequenceStr};
             sequ.subscribe(function (newValue) {
-                var result = ARTC.string2Numbers(newValue);
-                part.invalid(!result.success);
+
+                var seqResult = ARTC.string2Sequence(newValue , CALC.mathJS.constantParser);
+                if(seqResult.success) {
+                    var seqHtml = _.map(seqResult.values, function(v){ return "<span>" + v.render + "</span>" } );
+                    ARTC.mathJax.updateById(part.@id, seqHtml.join(" ; ") );
+                    var seqMath = _.map(seqResult.values, function(v){
+                        if(v.type === "math") {
+                            return v.full.content;
+                        } else {
+                            return v.full.trim;
+                        }
+                    } );
+                    part.@{sequenceMath}(seqMath.join("@{separator}"));
+                }
+                part.invalid(!seqResult.success);
+
             });
 
             // Force an update for part.invalid

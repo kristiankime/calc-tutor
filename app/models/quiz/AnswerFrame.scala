@@ -6,6 +6,7 @@ import com.artclod.slick.{JodaUTC, NumericBoolean}
 import com.artclod.util.ofthree.{First, Second, Third}
 import controllers.quiz.{AnswerJson, AnswerPartFunctionJson, AnswerPartSequenceJson, AnswerSectionJson}
 import models._
+import models.quiz.util.SequenceTokenOrMath
 import models.support.HasOrder
 import org.joda.time.DateTime
 
@@ -108,13 +109,10 @@ object AnswerFrame {
   }
 
   private def answerPartSequence(answerPartSequenceJson: AnswerPartSequenceJson, questionPartSequence: QuestionPartSequence, order: Short) : AnswerPartSequence = {
-    val answerVals = SequenceParse(answerPartSequenceJson.sequenceStr)
-    val questionVals = SequenceParse(questionPartSequence.sequenceStr)
-    val correct = NumericBoolean(answerVals == questionVals)
-
+    val correct = NumericBoolean(questionPartSequence.sequenceMath.mathEquals(  SequenceTokenOrMath(answerPartSequenceJson.sequenceMath)  ) )
     AnswerPartSequence(id=null, answerSectionId=null, answerId=null,
       questionPartId=questionPartSequence.id, sectionId=questionPartSequence.sectionId, questionId = questionPartSequence.questionId,
-      sequenceStr = answerPartSequenceJson.sequenceStr, correctNum = correct, order = order
+      sequenceStr = answerPartSequenceJson.sequenceStr, sequenceMath = SequenceTokenOrMath(answerPartSequenceJson.sequenceMath), correctNum = correct, order = order
     )
   }
 

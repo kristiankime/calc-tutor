@@ -6,6 +6,7 @@ import com.artclod.mathml.scalar.{Cn, MathMLElem}
 import com.google.common.annotations.VisibleForTesting
 import models._
 import models.game.GameResponseStatus
+import models.quiz.util.SequenceTokenOrMath
 import org.joda.time.{DateTime, DateTimeZone, Duration}
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.twirl.api.Html
@@ -159,6 +160,10 @@ trait ColumnTypeMappings extends HasDatabaseConfigProvider[JdbcProfile] {
     mathML => mathML.toString,
     string => MathML(string).getOrElse(Math(Cn(-123456))))
 
+  implicit def string2Sequence = MappedColumnType.base[SequenceTokenOrMath, String](
+    math => math.stringVersion,
+    string => SequenceTokenOrMath(string))
+
   // ==========================
   // HTML
   // ==========================
@@ -176,5 +181,7 @@ trait ColumnTypeMappings extends HasDatabaseConfigProvider[JdbcProfile] {
   implicit def timestamp2DateTime = MappedColumnType.base[DateTime, java.sql.Timestamp](
     dateTime => if(dateTime == null) { null } else { new java.sql.Timestamp(dateTime.getMillis()) },
     date => if(date == null) { null } else { new DateTime(date, DateTimeZone.UTC) } )
+
+
 
 }

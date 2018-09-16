@@ -50,6 +50,7 @@ CREATE TABLE question_part_sequence
   summary_raw VARCHAR NOT NULL,
   summary_html VARCHAR NOT NULL,
   sequence_str VARCHAR NOT NULL,
+  sequence_math VARCHAR NOT NULL,
   part_order SMALLINT NOT NULL
 );
 

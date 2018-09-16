@@ -1,13 +1,13 @@
 package dao.quiz.table
 
 import javax.inject.{Inject, Singleton}
-
 import com.artclod.mathml.scalar.MathMLElem
 import dao.ColumnTypeMappings
 import dao.user.UserDAO
 import dao.user.table.UserTables
 import models._
 import models.quiz._
+import models.quiz.util.SequenceTokenOrMath
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
@@ -99,12 +99,13 @@ class QuestionTables @Inject()(protected val dbConfigProvider: DatabaseConfigPro
     def summaryRaw = column[String]("summary_raw")
     def summaryHtml = column[Html]("summary_html")
     def sequenceStr = column[String]("sequence_str")
+    def sequenceMath = column[SequenceTokenOrMath]("sequence_math")
     def order = column[Short]("part_order")
 
     def sectionIdFK = foreignKey("question_part_sequence_fk__section_id", sectionId, QuestionSections)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
     def questionIdFK = foreignKey("question_part_sequence_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, sectionId, questionId, summaryRaw, summaryHtml, sequenceStr, order) <> (QuestionPartSequence.tupled, QuestionPartSequence.unapply)
+    def * = (id, sectionId, questionId, summaryRaw, summaryHtml, sequenceStr, sequenceMath, order) <> (QuestionPartSequence.tupled, QuestionPartSequence.unapply)
   }
 }
 

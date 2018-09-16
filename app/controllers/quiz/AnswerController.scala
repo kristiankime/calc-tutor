@@ -21,6 +21,7 @@ import controllers.quiz.QuestionCreate.questionJson
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
 import models.quiz._
+import models.quiz.util.SequenceTokenOrMath
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{JsError, JsNumber, JsSuccess, Json}
@@ -133,6 +134,7 @@ object AnswerCreate {
   val functionRaw = "functionRaw"
   val functionMath = "functionMath"
   val sequenceStr = "sequenceStr"
+  val sequenceMath = "sequenceMath"
 
   implicit val answerPartFunctionFormat = Json.format[AnswerPartFunctionJson]
   implicit val answerPartSequenceFormat = Json.format[AnswerPartSequenceJson]
@@ -215,17 +217,17 @@ object AnswerPartFunctionJson {
 }
 
 // === AnswerPartSequenceJson
-case class AnswerPartSequenceJson(sequenceStr: String, correct: Int)
+case class AnswerPartSequenceJson(sequenceStr: String, sequenceMath: String, correct: Int)
 
 object AnswerPartSequenceJson {
 
   def blank(sequenceParts: OneOfThree[_, _, Vector[QuestionPartSequence]]): Vector[AnswerPartSequenceJson] = sequenceParts match {
     case First(_) => Vector()
     case Second(_) => Vector()
-    case Third(seq) => seq.map(p => AnswerPartSequenceJson("", AnswerJson.correctBlank))
+    case Third(seq) => seq.map(p => AnswerPartSequenceJson("", "", AnswerJson.correctBlank))
   }
 
   def apply(answerPartSequence: AnswerPartSequence) : AnswerPartSequenceJson =
-    AnswerPartSequenceJson(answerPartSequence.sequenceStr, answerPartSequence.correctNum)
+    AnswerPartSequenceJson(answerPartSequence.sequenceStr, answerPartSequence.sequenceMath.stringVersion, answerPartSequence.correctNum)
 
 }

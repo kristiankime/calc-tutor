@@ -76,7 +76,15 @@ object MathMLEq {
     matches.reduce(matchCombine)
 	}
 
-  def matchCombine(a : Match, b: Match) : Match = (a , b) match {
+	/**
+		* Check is two constant terms are equal)
+		*/
+	def checkEq(eq1: MathMLElem, eq2: MathMLElem) = {
+		closeEnough( eq1.eval(), eq2.eval() )
+	}
+
+
+	def matchCombine(a : Match, b: Match) : Match = (a , b) match {
     case (No, _) => No
     case (_, No) => No // If we ever see a No they are not a match
     case (Yes, _) => Yes

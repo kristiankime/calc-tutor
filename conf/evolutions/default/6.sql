@@ -43,6 +43,7 @@ CREATE TABLE answer_part_sequence
   question_section_id INT NOT NULL REFERENCES question_section(id),
   question_id INT NOT NULL REFERENCES question(id),
   sequence_str VARCHAR NOT NULL,
+  sequence_math VARCHAR NOT NULL,
   correct SMALLINT NOT NULL,
   part_order SMALLINT NOT NULL
 );

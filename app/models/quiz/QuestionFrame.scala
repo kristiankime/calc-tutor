@@ -6,6 +6,7 @@ import com.artclod.slick.{JodaUTC, NumericBoolean}
 import com.artclod.util.OneOfThree
 import com.artclod.util.ofthree.{First, Second, Third}
 import controllers.quiz._
+import models.quiz.util.SequenceTokenOrMath
 import models.support.HasOrder
 import models.{QuestionId, QuestionPartId, QuestionSectionId, UserId}
 import org.joda.time.DateTime
@@ -82,6 +83,7 @@ object QuestionFrame {
       summaryRaw = part.summaryRaw,
       summaryHtml = Html(part.summaryHtml),
       sequenceStr = part.sequenceStr,
+      sequenceMath = SequenceTokenOrMath(part.sequenceMath),
       order = index.toShort)
   }
 

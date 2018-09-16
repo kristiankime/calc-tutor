@@ -1,7 +1,9 @@
-@(action: play.api.mvc.Call, allSkills: Seq[String], initialDataModel: Option[String] = None, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
-
 @import helper._
 @import controllers.quiz.QuestionCreate
+@import models.quiz.util.SequenceTokenOrMath.separator
+
+@(action: play.api.mvc.Call, allSkills: Seq[String], initialDataModel: Option[String] = None, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
+
 
 <section id="question-editor">
 
@@ -75,7 +77,10 @@
                 <div class="item summary-input"> Summary @tag.isValid("summaryInvalid"): <br> <textarea type="text" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
                 <div class="item summary-output"> <span data-bind="mathjax: @QuestionCreate.summaryHtml"> </span> </div>
                 <div class="item sequence-input"> Sequence @tag.isValid("sequenceInvalid") : <input data-bind="textInput: @QuestionCreate.sequenceStr" /> </div>
-                <div class="item sequence-output"><span data-bind="html: @{QuestionCreate.sequenceStr}Display"> </span> </div>
+
+                <div class="item sequence-output"><span data-bind="attr: { 'id' : @QuestionCreate.id }"> </span> </div>
+                @*<div class="item sequence-output"><span data-bind="html: @{QuestionCreate.sequenceStr}Display"> </span> </div>*@
+
                 <div class="item sequence-controls"><a href='#' data-bind='click: function(data, event) { QE.removeSequencePart($parent, data) }' class="pure-button">Remove This Part</a> </div>
             </div>
             <!-- /ko -->
@@ -220,18 +225,29 @@
                 part.sequenceInvalid = ko.observable( true ); // This will be updated manually by subscribe below
                 var seq = part.@{QuestionCreate.sequenceStr};
                 seq.subscribe(function (newValue) {
-                    var results = ARTC.string2Numbers(newValue);
-                    if(results.success) {
-                        part.@{QuestionCreate.sequenceStr}Display( results.values.join(", ") );
+
+                    var seqResult = ARTC.string2Sequence(newValue , CALC.mathJS.constantParser);
+                    if(seqResult.success) {
+                        var seqHtml = _.map(seqResult.values, function(v){ return "<span>" + v.render + "</span>" } );
+                        ARTC.mathJax.updateById(part.@QuestionCreate.id, seqHtml.join(" ; ") );
+                        var seqMath = _.map(seqResult.values, function(v){
+                            if(v.type === "math") {
+                                return v.full.content;
+                            } else {
+                                return v.full.trim;
+                            }
+                        } );
+                        part.@{QuestionCreate.sequenceMath}(seqMath.join("@{separator}"));
                     }
-                    part.sequenceInvalid(!results.success);
+                    part.sequenceInvalid(!seqResult.success);
+
                 });
 
                 part.invalid = ko.computed(function () {
                     return part.summaryInvalid() || part.sequenceInvalid()  ;
                 });
 
-                part.@{QuestionCreate.sequenceStr}Display = ko.observable();
+                @*part.@{QuestionCreate.sequenceStr}Display = ko.observable();*@
 
                 // Force an update for part.sequenceInvalid
                 seq.valueHasMutated();
@@ -342,7 +358,8 @@
                 var newSequence = ko.mapping.fromJS({
                     @QuestionCreate.summaryRaw   : "",
                     @QuestionCreate.summaryHtml  : ARTC.markdown(sequenceId, ""),
-                    @QuestionCreate.sequenceStr  : ""
+                    @QuestionCreate.sequenceStr  : "",
+                    @QuestionCreate.sequenceMath : ""
                 } );
 
                 enhanceSequencePart(section, newSequence, section.sequenceIdGenerator);

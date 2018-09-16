@@ -2,10 +2,11 @@ package models.quiz
 
 import com.artclod.mathml.MathML
 import com.artclod.slick.{JodaUTC, NumericBoolean}
-import controllers.quiz._
+import controllers.quiz.{AnswerSectionJson, _}
 import dao.TestData
-import dao.TestData.{questionPartChoice, questionPartFunction, questionSectionFrameFn, questionSectionFrameCh, questionSectionFrameSe}
+import dao.TestData.{questionPartChoice, questionPartFunction, questionPartSequence, questionSectionFrameCh, questionSectionFrameFn, questionSectionFrameSe}
 import models.UserId
+import models.quiz.util.SequenceTokenOrMath
 import org.joda.time.DateTime
 import org.scalatestplus.play._
 import play.twirl.api.Html
@@ -88,7 +89,8 @@ class AnswerFrameSpec extends PlaySpec {
           questionSectionFrameCh("explanation 1")(questionPartChoice("summary 1-1", NumericBoolean.T)),
           questionSectionFrameFn("explanation 2")(questionPartFunction("summary 2-1", "<cn>1</cn>")),
           questionSectionFrameCh("explanation 3")(questionPartChoice("summary 3-1", NumericBoolean.F), questionPartChoice("summary 3-2", NumericBoolean.T)),
-          questionSectionFrameFn("explanation 4")(questionPartFunction("summary 4-1", "<cn>2</cn>"), (questionPartFunction("summary 4-2", "<cn>3</cn>")) )
+          questionSectionFrameFn("explanation 4")(questionPartFunction("summary 4-1", "<cn>2</cn>"), (questionPartFunction("summary 4-2", "<cn>3</cn>")) ),
+          questionSectionFrameSe("explanation 5")(questionPartSequence("summary 5-1", "1;2", "<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>"))
         )
       )
 
@@ -97,7 +99,8 @@ class AnswerFrameSpec extends PlaySpec {
           AnswerSectionJson(correctNA, 0),
           AnswerSectionJson(correctNA, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>1</cn>", correctNA)),
           AnswerSectionJson(correctNA, 1),
-          AnswerSectionJson(correctNA, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>2</cn>", correctNA), AnswerPartFunctionJson("<cn>3</cn>", correctNA))
+          AnswerSectionJson(correctNA, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>2</cn>", correctNA), AnswerPartFunctionJson("<cn>3</cn>", correctNA)),
+          AnswerSectionJson(correctNA, AnswerJson.noChoiceSelected, Vector(), Vector(AnswerPartSequenceJson("1;2", "<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>", correctNA)))
         )
 
       val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
@@ -107,7 +110,8 @@ class AnswerFrameSpec extends PlaySpec {
           AnswerSectionJson(AnswerJson.correctYes, 0),
           AnswerSectionJson(AnswerJson.correctYes, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>1</cn>", AnswerJson.correctYes)),
           AnswerSectionJson(AnswerJson.correctYes, 1),
-          AnswerSectionJson(AnswerJson.correctYes, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>2</cn>", AnswerJson.correctYes), AnswerPartFunctionJson("<cn>3</cn>", AnswerJson.correctYes))
+          AnswerSectionJson(AnswerJson.correctYes, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>2</cn>", AnswerJson.correctYes), AnswerPartFunctionJson("<cn>3</cn>", AnswerJson.correctYes)),
+          AnswerSectionJson(AnswerJson.correctYes, AnswerJson.noChoiceSelected, Vector(), Vector(AnswerPartSequenceJson("1;2", "<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>", AnswerJson.correctYes)))
         )
 
       AnswerJson(computedAnswerFrame) mustEqual(correctedAnswerJson)

@@ -266,17 +266,18 @@ object QuestionPartFunctionJson {
 }
 
 // === QuestionPartSequenceJson
-case class QuestionPartSequenceJson(summaryRaw: String, summaryHtml: String, sequenceStr: String)
+case class QuestionPartSequenceJson(summaryRaw: String, summaryHtml: String, sequenceStr: String, sequenceMath: String)
 
 object QuestionPartSequenceJson {
 
-  def apply(summary: String, sequence: String) : QuestionPartSequenceJson = QuestionPartSequenceJson(summary, Markdowner.string(summary), sequence)
+  def apply(summary: String, sequence: String, sequenceMath: String) : QuestionPartSequenceJson = QuestionPartSequenceJson(summary, Markdowner.string(summary), sequence, sequenceMath)
 
   def apply(questionPartSequence: QuestionPartSequence) : QuestionPartSequenceJson =
     QuestionPartSequenceJson(
       questionPartSequence.summaryRaw,
       questionPartSequence.summaryHtml.toString,
-      questionPartSequence.sequenceStr)
+      questionPartSequence.sequenceStr,
+      questionPartSequence.sequenceMath.stringVersion)
 
 }
 
@@ -310,6 +311,7 @@ object QuestionCreate {
   val functionRaw = "functionRaw"
   val functionMath = "functionMath"
   val sequenceStr = "sequenceStr"
+  val sequenceMath = "sequenceMath"
 
   // Part Type
   val choice = "choice"
