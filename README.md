@@ -77,6 +77,12 @@ Using H2 with play
 * https://devcenter.heroku.com/articles/heroku-postgresql#local-setup
 * http://postgresapp.com/
 
+Do a local backup
+* https://stackoverflow.com/questions/30856776/how-do-i-dump-a-database-from-online-server-heroku-to-my-local-environment
+* https://devcenter.heroku.com/articles/heroku-postgres-import-export
+heroku pg:backups capture --app calctutor-staging
+heroku pg:backups download --app calctutor-staging
+
 Do a backup: https://devcenter.heroku.com/articles/heroku-postgres-backups
 heroku pg:backups:capture --app app_name
 heroku pg:backups:download --app app_name
