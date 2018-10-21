@@ -15,7 +15,7 @@
   dashboardData: Seq[(models.quiz.Skill, Seq[Double])]
 )(implicit request: Request[AnyContent], user: models.user.User)
 
-@mainContent(org.name, tag.organizationLink(org), tag.courseSelfQuizLink(course)) {
+@mainContent(course.name, tag.organizationLink(org), tag.courseSelfQuizLink(course)) {
     @views.html.organization.courseViewCore(org, course, access, quizzes)
 
     @* ======= Student List and Dashboard ======= *@

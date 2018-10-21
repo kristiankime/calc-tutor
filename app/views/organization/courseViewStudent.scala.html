@@ -9,6 +9,6 @@
 
 @(org: models.organization.Organization, course: models.organization.Course, access: models.Access, quizzes: Seq[(models.organization.Course2Quiz, models.quiz.Quiz)])(implicit request: Request[AnyContent], user: models.user.User)
 
-@mainContent(org.name, tag.organizationLink(org), tag.courseSelfQuizLink(course)) {
+@mainContent(course.name, tag.organizationLink(org), tag.courseSelfQuizLink(course)) {
     @views.html.organization.courseViewCore(org, course, access, quizzes)
 }
