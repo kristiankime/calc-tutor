@@ -90,7 +90,7 @@ class AnswerFrameSpec extends PlaySpec {
           questionSectionFrameFn("explanation 2")(questionPartFunction("summary 2-1", "<cn>1</cn>")),
           questionSectionFrameCh("explanation 3")(questionPartChoice("summary 3-1", NumericBoolean.F), questionPartChoice("summary 3-2", NumericBoolean.T)),
           questionSectionFrameFn("explanation 4")(questionPartFunction("summary 4-1", "<cn>2</cn>"), (questionPartFunction("summary 4-2", "<cn>3</cn>")) ),
-          questionSectionFrameSe("explanation 5")(questionPartSequence("summary 5-1", "1;2", "<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>"))
+          questionSectionFrameSe("explanation 5")(questionPartSequence("summary 5-1", "1;2", """<cn type="integer">1</cn>""" + SequenceTokenOrMath.separator + """<cn type="integer">2</cn>"""))
         )
       )
 
@@ -100,7 +100,7 @@ class AnswerFrameSpec extends PlaySpec {
           AnswerSectionJson(correctNA, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>1</cn>", correctNA)),
           AnswerSectionJson(correctNA, 1),
           AnswerSectionJson(correctNA, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>2</cn>", correctNA), AnswerPartFunctionJson("<cn>3</cn>", correctNA)),
-          AnswerSectionJson(correctNA, AnswerJson.noChoiceSelected, Vector(), Vector(AnswerPartSequenceJson("1;2", "<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>", correctNA)))
+          AnswerSectionJson(correctNA, AnswerJson.noChoiceSelected, Vector(), Vector(AnswerPartSequenceJson("1;2", """<cn type="integer">1</cn>""" + SequenceTokenOrMath.separator + """<cn type="integer">2</cn>""", correctNA)))
         )
 
       val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
@@ -111,7 +111,7 @@ class AnswerFrameSpec extends PlaySpec {
           AnswerSectionJson(AnswerJson.correctYes, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>1</cn>", AnswerJson.correctYes)),
           AnswerSectionJson(AnswerJson.correctYes, 1),
           AnswerSectionJson(AnswerJson.correctYes, AnswerJson.noChoiceSelected, AnswerPartFunctionJson("<cn>2</cn>", AnswerJson.correctYes), AnswerPartFunctionJson("<cn>3</cn>", AnswerJson.correctYes)),
-          AnswerSectionJson(AnswerJson.correctYes, AnswerJson.noChoiceSelected, Vector(), Vector(AnswerPartSequenceJson("1;2", "<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>", AnswerJson.correctYes)))
+          AnswerSectionJson(AnswerJson.correctYes, AnswerJson.noChoiceSelected, Vector(), Vector(AnswerPartSequenceJson("1;2", """<cn type="integer">1</cn>""" + SequenceTokenOrMath.separator + """<cn type="integer">2</cn>""", AnswerJson.correctYes)))
         )
 
       AnswerJson(computedAnswerFrame) mustEqual(correctedAnswerJson)

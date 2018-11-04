@@ -42,11 +42,12 @@ class QuestionTables @Inject()(protected val dbConfigProvider: DatabaseConfigPro
     def title = column[String]("title")
     def descriptionRaw = column[String]("description_raw")
     def descriptionHtml = column[Html]("description_html")
+    def archivedNum = column[Short]("archived")
     def creationDate = column[DateTime]("creation_date")
 
     def ownerIdFK = foreignKey("question_fk__owner_id", ownerId, userTables.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, ownerId, title, descriptionRaw, descriptionHtml, creationDate) <> (Question.tupled, Question.unapply)
+    def * = (id, ownerId, title, descriptionRaw, descriptionHtml, archivedNum, creationDate) <> (Question.tupled, Question.unapply)
   }
 
   class QuestionSectionTable(tag: Tag) extends Table[QuestionSection](tag, "question_section") {

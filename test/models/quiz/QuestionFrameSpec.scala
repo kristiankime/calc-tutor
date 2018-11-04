@@ -19,7 +19,7 @@ class QuestionFrameSpec extends PlaySpec {
 		"throw with no sections" in {
       // Scala
       a[java.lang.IllegalArgumentException] must be thrownBy {
-        QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(), Vector(TestData.skill("a")))
+        QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), 0, JodaUTC.zero), Vector(), Vector(TestData.skill("a")))
       }
 		}
 
@@ -29,7 +29,7 @@ class QuestionFrameSpec extends PlaySpec {
         val questionPartChoice = QuestionPartChoice(null, null, null, "summaryRaw", Html("summaryHtml"), 1, 0)
         val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
         val sectionFrame = QuestionSectionFrame(questionSection, First(Vector(questionPartChoice)))
-        val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(sectionFrame), Vector())
+        val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), 0, JodaUTC.zero), Vector(sectionFrame), Vector())
       }
     }
 
@@ -45,7 +45,7 @@ class QuestionFrameSpec extends PlaySpec {
       val questionPartChoice = QuestionPartChoice(null, null, null, "summaryRaw", Html("summaryHtml"), 1, 0)
       val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
       val sectionFrame = QuestionSectionFrame(questionSection, First(Vector(questionPartChoice)))
-      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(sectionFrame), skills)
+      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), 0, JodaUTC.zero), Vector(sectionFrame), skills)
 
       // Test
       QuestionFrame(questionJson, UserId(0), skillMap, JodaUTC.zero) mustBe(questionFrame)
@@ -63,7 +63,7 @@ class QuestionFrameSpec extends PlaySpec {
       val questionPartFunction = QuestionPartFunction(null, null, null, "summaryRaw", Html("summaryHtml"), "1", MathML("<cn>1</cn>").get, 0)
       val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
       val sectionFrame = QuestionSectionFrame(questionSection, Second(Vector(questionPartFunction)))
-      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(sectionFrame), skills)
+      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), 0, JodaUTC.zero), Vector(sectionFrame), skills)
 
       // Test
       QuestionFrame(questionJson, UserId(0), skillMap, JodaUTC.zero) mustBe(questionFrame)
@@ -78,10 +78,10 @@ class QuestionFrameSpec extends PlaySpec {
       // Scala
       val skills = Vector(TestData.skill("a"))
       val skillMap = skills.groupBy(_.name).mapValues(_.head)
-      val questionPartSequence = QuestionPartSequence(null, null, null, "summaryRaw", Html("summaryHtml"), "1;2", "<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>", 0)
+      val questionPartSequence = QuestionPartSequence(null, null, null, "summaryRaw", Html("summaryHtml"), "1;2", SequenceTokenOrMath("<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>"), 0)
       val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
       val sectionFrame = QuestionSectionFrame(questionSection, Third(Vector(questionPartSequence)))
-      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(sectionFrame), skills)
+      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), 0, JodaUTC.zero), Vector(sectionFrame), skills)
 
       // Test
       QuestionFrame(questionJson, UserId(0), skillMap, JodaUTC.zero) mustBe(questionFrame)
@@ -128,7 +128,7 @@ class QuestionFrameSpec extends PlaySpec {
       val questionPartChoice = QuestionPartChoice(null, null, null, "summaryRaw", Html("summaryHtml"), 1, 0)
       val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
       val sectionFrame = QuestionSectionFrame(questionSection, First(Vector(questionPartChoice)))
-      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), JodaUTC.zero), Vector(sectionFrame), skills)
+      val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), 0, JodaUTC.zero), Vector(sectionFrame), skills)
 
       // Test
       QuestionFrame(questionJson, UserId(0), skillMap, JodaUTC.zero) mustBe(questionFrame)

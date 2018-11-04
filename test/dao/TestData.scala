@@ -9,6 +9,7 @@ import com.artclod.util.OneOfThree
 import com.artclod.util.ofthree.{First, Second, Third}
 import models._
 import models.organization.{Course, Organization}
+import models.quiz.util.SequenceTokenOrMath
 import models.quiz.{QuestionFrame, QuestionPartChoice, QuestionPartFunction, _}
 import models.user.User
 import org.joda.time.DateTime
@@ -43,7 +44,7 @@ object TestData {
 
   def questionFrame(title: String, description: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill], questionSectionFrames: Seq[QuestionSectionFrame]) : QuestionFrame =
     QuestionFrame(
-      Question(null, userId, title, description, Markdowner.html(description), creationDate),
+      Question(null, userId, title, description, Markdowner.html(description), 0, creationDate),
       Vector(questionSectionFrames:_*).zipWithIndex.map(s =>
         if(s._1.order != -1){s._1}
         else{s._1.copy( section = s._1.section.copy(order = s._2.toShort), parts = s._1.parts)}),
@@ -86,7 +87,7 @@ object TestData {
 
   def questionPartFunction(summary: String, function: String, order: Short = -1) = QuestionPartFunction(null, null, null, summary, Markdowner.html(summary), function, MathML(function).get, order)
 
-  def questionPartSequence(summary: String, sequenceStr: String, sequenceMath: String, order: Short = -1) = QuestionPartSequence(null, null, null, summary, Markdowner.html(summary), sequenceStr, sequenceMath, order)
+  def questionPartSequence(summary: String, sequenceStr: String, sequenceMath: String, order: Short = -1) = QuestionPartSequence(null, null, null, summary, Markdowner.html(summary), sequenceStr, SequenceTokenOrMath(sequenceMath), order)
 
   // --- update ids ---
   def copyIds(questionFrameNoIds: QuestionFrame, questionFrameWithIds: QuestionFrame) : QuestionFrame =  {
