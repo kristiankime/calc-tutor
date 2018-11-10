@@ -1,12 +1,15 @@
-@(questionFrame: models.quiz.QuestionFrame,
-  answer: controllers.quiz.AnswerJson,
-  previousAnswers: Seq[models.quiz.Answer]
-)(implicit request: Request[AnyContent], user: models.user.User)
-
 @import helper._
 @import com.artclod.play._
 @import controllers.organization.CourseCreate
 @import controllers.quiz.QuizRename
+@import controllers.quiz.QuestionArchive
+
+@(access: Access,
+  questionFrame: models.quiz.QuestionFrame,
+  answer: controllers.quiz.AnswerJson,
+  previousAnswers: Seq[models.quiz.Answer]
+)(implicit request: Request[AnyContent], user: models.user.User)
+
 
 @mainContent("Library Question View", tag.libraryLink()) {
     <h2>Welcome to the library question page </h2>
@@ -15,6 +18,18 @@
         controllers.library.routes.LibraryController.answerQuestion(questionFrame.question.id),
         questionFrame,
         answer)
+
+    @if(access >= Own) {
+    <h5> Archive </h5>
+    @form(controllers.library.routes.LibraryController.archive(questionFrame.question.id, None), 'class -> "pure-form") {
+        @if(questionFrame.question.archivedNum == 0){
+            <input type="hidden" name="@QuestionArchive.questionArchive" value="1"> <input class="pure-button" type="submit" value="archive">
+        } else {
+            <input type="hidden" name="@QuestionArchive.questionArchive" value="0"> <input class="pure-button" type="submit" value="activate">
+        }
+        @views.html.helper.CSRF.formField
+    }
+    }
 
     <ul class="pure-list">
     @for(skill <- questionFrame.skills){

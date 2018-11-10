@@ -26,7 +26,7 @@ case class QuizId(v: Long) extends AccessibleId {
   override def toString = quizPrefix+v
 }
 
-case class QuestionId(v: Long) {
+case class QuestionId(v: Long) extends AccessibleId {
   override def toString = "Qn"+v
 }
 

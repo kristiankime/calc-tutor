@@ -325,3 +325,8 @@ object QuestionCreate {
   implicit val questionFormat = Json.format[QuestionJson]
 }
 
+object QuestionArchive {
+  val questionArchive = "question-archive"
+
+  val form : Form[Short] = Form(questionArchive -> shortNumber(0,1))
+}

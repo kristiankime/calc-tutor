@@ -18,7 +18,7 @@ import org.pac4j.core.credentials.password.SpringSecurityPasswordEncoder
 import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import com.google.inject.Provides
 import dao.organization.{CourseDAO, OrganizationDAO}
-import dao.quiz.QuizDAO
+import dao.quiz.{QuestionDAO, QuizDAO}
 import dao.user.UserDAO
 import org.pac4j.core.context.Pac4jConstants
 import org.pac4j.core.profile.CommonProfile
@@ -85,7 +85,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
 
   @Provides
   def provideConfig(redirectUnauthenticatedClient: RedirectUnauthenticatedClient, formClient: FormClient, indirectBasicAuthClient: IndirectBasicAuthClient, oidcClient: OidcClient[OidcProfile, OidcConfiguration],
-                    userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO): Config = {
+                    userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO ): Config = {
     val clients = new Clients(baseUrl + "/callback", redirectUnauthenticatedClient, formClient, indirectBasicAuthClient, oidcClient)
 
 //  @Provides
@@ -94,7 +94,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
 //    val clients = new Clients(baseUrl + "/callback", redirectUnauthenticatedClient, formClient, indirectBasicAuthClient)
 
     val config = new Config(clients)
-    config.addAuthorizer("Access", new AccessAuthorizer(userDAO, organizationDAO, courseDAO, quizDAO))
+    config.addAuthorizer("Access", new AccessAuthorizer(userDAO, organizationDAO, courseDAO, quizDAO, questionDAO))
     config.setHttpActionAdapter(new DemoHttpActionAdapter())
     config
   }

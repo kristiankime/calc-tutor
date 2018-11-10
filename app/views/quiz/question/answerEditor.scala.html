@@ -25,6 +25,8 @@
     <div class="warning" data-bind="visible : @{correct}() == @{controllers.quiz.AnswerJson.correctNo}"> Sorry some (or all) of the parts of this answer were incorrect, please try again </div>
     <div class="indicate-correct" data-bind="visible : @{correct}() == @{controllers.quiz.AnswerJson.correctYes}"> Congratulations this answer was correct </div>
 
+    @if(questionFrame.question.isArchived){<div class="warning">This question has been archived it is not intended for normal use</div>}
+
     <div class="answer-header">
         <div class="item answer-title"> <h5> @questionFrame.question.title </h5> </div>
         <div class="item answer-description"> @questionFrame.question.descriptionHtml </div>

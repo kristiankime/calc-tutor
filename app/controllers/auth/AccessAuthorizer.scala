@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import controllers.ApplicationInfo
 import dao.organization.{CourseDAO, OrganizationDAO}
-import dao.quiz.QuizDAO
+import dao.quiz.{QuestionDAO, QuizDAO}
 import dao.user.UserDAO
 import models._
 import org.pac4j.core.authorization.authorizer.ProfileAuthorizer
@@ -19,7 +19,7 @@ object AccessAuthorizer {
   val ACCESS_LEVEL = "ACCESS_LEVEL"
 }
 
-class AccessAuthorizer(userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO) extends ProfileAuthorizer[CommonProfile] {
+class AccessAuthorizer(userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO : CourseDAO, quizDAO: QuizDAO, questionDAO: QuestionDAO) extends ProfileAuthorizer[CommonProfile] {
 
   def isAuthorized(context: WebContext, profiles: java.util.List[CommonProfile]): Boolean = {
     return isAnyAuthorized(context, profiles)
@@ -46,6 +46,7 @@ class AccessAuthorizer(userDAO: UserDAO, organizationDAO: OrganizationDAO, cours
     case id : OrganizationId => organizationDAO.access(userId, id).map( userLevel => userLevel >= requiredLevel)
     case id : CourseId => courseDAO.access(userId, id).map( userLevel => userLevel >= requiredLevel)
     case id : QuizId => quizDAO.access(userId, id).map( userLevel => userLevel >= requiredLevel)
+    case id : QuestionId => questionDAO.access(userId, id).map( userLevel => userLevel >= requiredLevel)
     case _ => throw new RuntimeException("Did not know how to compute access level for [" + accessibleId + "]")
   }
 

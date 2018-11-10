@@ -10,6 +10,7 @@ import dao.quiz.table.{QuestionTables, SkillTables}
 import dao.user.UserDAO
 import dao.user.table.UserTables
 import models._
+import models.organization.Course
 import models.quiz.{User2Quiz, _}
 import models.user.User
 import org.joda.time.DateTime
@@ -85,10 +86,21 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     }) }) }) }) }) })
   }
 
-  //--- Skills for question
-  def skillsFor(id : QuestionId) = {
-    null
+  // === Access ===
+  def access(userId: UserId, questionId: QuestionId): Future[Access] = db.run {
+    val ownerAccess = (for(q <- Questions if q.ownerId === userId && q.id === questionId) yield q).result.headOption.map(_ match { case Some(_) => Own case None => Non})
+    // Currently we only have owner access to a question
+//    val directAccess = (for(u2z <- User2Quizzes if u2z.userId === userId && u2z.quizId === quizId) yield u2z.access).result.headOption.map(_.getOrElse(Non))
+//    val courseAccess = (for(u2c <- courseTables.User2Courses; c2z <- Courses2Quizzes if u2c.userId === userId && u2c.courseId === c2z.courseId && c2z.quizId === quizId) yield u2c.access).result.headOption.map(_.getOrElse(Non));
+
+//    ownerAccess.flatMap(owner => directAccess.flatMap(direct => courseAccess.map(course => owner max direct max course)))
+    ownerAccess
   }
+
+  //--- Skills for question
+//  def skillsFor(id : QuestionId) = {
+//    null
+//  }
 
   def skillsForAll(): Future[Seq[(Question, Skill)]] = db.run({
     (for (q <- Questions; q2s <- skillTables.Skills2Questions; s <- skillTables.Skills if q.id === q2s.questionId && q2s.skillId === s.id) yield (q, s)).result
@@ -191,5 +203,11 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   def insertSequences(questionPartSequence: Seq[QuestionPartSequence]): Future[Seq[QuestionPartSequence]] = db.run {
     (QuestionPartSequences returning QuestionPartSequences.map(_.id) into ((needsId, id) => needsId.copy(id = id))) ++= questionPartSequence
   }
+
+  // ====== Update ======
+  // https://stackoverflow.com/questions/16757368/how-do-you-update-multiple-columns-using-slick-lifted-embedding
+  def update(question: Question, archived: Short) =
+    db.run((for { q <- Questions if q.id === question.id } yield q ).map(q => (q.archivedNum) ).update( archived))
+
 }
 
