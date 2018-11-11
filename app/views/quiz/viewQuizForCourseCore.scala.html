@@ -53,7 +53,7 @@
         <!-- ko foreach: $data -->
         <tr>
             <td>
-                <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.quiz.QuestionController.view(@course.organizationId.v, @course.id.v, @quiz.id.v, @{id}()).url, title : @{title}() }" class="pure-button"></a>
+                <a data-bind="html : @{title}(), attr: { href: jsRoutes.controllers.quiz.QuestionController.view(@course.organizationId.v, @course.id.v, @quiz.id.v, @{id}()).url, title : @{title}() }" class="pure-button"></a>
             </td>
             <td>
                 <span data-bind="visible: $data.@{correct}"> @tag.indicateCorrect() </span>

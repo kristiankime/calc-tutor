@@ -46,7 +46,7 @@ class LibraryController @Inject()(/*val config: Config, val playSessionStore: Pl
     skillDAO.allSkills.map(skills => Ok(views.html.library.createQuestion(skills)))
   }}}
 
-  def createQuestionSubmit() = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def   createQuestionSubmit() = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
         QuestionCreate.form.bindFromRequest.fold(
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
