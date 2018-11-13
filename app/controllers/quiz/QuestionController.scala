@@ -154,8 +154,7 @@ object MinimalQuestionJson {
   val attempts = "attempts"
 
   def apply(question: Question, answer: Option[Answer], attempts: Seq[Answer]): MinimalQuestionJson = {
-    val title = if(question.isArchived){question.title + """<b>Archived</b>"""}else{question.title}
-    MinimalQuestionJson(question.id.v, title, answer.map(_.id.v), attempts.map(a => MinimalAttemptsJson(a.id.v, a.correct)))
+    MinimalQuestionJson(question.id.v, question.titleArchived, answer.map(_.id.v), attempts.map(a => MinimalAttemptsJson(a.id.v, a.correct)))
   }
 
   def s(questions: Seq[Question], answerOp: Option[models.quiz.Answer], answers: Map[QuestionId, Seq[models.quiz.Answer]]): Seq[MinimalQuestionJson] = {

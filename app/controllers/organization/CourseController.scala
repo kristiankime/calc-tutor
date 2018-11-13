@@ -120,7 +120,7 @@ class CourseController @Inject()(/*val config: Config, val playSessionStore: Pla
 
   def studentSelfQuiz(organizationId: OrganizationId, courseId: CourseId) = RequireAccess(View, to=courseId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
-    (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ skillDAO.allSkills +^ questionDAO.questionSearchSet("%", Seq(), Seq()) ).flatMap{ _ match {
+    (organizationDAO(organizationId) +& courseDAO(organizationId, courseId) +^ courseDAO.access(user.id, courseId) +^ skillDAO.allSkills +^ questionDAO.questionSearchSet(user.id, "%", Seq(), Seq()) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((organization, course, access, allSkills, libraryQuestions)) => {
         skillDAO.skillCountsMaps(user.id).flatMap(skillCounts => {

@@ -49,7 +49,7 @@ class QuestionDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val Seq(sA, sB) = TestData.await( skillDAO.insertAll(TestData.skill("a"), TestData.skill("b")) )
       val questionFrame = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "a", userId = user.id, skills = Seq(sA, sB))))
 
-      val questions = TestData.await(questionDAO.questionSearchSet("%", Seq(), Seq()))
+      val questions = TestData.await(questionDAO.questionSearchSet(user.id, "%", Seq(), Seq()))
 
       questions mustBe(  Seq((questionFrame.question, Set(sA, sB)))  )
     }
@@ -60,7 +60,7 @@ class QuestionDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val Seq(sA, sB) = TestData.await( skillDAO.insertAll(TestData.skill("a"), TestData.skill("b")) )
       val questionFrame = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "a", userId = user.id, skills = Seq(sA, sB))))
 
-      val questions = TestData.await(questionDAO.questionSearchSet("this should not match", Seq(), Seq()))
+      val questions = TestData.await(questionDAO.questionSearchSet(user.id,"this should not match", Seq(), Seq()))
 
       questions mustBe(  Seq()  )
     }
@@ -72,7 +72,7 @@ class QuestionDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val questionFrame1 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "1", userId = user.id, skills = Seq(sA, sB))))
       val questionFrame2 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "2", userId = user.id, skills = Seq(sA, sB))))
 
-      val questions = TestData.await(questionDAO.questionSearchSet("1%", Seq(), Seq()))
+      val questions = TestData.await(questionDAO.questionSearchSet(user.id,"1%", Seq(), Seq()))
 
       questions mustBe(  Seq((questionFrame1.question, Set(sA, sB)))  )
     }
@@ -84,7 +84,7 @@ class QuestionDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val questionFrame1 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "1", userId = user.id, skills = Seq(sA))))
       val questionFrame2 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "2", userId = user.id, skills = Seq(sB))))
 
-      val questions = TestData.await(questionDAO.questionSearchSet("%", Seq(sA.name), Seq()))
+      val questions = TestData.await(questionDAO.questionSearchSet(user.id,"%", Seq(sA.name), Seq()))
 
       questions mustBe(  Seq((questionFrame1.question, Set(sA)))  )
     }
@@ -97,9 +97,36 @@ class QuestionDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       val questionFrame1 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "1", userId = user.id, skills = Seq(sA))))
       val questionFrame2 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "2", userId = user.id, skills = Seq(sB))))
 
-      val questions = TestData.await(questionDAO.questionSearchSet("%", Seq(), Seq(sA.name)))
+      val questions = TestData.await(questionDAO.questionSearchSet(user.id,"%", Seq(), Seq(sA.name)))
 
       questions mustBe(  Seq((questionFrame2.question, Set(sB)))  )
+    }
+
+    "excluded questions that have been archived" in {
+      val (userDAO, questionDAO, skillDAO) = app.injector.instanceOf3[UserDAO, QuestionDAO, SkillDAO]
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val Seq(sA, sB) = TestData.await( skillDAO.insertAll(TestData.skill("a"), TestData.skill("b")) )
+      val questionFrame1 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "1", userId = user.id, skills = Seq(sA), archive = 1)))
+      val questionFrame2 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "2", userId = user.id, skills = Seq(sB))))
+
+      // Not here we use a different user since owners can see archived questions
+      val queryUser = TestData.await(userDAO.insert(TestData.user(1)))
+      val questions = TestData.await(questionDAO.questionSearchSet(queryUser.id,"%", Seq(), Seq()))
+
+      questions mustBe(  Seq((questionFrame2.question, Set(sB)))  )
+    }
+
+    "don't excluded questions that have been archived if the user owns them" in {
+      val (userDAO, questionDAO, skillDAO) = app.injector.instanceOf3[UserDAO, QuestionDAO, SkillDAO]
+      val user = TestData.await(userDAO.insert(TestData.user(0)))
+      val Seq(sA, sB) = TestData.await( skillDAO.insertAll(TestData.skill("a"), TestData.skill("b")) )
+      val questionFrame1 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "1", userId = user.id, skills = Seq(sA))))
+      val questionFrame2 = TestData.await(questionDAO.insert(TestData.questionFrameSimple(info = "2", userId = user.id, skills = Seq(sB), archive = 1)))
+
+      // Not here we use the same user since owners can see archived questions
+      val questions = TestData.await(questionDAO.questionSearchSet(user.id,"%", Seq(), Seq()))
+
+      questions mustBe(  Seq(  (questionFrame1.question, Set(sA)),   (questionFrame2.question, Set(sB))    )  )
     }
 
   }

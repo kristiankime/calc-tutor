@@ -121,16 +121,22 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   } }
 
   // ====== Question Search =====
-  def questionSearch(titleQuery: String) = db.run({
-      (for (q <- Questions; q2s <- skillTables.Skills2Questions; s <- skillTables.Skills
-          if (q.title like titleQuery) && q.id === q2s.questionId && q2s.skillId === s.id) yield (q, s)).result
+  private def questionSearch(titleQuery: String, userId: UserId) = db.run({
+    (for (q <- Questions; q2s <- skillTables.Skills2Questions; s <- skillTables.Skills
+          if ((q.title like titleQuery) && q.id === q2s.questionId && q2s.skillId === s.id) && q.archivedNum === 0.toShort // Don't show the question if it's been archived
+    ) yield (q, s))
+      .union(
+    (for (q <- Questions; q2s <- skillTables.Skills2Questions; s <- skillTables.Skills
+          if ((q.title like titleQuery) && q.id === q2s.questionId && q2s.skillId === s.id) && (q.archivedNum =!= 0.toShort && q.ownerId === userId) // Show archived questions if the user is the owner
+    ) yield (q, s))
+    ).result
   })
 
-  def questionSearchSet(nameQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String]): Future[Seq[(Question, Set[Skill])]] = {
+  def questionSearchSet(userId: UserId, nameQuery: String, requiredSkills: Seq[String], bannedSkills: Seq[String]): Future[Seq[(Question, Set[Skill])]] = {
     val req = requiredSkills.toSet
     val ban = bannedSkills.toSet
 
-    val ret = questionSearch(nameQuery).map(s => s.groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.toSet).toSeq)
+    val ret = questionSearch(nameQuery, userId).map(s => s.groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.toSet).toSeq)
 
     ret.map(questionList => {
       questionList.filter(question => {

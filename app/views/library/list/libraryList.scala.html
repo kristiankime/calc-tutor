@@ -10,7 +10,7 @@
       </tr>
       <!-- ko foreach: searchResults -->
       <tr>
-        <td> <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.library.LibraryController.viewQuestion(@{id}()).url, title : @{title}() }"> </a> </td>
+        <td> <a data-bind="html : @{title}(), attr: { href: jsRoutes.controllers.library.LibraryController.viewQuestion(@{id}()).url, title : @{title}() }"> </a> </td>
         @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}
       </tr>
       <!-- /ko -->

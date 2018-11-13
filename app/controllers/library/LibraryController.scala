@@ -37,7 +37,7 @@ import scala.util.{Failure, Random, Right, Success}
 class LibraryController @Inject()(/*val config: Config, val playSessionStore: PlaySessionStore, override val ec: HttpExecutionContext*/ val controllerComponents: SecurityComponents, userDAO: UserDAO, organizationDAO: OrganizationDAO, courseDAO: CourseDAO, quizDAO: QuizDAO, skillDAO: SkillDAO, questionDAO: QuestionDAO, answerDAO: AnswerDAO)(implicit executionContext: ExecutionContext) extends BaseController with Security[CommonProfile] {
 
   def list() = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
-    skillDAO.allSkills.flatMap(skills => { questionDAO.questionSearchSet("%", Seq(), Seq()).map(qsl => {
+    skillDAO.allSkills.flatMap(skills => { questionDAO.questionSearchSet(user.id, "%", Seq(), Seq()).map(qsl => {
         Ok(views.html.library.catalog(skills, QuestionLibraryResponses(qsl), views.html.library.list.libraryList.apply(skills)))
       })})
     }}}
@@ -46,7 +46,7 @@ class LibraryController @Inject()(/*val config: Config, val playSessionStore: Pl
     skillDAO.allSkills.map(skills => Ok(views.html.library.createQuestion(skills)))
   }}}
 
-  def   createQuestionSubmit() = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def createQuestionSubmit() = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
         QuestionCreate.form.bindFromRequest.fold(
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
@@ -127,14 +127,14 @@ class LibraryController @Inject()(/*val config: Config, val playSessionStore: Pl
   implicit val formatQuestionListRequest = QuestionLibrary.formatQuestionLibraryRequest;
   implicit val formatQuestionListResponse = QuestionLibrary.formatQuestionLibraryResponse;
 
-  def questionListAjax() = Action.async { request =>
+  def questionListAjax() = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { request =>
     request.body.asJson.map { jsonBody =>
       jsonBody.validate[QuestionLibraryRequest].map { qLR =>
         qLR.student match {
-          case None => questionDAO.questionSearchSet(qLR.titleQuery, qLR.requiredSkills, qLR.bannedSkills).map(qsl => { Ok(Json.toJson(QuestionLibraryResponses(qsl))) })
+          case None => questionDAO.questionSearchSet(user.id, qLR.titleQuery, qLR.requiredSkills, qLR.bannedSkills).map(qsl => { Ok(Json.toJson(QuestionLibraryResponses(qsl))) })
           case Some(studentId) => {
             skillDAO.skillCountsMaps(UserId(studentId)).flatMap(skillCounts => {
-              questionDAO.questionSearchSet(qLR.titleQuery, qLR.requiredSkills, qLR.bannedSkills).map(qsl => {
+              questionDAO.questionSearchSet(user.id, qLR.titleQuery, qLR.requiredSkills, qLR.bannedSkills).map(qsl => {
                 Ok(Json.toJson(QuestionLibraryResponses(skillCounts, qsl)))
               })
             })
@@ -144,18 +144,18 @@ class LibraryController @Inject()(/*val config: Config, val playSessionStore: Pl
     }.getOrElse( Future.successful(BadRequest("Expecting Json data")))
   }
 
-}
+} } }
 
 object QuestionLibraryResponses {
 
   def apply(qsl:  Seq[(Question, Set[Skill])]): Seq[QuestionLibraryResponse] = {
-    qsl.map(qs => QuestionLibraryResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name), None))
+    qsl.map(qs => QuestionLibraryResponse(qs._1.id.v, qs._1.titleArchived, qs._2.map(_.name), None))
   }
 
   def apply(countsMap: Map[SkillId, UserAnswerCount], qsl: Seq[(Question, Set[Skill])]) = {
     qsl.map(qs => {
       val prob = PFAComputations.pfaProbability(countsMap, qs._2)
-      QuestionLibraryResponse(qs._1.id.v, qs._1.title, qs._2.map(_.name), Some(prob))
+      QuestionLibraryResponse(qs._1.id.v, qs._1.titleArchived, qs._2.map(_.name), Some(prob))
 
     })
   }

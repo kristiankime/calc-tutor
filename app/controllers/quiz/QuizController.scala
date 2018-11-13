@@ -76,7 +76,7 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
           if(!access.write) {
             Future.successful(Ok(views.html.quiz.viewQuizForCourseStudent(access, course, quiz, course2Quiz, questions, answerOp, attemptsMap)))
           } else {
-            (skillDAO.allSkills +# questionDAO.questionSearchSet("%", Seq(), Seq()) +# answerDAO.resultsTable(course, quiz) ).map(v => {
+            (skillDAO.allSkills +# questionDAO.questionSearchSet(user.id,"%", Seq(), Seq()) +# answerDAO.resultsTable(course, quiz) ).map(v => {
               Ok(views.html.quiz.viewQuizForCourseTeacher(access, course, quiz, course2Quiz, questions, answerOp, attemptsMap, v._1, QuestionLibraryResponses(v._2), v._3)) })
           }
 

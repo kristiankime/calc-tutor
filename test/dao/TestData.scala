@@ -37,14 +37,14 @@ object TestData {
   def skill(name: String) = Skill(null, name, name.substring(0,1), 1d, 1d, 1d)
 
   // ===== Question Frame =====
-  def questionFrameSimple(info: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill] = Seq()): QuestionFrame = {
+  def questionFrameSimple(info: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill] = Seq(), archive : Short = 0): QuestionFrame = {
     val section = questionSectionFrameFn(info + " explanation", 0)(questionPartFunction(info + "summary", "<cn>1</cn>", 0))
-    questionFrame(title = info + " title", description = info +" description", userId  = userId, creationDate = creationDate, skills = skills, Seq(section))
+    questionFrame(title = info + " title", description = info +" description", userId  = userId, creationDate = creationDate, skills = skills, Seq(section), archive = archive)
   }
 
-  def questionFrame(title: String, description: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill], questionSectionFrames: Seq[QuestionSectionFrame]) : QuestionFrame =
+  def questionFrame(title: String, description: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill], questionSectionFrames: Seq[QuestionSectionFrame], archive : Short = 0) : QuestionFrame =
     QuestionFrame(
-      Question(null, userId, title, description, Markdowner.html(description), 0, creationDate),
+      Question(null, userId, title, description, Markdowner.html(description), archive, creationDate),
       Vector(questionSectionFrames:_*).zipWithIndex.map(s =>
         if(s._1.order != -1){s._1}
         else{s._1.copy( section = s._1.section.copy(order = s._2.toShort), parts = s._1.parts)}),
