@@ -222,19 +222,39 @@ ARTC.mathJS.buildParser = (function(){
         var opMap = argMapCreate(operatorsSafe);
 
         var operatorNodeFunction = function(node){
-            var op = opMap(node.op)
-            if(!op) { throw { message: "Error finding operator for OperatorNode with op " + node.op } }
+            var op = opMap(node.op);
+            if(!op) { throw { message: "Error finding operator for OperatorNode with op " + node.op } };
             return applyWrap(op, node.args, parseNode);
         }
 
         // ============== Symbol Handling ===========
         var symMap = argMapCreate(symbolsSafe.map);
+        var symRegex = false;
+        if(symbolsSafe.regex) {
+            // console.log("symRegex=" + symbolsSafe.regex);
+            var symRegex = new RegExp(symbolsSafe.regex);
+        }
 
         var symbolNodeFunction = function(node){
-            var sym = symMap(node.name)
-            if(sym) { return sym }
-            if(!sym && !symbols.allowAny) { throw { message: "Error in SymbolNode, any not allowed, and nothing specified for " + node.name } }
-            return "<ci> " + node.name + " </ci>";
+
+            // console.log("symbolNodeFunction [" + node.name + "]");
+
+            // See if a symbol directly matches something in the map
+            var sym = symMap(node.name);
+            // console.log(sym);
+            if(sym) {
+                // console.log("sym");
+                return sym
+            } else if(symbols.allowAny) { // See if we are allowing anything to be a symbol
+                // console.log("allowAny");
+                return "<ci> " + node.name + " </ci>";
+            } else if(symRegex && symRegex.test(node.name)) { // See if we have pass the symbol regex (if one is specified)
+                // console.log(symRegex);
+                // console.log("symRegex node.name=[" + node.name +"] test=" + symRegex.test(node.name));
+                return "<ci> " + node.name + " </ci>";
+            }
+
+            throw { message: "Error in SymbolNode, any not allowed, failed regex (or no regex specified) and nothing specified for " + node.name }
         }
 
         // ============== Constant Handling ===========
@@ -337,7 +357,8 @@ ARTC.mathJS.parserDefaults = {
             "e": "<exponentiale/>",
             "x": "<ci> x </ci>"
         },
-        allowAny : false
+        allowAny : false,
+        regex : false
     }
 };
 

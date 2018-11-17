@@ -72,7 +72,8 @@ CALC.mathJS.functionOfXInputs = {
             "e": "<exponentiale/>",
             "x": "<ci> x </ci>"
         },
-        allowAny : false
+        allowAny : false,
+        regex : false
     }
 };
 
@@ -108,7 +109,8 @@ CALC.mathJS.constantInputs = {
             "pi": "<pi/>",
             "e": "<exponentiale/>"
         },
-        allowAny : false
+        allowAny : false,
+        regex : false
     }
 };
 
