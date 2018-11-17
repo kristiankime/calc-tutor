@@ -2,7 +2,7 @@
 @import controllers.quiz.QuestionCreate
 @import models.quiz.util.SequenceTokenOrMath.separator
 
-@(action: play.api.mvc.Call, allSkills: Seq[String], initialDataModel: Option[String] = None, mathJsParser: String = "ARTC.mathJS.defaultParser")(implicit request: Request[AnyContent])
+@(action: play.api.mvc.Call, allSkills: Seq[String], initialDataModel: Option[String] = None, mathJsParser: String = "CALC.mathJS.functionOfXParser")(implicit request: Request[AnyContent])
 
 
 <section id="question-editor">

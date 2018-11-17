@@ -13,7 +13,7 @@
       <!-- ko foreach: searchResults -->
       <tr>
         <td>
-          <a data-bind="text : @{title}(), attr: { href: jsRoutes.controllers.library.LibraryController.viewQuestion(@{id}()).url, title : @{title}() }"> </a>
+          <a data-bind="html : @{title}(), attr: { href: jsRoutes.controllers.library.LibraryController.viewQuestion(@{id}()).url, title : @{title}() }"> </a>
         </td>
         <td>
           <a class="pure-button" data-bind="click : function(){QZL.attach(@organizationId.v, @courseId.v, @quizId.v, @{id}())}"> Add </a>
