@@ -166,7 +166,7 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
     ( quizDAO.frameByIdEither(quizId) ).map{ _ match {
       case Left(notFoundResult) => notFoundResult
       case Right(quiz) =>
-        Ok(QuizCreateFromJson.quizFormat.writes(QuizJson(quiz)))
+        Ok(QuizCreateFormJson.quizFormat.writes(QuizJson(quiz)))
     } }
 
   } } } }
@@ -176,7 +176,7 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
     (courseDAO(organizationId, courseId) +& quizDAO.frameByIdEither(quizId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult
       case Right((course, quiz)) =>
-        Ok(QuizCreateFromJson.quizFormat.writes(QuizJson(quiz)))
+        Ok(QuizCreateFormJson.quizFormat.writes(QuizJson(quiz)))
     } }
 
   } } } }
@@ -196,10 +196,10 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
     (courseDAO(organizationId, courseId) +^ skillDAO.skillsMap).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, skillsMap)) =>
-        QuizCreateFromJson.form.bindFromRequest.fold(
+        QuizCreateFormJson.form.bindFromRequest.fold(
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
-            QuizCreateFromJson.quizFormat.reads(Json.parse(form)) match {
+            QuizCreateFormJson.quizFormat.reads(Json.parse(form)) match {
               case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
               case JsSuccess(value, path) => {
                 val quizFrameFuture = quizDAO.insert(QuizFrame(user.id, value, skillsMap), user.id)
@@ -269,21 +269,10 @@ object QuizAvailability {
   )
 }
 
-// -----------
-case class QuizJson(name: String, questions: Vector[QuestionJson])
 
-object QuizJson {
-
-  def apply(quizFrame: QuizFrame) : QuizJson =
-    QuizJson(
-      quizFrame.quiz.name,
-      quizFrame.questions.map(QuestionJson(_))
-    )
-
-}
 
 // -----------
-object QuizCreateFromJson {
+object QuizCreateFormJson {
   val data = "data"
 
   val form : Form[String] =
