@@ -42,13 +42,14 @@ object TestData {
     questionFrame(title = info + " title", description = info +" description", userId  = userId, creationDate = creationDate, skills = skills, Seq(section), archive = archive)
   }
 
-  def questionFrame(title: String, description: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill], questionSectionFrames: Seq[QuestionSectionFrame], archive : Short = 0) : QuestionFrame =
+  def questionFrame(title: String, description: String, userId : UserId = null, creationDate : DateTime = JodaUTC.zero, skills: Seq[Skill], questionSectionFrames: Seq[QuestionSectionFrame], archive : Short = 0, userConstants: QuestionUserConstantsFrame = QuestionUserConstantsFrame.empty) : QuestionFrame =
     QuestionFrame(
       Question(null, userId, title, description, Markdowner.html(description), archive, creationDate),
       Vector(questionSectionFrames:_*).zipWithIndex.map(s =>
         if(s._1.order != -1){s._1}
         else{s._1.copy( section = s._1.section.copy(order = s._2.toShort), parts = s._1.parts)}),
-      Vector(skills:_*)
+      Vector(skills:_*),
+      userConstants
     )
 
 //  def questionSectionFrame(explanation: String, order: Short = -1)(choices: QuestionPartChoice*)(functions: QuestionPartFunction*)(sequences: QuestionPartSequence*) =

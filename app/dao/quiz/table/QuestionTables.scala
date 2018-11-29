@@ -7,7 +7,7 @@ import dao.user.UserDAO
 import dao.user.table.UserTables
 import models._
 import models.quiz._
-import models.quiz.util.SequenceTokenOrMath
+import models.quiz.util.{SequenceTokenOrMath, SetOfNumbers}
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
@@ -30,6 +30,9 @@ class QuestionTables @Inject()(protected val dbConfigProvider: DatabaseConfigPro
 
   // * ====== TABLE INSTANCES ====== *
   val Questions = lifted.TableQuery[QuestionTable]
+  val QuestionUserConstantIntegers = lifted.TableQuery[QuestionUserConstantIntegerTable]
+  val QuestionUserConstantDecimals = lifted.TableQuery[QuestionUserConstantDecimalTable]
+  val QuestionUserConstantSets = lifted.TableQuery[QuestionUserConstantSetTable]
   val QuestionSections = lifted.TableQuery[QuestionSectionTable]
   val QuestionPartChoices = lifted.TableQuery[QuestionPartChoiceTable]
   val QuestionPartFunctions = lifted.TableQuery[QuestionPartFunctionTable]
@@ -48,6 +51,40 @@ class QuestionTables @Inject()(protected val dbConfigProvider: DatabaseConfigPro
     def ownerIdFK = foreignKey("question_fk__owner_id", ownerId, userTables.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
     def * = (id, ownerId, title, descriptionRaw, descriptionHtml, archivedNum, creationDate) <> (Question.tupled, Question.unapply)
+  }
+
+  class QuestionUserConstantIntegerTable(tag: Tag) extends Table[QuestionUserConstantInteger](tag, "question_uc_integer") {
+    def id = column[QuestionUserConstantId]("id", O.PrimaryKey, O.AutoInc)
+    def questionId = column[QuestionId]("question_id")
+    def lower = column[Int]("lower")
+    def upper = column[Int]("upper")
+
+    def questionIdFK = foreignKey("question_uc_integer_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+
+    def * = (id, questionId, lower, upper) <> (QuestionUserConstantInteger.tupled, QuestionUserConstantInteger.unapply)
+  }
+
+  class QuestionUserConstantDecimalTable(tag: Tag) extends Table[QuestionUserConstantDecimal](tag, "question_uc_decimal") {
+    def id = column[QuestionUserConstantId]("id", O.PrimaryKey, O.AutoInc)
+    def questionId = column[QuestionId]("question_id")
+    def lower = column[Double]("lower")
+    def upper = column[Double]("upper")
+    def precision = column[Int]("precision")
+
+    def questionIdFK = foreignKey("question_uc_decimal_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+
+    def * = (id, questionId, lower, upper, precision) <> (QuestionUserConstantDecimal.tupled, QuestionUserConstantDecimal.unapply)
+  }
+
+  class QuestionUserConstantSetTable(tag: Tag) extends Table[QuestionUserConstantSet](tag, "question_uc_set") {
+    def id = column[QuestionUserConstantId]("id", O.PrimaryKey, O.AutoInc)
+    def questionId = column[QuestionId]("question_id")
+    def valuesRaw = column[String]("values_raw")
+    def valuesMath = column[SetOfNumbers]("values_math")
+
+    def questionIdFK = foreignKey("question_uc_set_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+
+    def * = (id, questionId, valuesRaw, valuesMath) <> (QuestionUserConstantSet.tupled, QuestionUserConstantSet.unapply)
   }
 
   class QuestionSectionTable(tag: Tag) extends Table[QuestionSection](tag, "question_section") {

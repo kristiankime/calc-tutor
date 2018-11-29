@@ -6,7 +6,7 @@ import com.artclod.mathml.scalar.{Cn, MathMLElem}
 import com.google.common.annotations.VisibleForTesting
 import models._
 import models.game.GameResponseStatus
-import models.quiz.util.SequenceTokenOrMath
+import models.quiz.util.{SequenceTokenOrMath, SetOfNumbers}
 import org.joda.time.{DateTime, DateTimeZone, Duration}
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.twirl.api.Html
@@ -88,6 +88,13 @@ trait ColumnTypeMappings extends HasDatabaseConfigProvider[JdbcProfile] {
     long => QuestionPartId(long))
 
   // ==========================
+  // QuestionUserConstantId
+  // ==========================
+  implicit def long2QuestionUserConstantId = MappedColumnType.base[QuestionUserConstantId, Long](
+    id => id.v,
+    long => QuestionUserConstantId(long))
+
+  // ==========================
   // AnswerId
   // ==========================
   implicit def long2answerId = MappedColumnType.base[AnswerId, Long](
@@ -154,7 +161,7 @@ trait ColumnTypeMappings extends HasDatabaseConfigProvider[JdbcProfile] {
   }
 
   // ==========================
-  // MathML
+  // Math / MathML
   // ==========================
   implicit def string2mathML = MappedColumnType.base[MathMLElem, String](
     mathML => mathML.toString,
@@ -163,6 +170,10 @@ trait ColumnTypeMappings extends HasDatabaseConfigProvider[JdbcProfile] {
   implicit def string2Sequence = MappedColumnType.base[SequenceTokenOrMath, String](
     math => math.stringVersion,
     string => SequenceTokenOrMath(string))
+
+  implicit def string2SetNum = MappedColumnType.base[SetOfNumbers, String](
+    math => math.stringVersion,
+    string => SetOfNumbers(string))
 
   // ==========================
   // HTML

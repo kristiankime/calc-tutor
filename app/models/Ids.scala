@@ -38,6 +38,10 @@ case class QuestionPartId(v: Long) {
   override def toString = "Pa"+v
 }
 
+case class QuestionUserConstantId(v: Long) {
+  override def toString = "UC"+v
+}
+
 case class AnswerId(v: Long) {
   override def toString = "An"+v
 }

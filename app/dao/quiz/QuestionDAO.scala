@@ -29,7 +29,7 @@ import slick.driver.JdbcProfile
 // ====
 
 @Singleton
-class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val questionTables: QuestionTables, protected val skillDAO: SkillDAO, protected val skillTables: SkillTables)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
+class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, protected val userTables: UserTables, protected val questionTables: QuestionTables, protected val skillDAO: SkillDAO, protected val skillTables: SkillTables, protected val userConstantsDAO: UserConstantsDAO)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappings {
   // ====
   //  import profile.api._ // Use this after upgrading slick
   import dbConfig.driver.api._
@@ -56,6 +56,7 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def frameById(id : QuestionId): Future[Option[QuestionFrame]] = {
     val questionFuture = byId(id)
+    val userConstantsFuture = userConstantsDAO.allUserConstants(id)
     val sectionsFuture = sectionsById(id)
     val choicePartsFuture = choicePartsId(id)
     val functionPartsFuture = functionPartsId(id)
@@ -63,27 +64,28 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     val skillsFuture = skillDAO.skillsFor(id)
 
     questionFuture.flatMap(questionOp => {
-      sectionsFuture.flatMap(sections => {
-        choicePartsFuture.flatMap( choiceParts => {
-          functionPartsFuture.flatMap( functionParts => {
-            sequencePartsFuture.flatMap( sequenceParts => {
-              skillsFuture.map( skills => {
-      val secId2Fp = functionParts.groupBy(p => p.sectionId)
-      val secId2Cp = choiceParts.groupBy(p => p.sectionId)
-      val secId2Sp = sequenceParts.groupBy(p => p.sectionId)
+      userConstantsFuture.flatMap(userConstants => {
+        sectionsFuture.flatMap(sections => {
+          choicePartsFuture.flatMap( choiceParts => {
+            functionPartsFuture.flatMap( functionParts => {
+              sequencePartsFuture.flatMap( sequenceParts => {
+                skillsFuture.map( skills => {
+        val secId2Fp = functionParts.groupBy(p => p.sectionId)
+        val secId2Cp = choiceParts.groupBy(p => p.sectionId)
+        val secId2Sp = sequenceParts.groupBy(p => p.sectionId)
 
-      val sectionFrames = sections.map(section => QuestionSectionFrame(section, secId2Cp.getOrElse(section.id, Seq()), secId2Fp.getOrElse(section.id, Seq()), secId2Sp.getOrElse(section.id, Seq())))
+        val sectionFrames = sections.map(section => QuestionSectionFrame(section, secId2Cp.getOrElse(section.id, Seq()), secId2Fp.getOrElse(section.id, Seq()), secId2Sp.getOrElse(section.id, Seq())))
 
-      val questionFrameOp : Option[QuestionFrame] = questionOp.map(question => {
-        sectionFrames.nonEmpty match {
-          case false => throw new IllegalArgumentException("There were no sections for id = " + id)
-          case true => QuestionFrame(question, Vector(sectionFrames:_*).sorted, Vector(skills:_*))
-        }
-      })
+        val questionFrameOp : Option[QuestionFrame] = questionOp.map(question => {
+          sectionFrames.nonEmpty match {
+            case false => throw new IllegalArgumentException("There were no sections for id = " + id)
+            case true => QuestionFrame(question, Vector(sectionFrames:_*).sorted, Vector(skills:_*), QuestionUserConstantsFrame(userConstants))
+          }
+        })
 
-      questionFrameOp
+        questionFrameOp
 
-    }) }) }) }) }) })
+    }) }) }) }) }) }) })
   }
 
   // === Access ===
@@ -168,14 +170,17 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   // ====== Create ======
   def insert(questionFrame: QuestionFrame) : Future[QuestionFrame] = {
     insert(questionFrame.question).flatMap{ question => {
-        val skillsFuture = skillDAO.addSkills(question, questionFrame.skills)
-        val sectionsFutures : Seq[Future[QuestionSectionFrame]] = questionFrame.id(question.id).sections.map(section => insert(section))
-//        val futureOfSections : Future[Vector[SectionFrame]] = sectionsFutures.foldLeft(Future.successful(Vector[SectionFrame]()))((cur, add) => cur.flatMap(c => add.map(a => c :+ a)) ).map(_.sorted)
-        val futureOfSections : Future[Vector[QuestionSectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
-//        futureOfSections.map(sections => QuestionFrame(question, sections, questionFrame.skills))
-        skillsFuture.flatMap(skillCount => futureOfSections.map(sections =>
-        QuestionFrame(question, sections, questionFrame.skills)
-      ))
+      val skillsFuture = skillDAO.addSkills(question, questionFrame.skills) // Note we don't create new skills here they should already exist, but we need to "wait" on the future
+
+      val userConstantsFuture = userConstantsDAO.insert(questionFrame.userConstants)
+
+      val sectionsFutures : Seq[Future[QuestionSectionFrame]] = questionFrame.id(question.id).sections.map(section => insert(section))
+      val futureOfSections : Future[Vector[QuestionSectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
+
+      userConstantsFuture.flatMap(userConstants => skillsFuture.flatMap(skillCount => futureOfSections.map(sections =>
+        QuestionFrame(question, sections, questionFrame.skills, userConstants)
+      )))
+
       }
     }
   }

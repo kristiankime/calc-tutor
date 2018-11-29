@@ -15,13 +15,12 @@ import play.twirl.api.Html
 
 
 // ======= QuestionFrame
-case class QuestionFrame(question: Question, sections: Vector[QuestionSectionFrame], skills: Vector[Skill]) {
-  def id(questionId: QuestionId) = QuestionFrame(question.copy(id = questionId), sections.map(s => s.questionId(questionId)), skills)
-
+case class QuestionFrame(question: Question, sections: Vector[QuestionSectionFrame], skills: Vector[Skill], userConstants: QuestionUserConstantsFrame) {
   // ==== throw errors for bad formulation
   if(sections.isEmpty) { throw new IllegalArgumentException("There were no sections"); }
   if(skills.isEmpty) { throw new IllegalArgumentException("There were no skills"); }
 
+  def id(questionId: QuestionId) = QuestionFrame(question.copy(id = questionId), sections.map(_.questionId(questionId)), skills, userConstants.questionId(questionId))
 }
 
 object QuestionFrame {
@@ -35,9 +34,13 @@ object QuestionFrame {
       descriptionHtml = Html(questionJson.descriptionHtml),
       creationDate = now)
 
+//    val question : Question = questionJson.toModel(ownerId, now)
+
     val sections : Vector[QuestionSectionFrame] = questionJson.sections.zipWithIndex.map(s => sectionFrame(s._1, s._2))
 
-    QuestionFrame(question=question, sections=sections, skills = questionJson.skills.map(s => skillMap.getOrElse(s, throw new IllegalArgumentException("Skill not found for " + s)) ))
+    val userConstants : QuestionUserConstantsFrame = questionJson.userConstants.map(_.toModel).getOrElse(QuestionUserConstantsFrame.empty)
+
+    QuestionFrame(question=question, sections=sections, skills = questionJson.skills.map(s => skillMap.getOrElse(s, throw new IllegalArgumentException("Skill not found for " + s)) ), userConstants = userConstants)
   }
 
   private def sectionFrame(section: QuestionSectionJson, index: Int) : QuestionSectionFrame = {
@@ -96,6 +99,24 @@ object QuestionFrame {
   }
 }
 
+
+// ======= QuestionUserConstantsFrame
+case class QuestionUserConstantsFrame(integers: Vector[QuestionUserConstantInteger], decimals: Vector[QuestionUserConstantDecimal], sets: Vector[QuestionUserConstantSet]) {
+  def questionId(questionId: QuestionId) : QuestionUserConstantsFrame =
+    QuestionUserConstantsFrame(
+      integers.map(_.copy(questionId = questionId)),
+      decimals.map(_.copy(questionId = questionId)),
+      sets.map(_.copy(questionId = questionId))
+    )
+
+}
+
+object QuestionUserConstantsFrame {
+  val empty = QuestionUserConstantsFrame(Vector(), Vector(), Vector())
+
+//  def apply(integers: Vector[QuestionUserConstantInteger], decimals: Vector[QuestionUserConstantDecimal], sets: Vector[QuestionUserConstantSet]): QuestionUserConstantsFrame = new QuestionUserConstantsFrame(integers, decimals, sets)
+  def apply(values : (Seq[QuestionUserConstantInteger], Seq[QuestionUserConstantDecimal], Seq[QuestionUserConstantSet]) ): QuestionUserConstantsFrame = new QuestionUserConstantsFrame(values._1.toVector, values._2.toVector, values._3.toVector)
+}
 
 // ======= QuestionSectionFrame
 case class QuestionSectionFrame(section: QuestionSection, parts: OneOfThree[ Vector[QuestionPartChoice], Vector[QuestionPartFunction], Vector[QuestionPartSequence] ]) extends HasOrder[QuestionSectionFrame] {

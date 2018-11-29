@@ -7,7 +7,7 @@ import com.artclod.mathml.MathML
 import com.artclod.slick.JodaUTC
 import dao.organization.{CourseDAO, OrganizationDAO}
 import dao.user.UserDAO
-import models._
+import models.{quiz, _}
 import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.play.scala.{Security, SecurityComponents}
@@ -21,10 +21,14 @@ import controllers.organization.CourseCreate
 import dao.quiz.{AnswerDAO, QuestionDAO, QuizDAO, SkillDAO}
 import models.organization.Course
 import models.quiz._
+import models.quiz.util.SetOfNumbers
+import org.joda.time.DateTime
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.twirl.api.Html
 
+import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Right
 
@@ -170,22 +174,73 @@ object MinimalQuestionJson {
 }
 
 
-case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson], skills: Vector[String]) {
+case class QuestionJson(title: String, descriptionRaw: String, descriptionHtml: String, sections: Vector[QuestionSectionJson], skills: Vector[String], userConstants: Option[QuestionUserConstantsJson]) {
   if(sections.size == 0) { throw new IllegalArgumentException("Questions must have at least one section")}
   if(skills.size == 0) { throw new IllegalArgumentException("Questions must have at least one skill")}
+
+  def toModel(ownerId: UserId, now : DateTime) = Question(id = null,
+    ownerId = ownerId,
+    title = this.title,
+    descriptionRaw = this.descriptionRaw,
+    descriptionHtml = Html(this.descriptionHtml),
+    creationDate = now)
 }
 
 object QuestionJson {
 
-  def apply(title: String, description: String, sections: Seq[QuestionSectionJson], skills: Seq[String]) : QuestionJson = QuestionJson(title, description, Markdowner.string(description), Vector(sections:_*), Vector(skills:_*))
+  def apply(title: String, description: String, sections: Seq[QuestionSectionJson], skills: Seq[String], userConstants: Option[QuestionUserConstantsJson]) : QuestionJson = QuestionJson(title, description, Markdowner.string(description), Vector(sections:_*), Vector(skills:_*), userConstants)
 
   def apply(questionFrame: QuestionFrame) : QuestionJson = {
     val sections = questionFrame.sections.map(s => QuestionSectionJson(s))
     val skills = questionFrame.skills.map((s => s.name))
-    QuestionJson(questionFrame.question.title, questionFrame.question.descriptionRaw, questionFrame.question.descriptionHtml.toString, sections, skills)
+    val userConstants = Some(QuestionUserConstantsJson(questionFrame.userConstants))
+    QuestionJson(questionFrame.question.title, questionFrame.question.descriptionRaw, questionFrame.question.descriptionHtml.toString, sections, skills, userConstants)
   }
 
 }
+
+// === QuestionUserConstantJson
+case class QuestionUserConstantsJson(integer: Seq[QuestionUserConstantIntegerJson], decimal: Seq[QuestionUserConstantDecimalJson], set: Seq[QuestionUserConstantSetJson]) {
+  def toModel() = quiz.QuestionUserConstantsFrame(integer.map(_.toModel()).toVector, decimal.map(_.toModel()).toVector, set.map(_.toModel()).toVector)
+}
+
+object QuestionUserConstantsJson {
+  def apply(questionUserConstants: QuestionUserConstantsFrame) : QuestionUserConstantsJson =
+    QuestionUserConstantsJson(
+      questionUserConstants.integers.map(QuestionUserConstantIntegerJson(_)),
+      questionUserConstants.decimals.map(QuestionUserConstantDecimalJson(_)),
+      questionUserConstants.sets.map(QuestionUserConstantSetJson(_))
+    )
+}
+
+// ---
+case class QuestionUserConstantIntegerJson(lower: Int, upper: Int) {
+  def toModel() = QuestionUserConstantInteger(id = null, questionId = null, lower = lower, upper = upper)
+}
+
+object QuestionUserConstantIntegerJson {
+  def apply(v : QuestionUserConstantInteger) : QuestionUserConstantIntegerJson = QuestionUserConstantIntegerJson(lower= v.lower, upper = v.upper)
+}
+
+// ---
+case class QuestionUserConstantDecimalJson(lower: Double, upper: Double, precision: Int) {
+  def toModel() = QuestionUserConstantDecimal(id = null, questionId = null, lower = lower, upper = upper, precision = precision)
+}
+
+object QuestionUserConstantDecimalJson {
+  def apply(v : QuestionUserConstantDecimal) : QuestionUserConstantDecimalJson = QuestionUserConstantDecimalJson(lower= v.lower, upper = v.upper, precision = v.precision)
+}
+
+// ---
+case class QuestionUserConstantSetJson(valuesRaw: String, valuesMath: String)  {
+  def toModel() = QuestionUserConstantSet(id = null, questionId = null, valuesRaw = valuesRaw, valuesMath = SetOfNumbers(valuesMath))
+}
+
+object QuestionUserConstantSetJson {
+  def apply(v : QuestionUserConstantSet) : QuestionUserConstantSetJson = QuestionUserConstantSetJson(valuesRaw = v.valuesRaw, valuesMath = v.valuesMath.toString)
+}
+
+
 
 // === QuestionSectionJson
 case class QuestionSectionJson(explanationRaw: String, explanationHtml: String, partType: String, correctChoiceIndex: Int, choices: Vector[QuestionPartChoiceJson], functions: Vector[QuestionPartFunctionJson], sequences: Vector[QuestionPartSequenceJson]) {
@@ -296,6 +351,9 @@ object QuestionCreate {
   val sections = "sections"
   val skills = "skills"
 
+  // User Constants
+
+
   // Section
   val explanationRaw = "explanationRaw"
   val explanationHtml = "explanationHtml"
@@ -322,6 +380,10 @@ object QuestionCreate {
   implicit val questionPartFunctionFormat = Json.format[QuestionPartFunctionJson]
   implicit val questionPartSequenceFormat = Json.format[QuestionPartSequenceJson]
   implicit val questionSectionFormat = Json.format[QuestionSectionJson]
+  implicit val questionUserConstantIntegerFormat = Json.format[QuestionUserConstantIntegerJson]
+  implicit val questionUserConstantDecimalFormat = Json.format[QuestionUserConstantDecimalJson]
+  implicit val questionUserConstantSetFormat = Json.format[QuestionUserConstantSetJson]
+  implicit val questionUserConstantsFormat = Json.format[QuestionUserConstantsJson]
   implicit val questionFormat = Json.format[QuestionJson]
 }
 
