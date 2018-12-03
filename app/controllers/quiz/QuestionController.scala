@@ -165,7 +165,15 @@ object QuestionCreate {
   val skills = "skills"
 
   // User Constants
-
+  val userConstants = "userConstants"
+  val ucIntegers = "integers"
+  val ucDecimals = "decimals"
+  val ucSets = "sets"
+  val ucLower = "lower"
+  val ucUpper = "upper"
+  val ucPrecision = "precision"
+  val ucValuesRaw = "valuesRaw"
+  val ucValuesMath = "valuesMath"
 
   // Section
   val explanationRaw = "explanationRaw"

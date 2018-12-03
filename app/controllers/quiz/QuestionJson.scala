@@ -63,8 +63,8 @@ object QuestionJson {
 }
 
 // === QuestionUserConstantJson
-case class QuestionUserConstantsJson(integer: Seq[QuestionUserConstantIntegerJson], decimal: Seq[QuestionUserConstantDecimalJson], set: Seq[QuestionUserConstantSetJson]) {
-  def toModel() = quiz.QuestionUserConstantsFrame(integer.map(_.toModel()).toVector, decimal.map(_.toModel()).toVector, set.map(_.toModel()).toVector)
+case class QuestionUserConstantsJson(integers: Seq[QuestionUserConstantIntegerJson], decimals: Seq[QuestionUserConstantDecimalJson], sets: Seq[QuestionUserConstantSetJson]) {
+  def toModel() = quiz.QuestionUserConstantsFrame(integers.map(_.toModel()).toVector, decimals.map(_.toModel()).toVector, sets.map(_.toModel()).toVector)
 }
 
 object QuestionUserConstantsJson {

@@ -24,6 +24,21 @@
             @tag.isValid("skillsInvalid")
         </div>
 
+        <div class="item user-constants">
+            <!-- ko with: @QuestionCreate.userConstants -->
+                <a href='#' data-bind='click: QE.addUserConstantInteger' class="pure-button">Add Integer Constant</a>
+                <!-- ko foreach: @QuestionCreate.ucIntegers -->
+                    UCI
+                    lower: <input type="number" style="width: 100px;" step="1" data-bind="value : @QuestionCreate.ucLower" >
+                    upper: <input type="number" style="width: 100px;" step="1" data-bind="value : @QuestionCreate.ucUpper" >
+                <!-- /ko -->
+                <!-- ko foreach: @QuestionCreate.ucDecimals -->
+                <!-- /ko -->
+                <!-- ko foreach: @QuestionCreate.ucSets -->
+                <!-- /ko -->
+            <!-- /ko -->
+        </div>
+
         <div class="item add-section"> <a href='#' data-bind='click: QE.addSection' class="pure-button">Add Section</a> @tag.isValid("sectionsInvalid") </div>
 
         <!-- ko foreach: @QuestionCreate.sections -->
@@ -377,6 +392,61 @@
                 });
             }
 
+
+
+
+            // =============================================
+            // ========= User Constants Enhancement ========
+            // =============================================
+            var ucIntegerId = function (num) {
+                return "uci" + (num);
+            }
+
+            var enhanceConstantInteger = function(userConstants, constant) {
+                // TODO
+                constant.@{QuestionCreate.ucLower} = constant.@{QuestionCreate.ucLower}.extend({ numeric : 0 });
+                constant.@{QuestionCreate.ucUpper} = constant.@{QuestionCreate.ucUpper}.extend({ numeric : 0 });
+
+                constant.@{QuestionCreate.ucLower}.subscribe(function(newValue) {
+                    if(newValue > constant.@{QuestionCreate.ucUpper}()) { constant.@{QuestionCreate.ucUpper}(newValue); }
+                });
+
+                constant.@{QuestionCreate.ucUpper}.subscribe(function(newValue) {
+                    if(newValue < constant.@{QuestionCreate.ucLower}()) { constant.@{QuestionCreate.ucLower}(newValue); }
+                });
+
+                return constant;
+            }
+
+            // add new choice part
+            QE.addUserConstantInteger = function (userConstants) {
+                var constantId = ucIntegerId(userConstants.integerIdGenerator++); // note this increments the idGenerator
+
+                var newConstant = ko.mapping.fromJS({
+                    @QuestionCreate.ucLower  :  1,
+                    @QuestionCreate.ucUpper  : 10
+                });
+
+                enhanceConstantInteger(userConstants, newConstant);
+
+                userConstants.@{QuestionCreate.ucIntegers}.push(newConstant)
+            }
+
+            var ucDecimalId = function (num) {
+                return "ucd" + (num);
+            }
+
+            var ucSetId = function (num) {
+                return "ucs" + (num);
+            }
+
+            // Adds functions to the UserConstants of the Question View Model
+            var enhanceUserConstants = function (userConstants) {
+                userConstants.integerIdGenerator = section.@{QuestionCreate.choices}.length;
+                userConstants.decimalIdGenerator = section.@{QuestionCreate.functions}.length;
+                userConstants.setIdGenerator = section.@{QuestionCreate.sequences}.length;
+            }
+
             // ==========================================
             // ============ Root Enhancement ============
             // ==========================================
@@ -438,6 +508,7 @@
                     QuestionCreate.descriptionRaw + """ : "", """ +
                     QuestionCreate.descriptionHtml + """ : ARTC.markdown("main", ""), """ +
                     QuestionCreate.sections + """ : [],""" +
+                    QuestionCreate.userConstants + """ : {""" + QuestionCreate.ucIntegers + """ : [],""" + QuestionCreate.ucDecimals + """ : [],""" + QuestionCreate.ucSets + """ : [],""" + """ },""" +
                     QuestionCreate.skills + """ : []""" +
                 "}"))
 
