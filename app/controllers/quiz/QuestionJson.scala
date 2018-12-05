@@ -77,30 +77,30 @@ object QuestionUserConstantsJson {
 }
 
 // ---
-case class QuestionUserConstantIntegerJson(lower: Int, upper: Int) {
-  def toModel() = QuestionUserConstantInteger(id = null, questionId = null, lower = lower, upper = upper)
+case class QuestionUserConstantIntegerJson(name: String, lower: Int, upper: Int) {
+  def toModel() = QuestionUserConstantInteger(id = null, questionId = null, name = name, lower = lower, upper = upper)
 }
 
 object QuestionUserConstantIntegerJson {
-  def apply(v : QuestionUserConstantInteger) : QuestionUserConstantIntegerJson = QuestionUserConstantIntegerJson(lower= v.lower, upper = v.upper)
+  def apply(v : QuestionUserConstantInteger) : QuestionUserConstantIntegerJson = QuestionUserConstantIntegerJson(name = v.name, lower = v.lower, upper = v.upper)
 }
 
 // ---
-case class QuestionUserConstantDecimalJson(lower: Double, upper: Double, precision: Int) {
-  def toModel() = QuestionUserConstantDecimal(id = null, questionId = null, lower = lower, upper = upper, precision = precision)
+case class QuestionUserConstantDecimalJson(name: String, lower: Double, upper: Double, precision: Int) {
+  def toModel() = QuestionUserConstantDecimal(id = null, questionId = null, name = name, lower = lower, upper = upper, precision = precision)
 }
 
 object QuestionUserConstantDecimalJson {
-  def apply(v : QuestionUserConstantDecimal) : QuestionUserConstantDecimalJson = QuestionUserConstantDecimalJson(lower= v.lower, upper = v.upper, precision = v.precision)
+  def apply(v : QuestionUserConstantDecimal) : QuestionUserConstantDecimalJson = QuestionUserConstantDecimalJson(name = v.name, lower = v.lower, upper = v.upper, precision = v.precision)
 }
 
 // ---
-case class QuestionUserConstantSetJson(valuesRaw: String, valuesMath: String)  {
-  def toModel() = QuestionUserConstantSet(id = null, questionId = null, valuesRaw = valuesRaw, valuesMath = SetOfNumbers(valuesMath))
+case class QuestionUserConstantSetJson(name: String, valuesRaw: String, valuesMath: String)  {
+  def toModel() = QuestionUserConstantSet(id = null, questionId = null, name = name, valuesRaw = valuesRaw, valuesMath = SetOfNumbers(valuesMath))
 }
 
 object QuestionUserConstantSetJson {
-  def apply(v : QuestionUserConstantSet) : QuestionUserConstantSetJson = QuestionUserConstantSetJson(valuesRaw = v.valuesRaw, valuesMath = v.valuesMath.toString)
+  def apply(v : QuestionUserConstantSet) : QuestionUserConstantSetJson = QuestionUserConstantSetJson(name = v.name, valuesRaw = v.valuesRaw, valuesMath = v.valuesMath.toString)
 }
 
 

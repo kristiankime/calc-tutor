@@ -28,12 +28,23 @@
             <!-- ko with: @QuestionCreate.userConstants -->
                 <a href='#' data-bind='click: QE.addUserConstantInteger' class="pure-button">Add Integer Constant</a>
                 <!-- ko foreach: @QuestionCreate.ucIntegers -->
-                    UCI
+                    name: <span data-bind="html : @QuestionCreate.ucName"> </span>
                     lower: <input type="number" style="width: 100px;" step="1" data-bind="value : @QuestionCreate.ucLower" >
                     upper: <input type="number" style="width: 100px;" step="1" data-bind="value : @QuestionCreate.ucUpper" >
+                    <a href='#' data-bind='click: function(data, event) { QE.removeConstantInteger($parent, data) }' class="pure-button">Remove</a>
                 <!-- /ko -->
+                
+                <br>
+
+                <a href='#' data-bind='click: QE.addUserConstantDecimal' class="pure-button">Add Decimal Constant</a>
                 <!-- ko foreach: @QuestionCreate.ucDecimals -->
+                    name: <span data-bind="html : @QuestionCreate.ucName"> </span>
+                    lower: <input type="number" style="width: 100px;" step=".5" data-bind="value : @QuestionCreate.ucLower" >
+                    upper: <input type="number" style="width: 100px;" step=".5" data-bind="value : @QuestionCreate.ucUpper" >
+                    precision: <input type="number" style="width: 100px;" step="1" min="0" max="10" data-bind="value : @QuestionCreate.ucPrecision" >
+                    <a href='#' data-bind='click: function(data, event) { QE.removeConstantDecimal($parent, data) }' class="pure-button">Remove</a>
                 <!-- /ko -->
+
                 <!-- ko foreach: @QuestionCreate.ucSets -->
                 <!-- /ko -->
             <!-- /ko -->
@@ -398,31 +409,29 @@
             // =============================================
             // ========= User Constants Enhancement ========
             // =============================================
-            var ucIntegerId = function (num) {
-                return "uci" + (num);
-            }
 
+            // ------- Integer ------
             var enhanceConstantInteger = function(userConstants, constant) {
-                // TODO
+                // Allow only integers
                 constant.@{QuestionCreate.ucLower} = constant.@{QuestionCreate.ucLower}.extend({ numeric : 0 });
                 constant.@{QuestionCreate.ucUpper} = constant.@{QuestionCreate.ucUpper}.extend({ numeric : 0 });
-
+                // lower must be < upper
                 constant.@{QuestionCreate.ucLower}.subscribe(function(newValue) {
                     if(newValue > constant.@{QuestionCreate.ucUpper}()) { constant.@{QuestionCreate.ucUpper}(newValue); }
                 });
-
+                // upper must be < lower
                 constant.@{QuestionCreate.ucUpper}.subscribe(function(newValue) {
                     if(newValue < constant.@{QuestionCreate.ucLower}()) { constant.@{QuestionCreate.ucLower}(newValue); }
                 });
-
                 return constant;
             }
 
-            // add new choice part
+            // add new integer user constant
             QE.addUserConstantInteger = function (userConstants) {
-                var constantId = ucIntegerId(userConstants.integerIdGenerator++); // note this increments the idGenerator
+                var constantId = userConstants.integerIdGenerator++; // note this increments the idGenerator
 
                 var newConstant = ko.mapping.fromJS({
+                    @QuestionCreate.ucName   : "@QuestionCreate.I_" + constantId,
                     @QuestionCreate.ucLower  :  1,
                     @QuestionCreate.ucUpper  : 10
                 });
@@ -432,19 +441,73 @@
                 userConstants.@{QuestionCreate.ucIntegers}.push(newConstant)
             }
 
-            var ucDecimalId = function (num) {
-                return "ucd" + (num);
+            // Remove an Integer Constant
+            QE.removeConstantInteger = function(userConstants, constant) {
+                var constants = userConstants.@{QuestionCreate.ucIntegers};
+                constants.remove(function (uc) {
+                    return uc.@{QuestionCreate.ucName} === constant.@{QuestionCreate.ucName};
+                });
             }
 
+
+            // ------- Decimal ------
+            var enhanceConstantDecimal = function(userConstants, constant) {
+                constant.@{QuestionCreate.ucPrecision} = constant.@{QuestionCreate.ucPrecision}.extend({ numeric : 0 });
+                // Allow only Decimals to above precision
+                constant.@{QuestionCreate.ucLower} = constant.@{QuestionCreate.ucLower}.extend({ numericFunc : constant.@{QuestionCreate.ucPrecision} });
+                constant.@{QuestionCreate.ucUpper} = constant.@{QuestionCreate.ucUpper}.extend({ numericFunc : constant.@{QuestionCreate.ucPrecision} });
+                // lower must be < upper
+                constant.@{QuestionCreate.ucLower}.subscribe(function(newValue) {
+                    if(newValue > constant.@{QuestionCreate.ucUpper}()) { constant.@{QuestionCreate.ucUpper}(newValue); }
+                });
+                // upper must be < lower
+                constant.@{QuestionCreate.ucUpper}.subscribe(function(newValue) {
+                    if(newValue < constant.@{QuestionCreate.ucLower}()) { constant.@{QuestionCreate.ucLower}(newValue); }
+                });
+                return constant;
+            }
+
+            // add new decimal user constant
+            QE.addUserConstantDecimal = function (userConstants) {
+                var constantId = userConstants.decimalIdGenerator++; // note this increments the idGenerator
+
+                var newConstant = ko.mapping.fromJS({
+                @QuestionCreate.ucName      : "@QuestionCreate.D_" + constantId,
+                @QuestionCreate.ucLower     :  1,
+                @QuestionCreate.ucUpper     : 10,
+                @QuestionCreate.ucPrecision :  2
+            });
+
+                enhanceConstantDecimal(userConstants, newConstant);
+
+                userConstants.@{QuestionCreate.ucDecimals}.push(newConstant)
+            }
+
+            // Remove an Decimal Constant
+            QE.removeConstantDecimal = function(userConstants, constant) {
+                var constants = userConstants.@{QuestionCreate.ucDecimals};
+                constants.remove(function (uc) {
+                    return uc.@{QuestionCreate.ucName} === constant.@{QuestionCreate.ucName};
+                });
+            }
+
+            // ------- Set ------
             var ucSetId = function (num) {
                 return "ucs" + (num);
             }
 
+            // ------- Constants Container ------
             // Adds functions to the UserConstants of the Question View Model
             var enhanceUserConstants = function (userConstants) {
-                userConstants.integerIdGenerator = section.@{QuestionCreate.choices}.length;
-                userConstants.decimalIdGenerator = section.@{QuestionCreate.functions}.length;
-                userConstants.setIdGenerator = section.@{QuestionCreate.sequences}.length;
+                userConstants.integerIdGenerator = userConstants.@{QuestionCreate.ucIntegers}.length;
+                userConstants.decimalIdGenerator = userConstants.@{QuestionCreate.ucDecimals}.length;
+                userConstants.setIdGenerator     = userConstants.@{QuestionCreate.ucSets}.length;
+
+                // Enhance any existing Integer Constants
+                for (var i = 0; i < userConstants.@{QuestionCreate.ucIntegers}().length; i++) {
+                    enhanceConstantInteger(userConstants, userConstants.@{QuestionCreate.ucIntegers}()[i], i);
+                };
+                return userConstants;
             }
 
             // ==========================================
@@ -479,6 +542,8 @@
                 };
 
                 setupDetails(main, "main", "@QuestionCreate.descriptionRaw", "@QuestionCreate.descriptionHtml");
+
+                enhanceUserConstants(main.@{QuestionCreate.userConstants});
 
                 main.descriptionInvalid = ko.computed(function () {
                     return main.@{QuestionCreate.descriptionRaw}() == "";

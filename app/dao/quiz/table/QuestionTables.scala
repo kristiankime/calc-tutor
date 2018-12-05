@@ -56,35 +56,38 @@ class QuestionTables @Inject()(protected val dbConfigProvider: DatabaseConfigPro
   class QuestionUserConstantIntegerTable(tag: Tag) extends Table[QuestionUserConstantInteger](tag, "question_uc_integer") {
     def id = column[QuestionUserConstantId]("id", O.PrimaryKey, O.AutoInc)
     def questionId = column[QuestionId]("question_id")
+    def name = column[String]("name")
     def lower = column[Int]("lower")
     def upper = column[Int]("upper")
 
     def questionIdFK = foreignKey("question_uc_integer_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, questionId, lower, upper) <> (QuestionUserConstantInteger.tupled, QuestionUserConstantInteger.unapply)
+    def * = (id, questionId, name, lower, upper) <> (QuestionUserConstantInteger.tupled, QuestionUserConstantInteger.unapply)
   }
 
   class QuestionUserConstantDecimalTable(tag: Tag) extends Table[QuestionUserConstantDecimal](tag, "question_uc_decimal") {
     def id = column[QuestionUserConstantId]("id", O.PrimaryKey, O.AutoInc)
     def questionId = column[QuestionId]("question_id")
+    def name = column[String]("name")
     def lower = column[Double]("lower")
     def upper = column[Double]("upper")
     def precision = column[Int]("precision")
 
     def questionIdFK = foreignKey("question_uc_decimal_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, questionId, lower, upper, precision) <> (QuestionUserConstantDecimal.tupled, QuestionUserConstantDecimal.unapply)
+    def * = (id, questionId, name, lower, upper, precision) <> (QuestionUserConstantDecimal.tupled, QuestionUserConstantDecimal.unapply)
   }
 
   class QuestionUserConstantSetTable(tag: Tag) extends Table[QuestionUserConstantSet](tag, "question_uc_set") {
     def id = column[QuestionUserConstantId]("id", O.PrimaryKey, O.AutoInc)
     def questionId = column[QuestionId]("question_id")
+    def name = column[String]("name")
     def valuesRaw = column[String]("values_raw")
     def valuesMath = column[SetOfNumbers]("values_math")
 
     def questionIdFK = foreignKey("question_uc_set_fk__question_id", questionId, Questions)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, questionId, valuesRaw, valuesMath) <> (QuestionUserConstantSet.tupled, QuestionUserConstantSet.unapply)
+    def * = (id, questionId, name, valuesRaw, valuesMath) <> (QuestionUserConstantSet.tupled, QuestionUserConstantSet.unapply)
   }
 
   class QuestionSectionTable(tag: Tag) extends Table[QuestionSection](tag, "question_section") {

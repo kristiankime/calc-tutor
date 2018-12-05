@@ -139,7 +139,7 @@ class QuestionFrameSpec extends PlaySpec {
       // Json
       val questionPartSequenceJson = QuestionPartSequenceJson("summaryRaw", "summaryHtml", "1;2", "<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>")
       val questionSectionJson = QuestionSectionJson("explanationRaw", "explanationHtml", QuestionCreate.sequence, 0, Vector(), Vector(), Vector(questionPartSequenceJson))
-      val questionUserConstantsJson = QuestionUserConstantsJson(Seq(QuestionUserConstantIntegerJson(1, 2)), Seq(QuestionUserConstantDecimalJson(1.1d,2.1d,1)), Seq())
+      val questionUserConstantsJson = QuestionUserConstantsJson(Seq(QuestionUserConstantIntegerJson("I_1", 1, 2)), Seq(QuestionUserConstantDecimalJson("D_1", 1.1d,2.1d,1)), Seq())
       val questionJson = QuestionJson("title", "questionRaw", "questionHtml", Vector(questionSectionJson), Vector("a"), Some(questionUserConstantsJson))
 
       // Scala
@@ -148,7 +148,7 @@ class QuestionFrameSpec extends PlaySpec {
       val questionPartSequence = QuestionPartSequence(null, null, null, "summaryRaw", Html("summaryHtml"), "1;2", SequenceTokenOrMath("<cn>1</cn>" + SequenceTokenOrMath.separator + "<cn>2</cn>"), 0)
       val questionSection = QuestionSection(null, null, "explanationRaw", Html("explanationHtml"), 0)
       val sectionFrame = QuestionSectionFrame(questionSection, Third(Vector(questionPartSequence)))
-      val questionUserConstantsFrame = QuestionUserConstantsFrame(Vector(QuestionUserConstantInteger(null, null, 1, 2)), Vector(QuestionUserConstantDecimal(null, null,1.1d,2.1d,1)), Vector())
+      val questionUserConstantsFrame = QuestionUserConstantsFrame(Vector(QuestionUserConstantInteger(null, null, "I_1", 1, 2)), Vector(QuestionUserConstantDecimal(null, null, "D_1", 1.1d, 2.1d, 1)), Vector())
       val questionFrame = QuestionFrame(Question(null, UserId(0), "title", "questionRaw", Html("questionHtml"), 0, JodaUTC.zero), Vector(sectionFrame), skills, questionUserConstantsFrame)
 
       // Test

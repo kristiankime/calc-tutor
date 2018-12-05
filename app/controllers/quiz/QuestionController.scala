@@ -164,11 +164,17 @@ object QuestionCreate {
   val sections = "sections"
   val skills = "skills"
 
+  // Prefixes
+  val I_ = "I_"
+  val D_ = "D_"
+  val S_ = "S_"
+
   // User Constants
   val userConstants = "userConstants"
   val ucIntegers = "integers"
   val ucDecimals = "decimals"
   val ucSets = "sets"
+  val ucName = "name"
   val ucLower = "lower"
   val ucUpper = "upper"
   val ucPrecision = "precision"

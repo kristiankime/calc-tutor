@@ -28,7 +28,7 @@ ko.extenders.numeric = function(target, precision) {
     return result;
 };
 
-ko.extenders.numericDy = function(target, precisionFunction) {
+ko.extenders.numericFunc = function(target, precisionFunction) {
     //create a writable computed observable to intercept writes to our observable
     var result = ko.pureComputed({
         read: target,  //always return the original observables value
