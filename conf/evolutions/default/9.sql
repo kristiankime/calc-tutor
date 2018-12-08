@@ -14,8 +14,8 @@ CREATE TABLE question_uc_decimal
   id SERIAL NOT NULL PRIMARY KEY,
   question_id INT NOT NULL REFERENCES question(id),
   name VARCHAR NOT NULL,
-  lower DOUBLE NOT NULL,
-  upper DOUBLE NOT NULL,
+  lower DOUBLE PRECISION NOT NULL,
+  upper DOUBLE PRECISION NOT NULL,
   precision INT NOT NULL
 );
 
