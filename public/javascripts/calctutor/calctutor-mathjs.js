@@ -42,30 +42,37 @@ CALC.mathJS.rejectRootsUsingX = function(node){
 
 CALC.mathJS.rejectOddX = function(node) { return false || CALC.mathJS.rejectLogsWithBaseUsingX(node) || CALC.mathJS.rejectRootsUsingX(node) };
 
-CALC.mathJS.functionOfXInputs = {
+CALC.mathJS.standard = { };
+
+CALC.mathJS.standard.functions = {
     // All functions here take (node, parseNode)
-    functions: {
-        "cos#1"     : function(n, pN){ return "<apply> <cos/> " + pN(n.args[0]) + " </apply>"; },
-        "sin#1"     : function(n, pN){ return "<apply> <sin/> " + pN(n.args[0]) + " </apply>"; },
-        "tan#1"     : function(n, pN){ return "<apply> <tan/> " + pN(n.args[0]) + " </apply>"; },
-        "sec#1"     : function(n, pN){ return "<apply> <sec/> " + pN(n.args[0]) + " </apply>"; },
-        "csc#1"     : function(n, pN){ return "<apply> <csc/> " + pN(n.args[0]) + " </apply>"; },
-        "cot#1"     : function(n, pN){ return "<apply> <cot/> " + pN(n.args[0]) + " </apply>"; },
-        "sqrt#1"    : function(n, pN){ return "<apply> <root/> " + pN(n.args[0]) + " </apply>"; },
-        "nthRoot#2" : function(n, pN){ return "<apply> <root/> <degree> " + pN(n.args[1]) + " </degree> " + pN(n.args[0]) + " </apply>"; },
-        "ln#1"      : function(n, pN){ return "<apply> <ln/> " + pN(n.args[0]) + " </apply>"; }, // Note ln needs to be added to mathjs manually via math.import({ln: math.log});
-        "log#1"     : function(n, pN){ return "<apply> <ln/> " + pN(n.args[0]) + " </apply>"; },
-        "log#2"     : function(n, pN){ return "<apply> <log/> <logbase> " + pN(n.args[1]) + " </logbase> " + pN(n.args[0]) + " </apply>"; },
-        "pow#2"     : function(n, pN){ return "<apply> <power/> " + pN(n.args[0]) + " " + pN(n.args[1]) + " </apply>"; },
-        "exp#1"     : function(n, pN){ return "<apply> <power/> <exponentiale/> " + pN(n.args[0]) + " </apply>"; }
-    },
-    operators : {
-        "+" : "<plus/>",
-        "-" : "<minus/>",
-        "*" : "<times/>",
-        "/" : "<divide/>",
-        "^" : "<power/>"
-    },
+    "cos#1"     : function(n, pN){ return "<apply> <cos/> " + pN(n.args[0]) + " </apply>"; },
+    "sin#1"     : function(n, pN){ return "<apply> <sin/> " + pN(n.args[0]) + " </apply>"; },
+    "tan#1"     : function(n, pN){ return "<apply> <tan/> " + pN(n.args[0]) + " </apply>"; },
+    "sec#1"     : function(n, pN){ return "<apply> <sec/> " + pN(n.args[0]) + " </apply>"; },
+    "csc#1"     : function(n, pN){ return "<apply> <csc/> " + pN(n.args[0]) + " </apply>"; },
+    "cot#1"     : function(n, pN){ return "<apply> <cot/> " + pN(n.args[0]) + " </apply>"; },
+    "sqrt#1"    : function(n, pN){ return "<apply> <root/> " + pN(n.args[0]) + " </apply>"; },
+    "nthRoot#2" : function(n, pN){ return "<apply> <root/> <degree> " + pN(n.args[1]) + " </degree> " + pN(n.args[0]) + " </apply>"; },
+    "ln#1"      : function(n, pN){ return "<apply> <ln/> " + pN(n.args[0]) + " </apply>"; }, // Note ln needs to be added to mathjs manually via math.import({ln: math.log});
+    "log#1"     : function(n, pN){ return "<apply> <ln/> " + pN(n.args[0]) + " </apply>"; },
+    "log#2"     : function(n, pN){ return "<apply> <log/> <logbase> " + pN(n.args[1]) + " </logbase> " + pN(n.args[0]) + " </apply>"; },
+    "pow#2"     : function(n, pN){ return "<apply> <power/> " + pN(n.args[0]) + " " + pN(n.args[1]) + " </apply>"; },
+    "exp#1"     : function(n, pN){ return "<apply> <power/> <exponentiale/> " + pN(n.args[0]) + " </apply>"; }
+}
+
+CALC.mathJS.standard.operators = {
+    "+" : "<plus/>",
+    "-" : "<minus/>",
+    "*" : "<times/>",
+    "/" : "<divide/>",
+    "^" : "<power/>"
+}
+
+
+CALC.mathJS.functionOfXInputs = {
+    functions: CALC.mathJS.standard.functions,
+    operators : CALC.mathJS.standard.operators,
     symbols : {
         map: {
             "pi": "<pi/>",
@@ -79,31 +86,9 @@ CALC.mathJS.functionOfXInputs = {
 
 CALC.mathJS.functionOfXParser = ARTC.mathJS.buildParser(CALC.mathJS.functionOfXInputs.functions, CALC.mathJS.functionOfXInputs.operators, CALC.mathJS.functionOfXInputs.symbols, CALC.mathJS.rejectOddX);
 
-
 CALC.mathJS.constantInputs = {
-    // All functions here take (node, parseNode)
-    functions: {
-        "cos#1"     : function(n, pN){ return "<apply> <cos/> " + pN(n.args[0]) + " </apply>"; },
-        "sin#1"     : function(n, pN){ return "<apply> <sin/> " + pN(n.args[0]) + " </apply>"; },
-        "tan#1"     : function(n, pN){ return "<apply> <tan/> " + pN(n.args[0]) + " </apply>"; },
-        "sec#1"     : function(n, pN){ return "<apply> <sec/> " + pN(n.args[0]) + " </apply>"; },
-        "csc#1"     : function(n, pN){ return "<apply> <csc/> " + pN(n.args[0]) + " </apply>"; },
-        "cot#1"     : function(n, pN){ return "<apply> <cot/> " + pN(n.args[0]) + " </apply>"; },
-        "sqrt#1"    : function(n, pN){ return "<apply> <root/> " + pN(n.args[0]) + " </apply>"; },
-        "nthRoot#2" : function(n, pN){ return "<apply> <root/> <degree> " + pN(n.args[1]) + " </degree> " + pN(n.args[0]) + " </apply>"; },
-        "ln#1"      : function(n, pN){ return "<apply> <ln/> " + pN(n.args[0]) + " </apply>"; }, // Note ln needs to be added to mathjs manually via math.import({ln: math.log});
-        "log#1"     : function(n, pN){ return "<apply> <ln/> " + pN(n.args[0]) + " </apply>"; },
-        "log#2"     : function(n, pN){ return "<apply> <log/> <logbase> " + pN(n.args[1]) + " </logbase> " + pN(n.args[0]) + " </apply>"; },
-        "pow#2"     : function(n, pN){ return "<apply> <power/> " + pN(n.args[0]) + " " + pN(n.args[1]) + " </apply>"; },
-        "exp#1"     : function(n, pN){ return "<apply> <power/> <exponentiale/> " + pN(n.args[0]) + " </apply>"; }
-    },
-    operators : {
-        "+" : "<plus/>",
-        "-" : "<minus/>",
-        "*" : "<times/>",
-        "/" : "<divide/>",
-        "^" : "<power/>"
-    },
+    functions: CALC.mathJS.standard.functions,
+    operators : CALC.mathJS.standard.operators,
     symbols : {
         map: {
             "pi": "<pi/>",
@@ -115,4 +100,19 @@ CALC.mathJS.constantInputs = {
 };
 
 CALC.mathJS.constantParser = ARTC.mathJS.buildParser(CALC.mathJS.constantInputs.functions, CALC.mathJS.constantInputs.operators, CALC.mathJS.constantInputs.symbols);
+
+CALC.mathJS.numerericInputs = {
+    functions: CALC.mathJS.standard.functions,
+    operators : CALC.mathJS.standard.operators,
+    symbols : {
+        map: {
+            "pi": "<pi/>",
+            "e": "<exponentiale/>"
+        },
+        allowAny : false,
+        regex : false
+    }
+};
+
+CALC.mathJS.numericParser = ARTC.mathJS.buildParser(CALC.mathJS.constantInputs.functions, CALC.mathJS.constantInputs.operators, CALC.mathJS.constantInputs.symbols);
 

@@ -156,9 +156,15 @@ ARTC.mathJS.prepFuncPow = function(text, funcs) {
  * ARTC.buildMathJSParser is a builder for parsers.
  * The main goal of these parsers turn a MathJS style string into Content MathML.
  *
- * ARTC.buildMathJSParser requires an "function", "operator" and "symbol" map.
- * These maps specify which subset of MathJS is legal in the parser and what content MathML the Mathjs should map to.
- * See ARTC.mathJSDefaults for example of these maps.
+ * functions
+ * operators
+ * symbols
+ * rejectFunc
+ *
+ * ARTC.buildMathJSParser requires an "function", "operator", "symbol" map and takes a "rejectFunc" as an optional parameter.
+ *
+ * "function", "operator", "symbol" are maps which specify which subset of MathJS is legal in the parser and what
+ * content MathML the Mathjs should map to. See ARTC.mathJSDefaults for example of these maps.
  *
  * The parser returns an object with the following format:
  * {
@@ -293,8 +299,6 @@ ARTC.mathJS.buildParser = (function(){
                 // =====
 
                 var mathJSNode = math.parse(stringPrepped);
-
-
 
                 var reject = rejectFuncSafe(mathJSNode);
                 if(reject){ throw reject; }

@@ -29,7 +29,7 @@ case class SetOfNumbers(elements: Seq[MathMLElem]) {
 //    }
 //  }
 
-  def stringVersion = elements.mkString(",")
+  def stringVersion = elements.mkString(SetOfNumbers.separator)
 //    elements.map(_ match {
 //      case Left(token) => token
 //      case Right(math) => math.toString
@@ -39,7 +39,7 @@ case class SetOfNumbers(elements: Seq[MathMLElem]) {
 
 
 object SetOfNumbers {
-  val separator = ","
+  val separator = ";;;"
 
   def apply(text: String): SetOfNumbers = {
     if(text == null) {

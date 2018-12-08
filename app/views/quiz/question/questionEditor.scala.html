@@ -25,18 +25,20 @@
         </div>
 
         <div class="item user-constants">
+            User Constants <br>
+
             <!-- ko with: @QuestionCreate.userConstants -->
-                <a href='#' data-bind='click: QE.addUserConstantInteger' class="pure-button">Add Integer Constant</a>
+                <a href='#' data-bind='click: QE.addUserConstantInteger' class="pure-button">Add Integer UC</a>
                 <!-- ko foreach: @QuestionCreate.ucIntegers -->
                     name: <span data-bind="html : @QuestionCreate.ucName"> </span>
                     lower: <input type="number" style="width: 100px;" step="1" data-bind="value : @QuestionCreate.ucLower" >
                     upper: <input type="number" style="width: 100px;" step="1" data-bind="value : @QuestionCreate.ucUpper" >
                     <a href='#' data-bind='click: function(data, event) { QE.removeConstantInteger($parent, data) }' class="pure-button">Remove</a>
                 <!-- /ko -->
-                
+
                 <br>
 
-                <a href='#' data-bind='click: QE.addUserConstantDecimal' class="pure-button">Add Decimal Constant</a>
+                <a href='#' data-bind='click: QE.addUserConstantDecimal' class="pure-button">Add Decimal UC</a>
                 <!-- ko foreach: @QuestionCreate.ucDecimals -->
                     name: <span data-bind="html : @QuestionCreate.ucName"> </span>
                     lower: <input type="number" style="width: 100px;" step=".5" data-bind="value : @QuestionCreate.ucLower" >
@@ -45,8 +47,15 @@
                     <a href='#' data-bind='click: function(data, event) { QE.removeConstantDecimal($parent, data) }' class="pure-button">Remove</a>
                 <!-- /ko -->
 
+                <br>
+
+                <a href='#' data-bind='click: QE.addUserConstantSet' class="pure-button">Add Set UC</a>
                 <!-- ko foreach: @QuestionCreate.ucSets -->
-                <!-- /ko -->
+                    name: <span data-bind="html : @QuestionCreate.ucName"> </span>
+                    values: @tag.isValid("valuesInvalid") <input data-bind="textInput: @QuestionCreate.ucValuesRaw" />
+                    <span data-bind="attr: { 'id' : @QuestionCreate.ucName }"> </span>
+
+            <!-- /ko -->
             <!-- /ko -->
         </div>
 
@@ -467,23 +476,23 @@
                 return constant;
             }
 
-            // add new decimal user constant
+            // add new Decimal User Constant
             QE.addUserConstantDecimal = function (userConstants) {
                 var constantId = userConstants.decimalIdGenerator++; // note this increments the idGenerator
 
                 var newConstant = ko.mapping.fromJS({
-                @QuestionCreate.ucName      : "@QuestionCreate.D_" + constantId,
-                @QuestionCreate.ucLower     :  1,
-                @QuestionCreate.ucUpper     : 10,
-                @QuestionCreate.ucPrecision :  2
-            });
+                    @QuestionCreate.ucName      : "@QuestionCreate.D_" + constantId,
+                    @QuestionCreate.ucLower     :  1,
+                    @QuestionCreate.ucUpper     : 10,
+                    @QuestionCreate.ucPrecision :  2
+                });
 
                 enhanceConstantDecimal(userConstants, newConstant);
 
                 userConstants.@{QuestionCreate.ucDecimals}.push(newConstant)
             }
 
-            // Remove an Decimal Constant
+            // Remove an Decimal User Constant
             QE.removeConstantDecimal = function(userConstants, constant) {
                 var constants = userConstants.@{QuestionCreate.ucDecimals};
                 constants.remove(function (uc) {
@@ -492,8 +501,51 @@
             }
 
             // ------- Set ------
-            var ucSetId = function (num) {
-                return "ucs" + (num);
+            var enhanceConstantSet = function(userConstants, constant) {
+
+                // Update the values display & value (and validity)
+                constant.valuesInvalid = ko.observable( true ); // This will be updated manually by subscribe below
+
+                var values = constant.@{QuestionCreate.ucValuesRaw};
+                values.subscribe(function (newValue) {
+                    var valuesResult = ARTC.string2Numbers(newValue , CALC.mathJS.constantParser);
+                    if(valuesResult.success) {
+                        var valuesHtml = _.map(valuesResult.values, function(v){ return "<span>" + v.render + "</span>" } );
+                        ARTC.mathJax.updateById(constant.@{QuestionCreate.ucName}(), valuesHtml.join(" ; ") );
+                        var valuesMath = _.map(valuesResult.values, function(v){ return v.full.content;  } );
+                        constant.@{QuestionCreate.ucValuesMath}(valuesMath.join("@{separator}"));
+                    }
+
+                    constant.valuesInvalid(!valuesResult.success);
+                });
+
+                // Force an update for part.valuesuenceInvalid
+                values.valueHasMutated();
+
+                return constant;
+            }
+
+            // add new Set User Constant
+            QE.addUserConstantSet = function (userConstants) {
+                var constantId = userConstants.setIdGenerator++; // note this increments the idGenerator
+
+                var newConstant = ko.mapping.fromJS({
+                    @QuestionCreate.ucName       : "@QuestionCreate.S_" + constantId,
+                    @QuestionCreate.ucValuesRaw  :  "1;2;3",
+                    @QuestionCreate.ucValuesMath :  ""
+                });
+
+                enhanceConstantSet(userConstants, newConstant);
+
+                userConstants.@{QuestionCreate.ucSets}.push(newConstant)
+            }
+
+            // Remove a Set User Constant
+            QE.removeConstantSet = function(userConstants, constant) {
+                var constants = userConstants.@{QuestionCreate.ucSets};
+                constants.remove(function (uc) {
+                    return uc.@{QuestionCreate.ucName} === constant.@{QuestionCreate.ucName};
+                });
             }
 
             // ------- Constants Container ------

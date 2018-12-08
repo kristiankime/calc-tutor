@@ -6,7 +6,7 @@ if (!ARTC) {
  * Parses a string of semi colon separated values.
  * If the string is empty or has commas this is an error.
  * If possible the string is interpreted as a math statement by the parser.
- * If this cannot be done the string is simply trimmed.
+ * If this cannot be done the string is simply trimmed and interpreted as a name.
  *
  * @param string should be in the format V1;V2;V3... ie "3.1; A; 3*pi"
  * @returns An object with the following fields
