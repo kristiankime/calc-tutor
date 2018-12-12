@@ -172,7 +172,7 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     insert(questionFrame.question).flatMap{ question => {
       val skillsFuture = skillDAO.addSkills(question, questionFrame.skills) // Note we don't create new skills here they should already exist, but we need to "wait" on the future
 
-      val userConstantsFuture = userConstantsDAO.insert(questionFrame.userConstants)
+      val userConstantsFuture = userConstantsDAO.insert(questionFrame.userConstants.questionId(question.id))
 
       val sectionsFutures : Seq[Future[QuestionSectionFrame]] = questionFrame.id(question.id).sections.map(section => insert(section))
       val futureOfSections : Future[Vector[QuestionSectionFrame]] = com.artclod.concurrent.raiseFuture(sectionsFutures).map(_.sorted)
