@@ -11,7 +11,7 @@ import models.support.HasOrder
 import models.{QuestionId, QuestionPartId, QuestionSectionId, UserId}
 import org.joda.time.DateTime
 import play.twirl.api.Html
-
+import models.user.User
 
 
 // ======= QuestionFrame
@@ -21,6 +21,12 @@ case class QuestionFrame(question: Question, sections: Vector[QuestionSectionFra
   if(skills.isEmpty) { throw new IllegalArgumentException("There were no skills"); }
 
   def id(questionId: QuestionId) = QuestionFrame(question.copy(id = questionId), sections.map(_.questionId(questionId)), skills, userConstants.questionId(questionId))
+
+  def fixConstants(user: User) =
+    copy(
+      question = question.fixConstants(user, userConstants),
+//      sections = sections.map(_.fixConstants(user, userConstants)),
+      userConstants = QuestionUserConstantsFrame.empty)
 }
 
 object QuestionFrame {
@@ -108,6 +114,8 @@ case class QuestionUserConstantsFrame(integers: Vector[QuestionUserConstantInteg
       decimals.map(_.copy(questionId = questionId)),
       sets.map(_.copy(questionId = questionId))
     )
+
+  def all: Vector[UserConstant] = integers ++ decimals ++ sets
 
 }
 

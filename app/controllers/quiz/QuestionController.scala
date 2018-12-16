@@ -165,9 +165,13 @@ object QuestionCreate {
   val skills = "skills"
 
   // Prefixes
-  val I_ = "I_"
-  val D_ = "D_"
-  val S_ = "S_"
+  val I_ = "$I$"
+  val D_ = "$D$"
+  val S_ = "$S$"
+//  // Prefixes Escaped
+//  val I_ = """\$I\$"""
+//  val D_ = """\$I\$"""
+//  val S_ = """\$I\$"""
 
   // User Constants
   val userConstants = "userConstants"

@@ -15,7 +15,8 @@
 @import com.artclod.util.ofthree._
 @import models.quiz.util.SequenceTokenOrMath.separator
 
-@(action: play.api.mvc.Call, questionFrame: models.quiz.QuestionFrame, answerJson : controllers.quiz.AnswerJson, mathJsParser: String = "CALC.mathJS.functionOfXParser")(implicit request: Request[AnyContent])
+@(action: play.api.mvc.Call, user: models.user.User, questionFrameUserConstants: models.quiz.QuestionFrame, answerJson : controllers.quiz.AnswerJson, mathJsParser: String = "CALC.mathJS.functionOfXParser")(implicit request: Request[AnyContent])
+@defining(questionFrameUserConstants.fixConstants(user)) { questionFrame =>
 
 <section id="answer-editor">
 
@@ -209,3 +210,4 @@
     // then applying bindings
     ko.applyBindings(AE.viewModel, document.getElementById("answer-editor"));
 </script>
+}

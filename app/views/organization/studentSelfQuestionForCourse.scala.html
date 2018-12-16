@@ -15,6 +15,7 @@
 
     @views.html.quiz.question.answerEditor(
         controllers.quiz.routes.AnswerController.createSelfQuizCourseSubmit(course.organizationId, course.id, questionFrame.question.id),
+        user,
         questionFrame,
         answer)
 

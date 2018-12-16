@@ -61,8 +61,22 @@
   <script src="@routes.Assets.versioned("javascripts/artclod/artclod-opentip.js")" type="text/javascript"></script>
 
   <!-- MathJax including Content MathML extension and CSS fix-->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-  <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/mathjax/mathjax-override.css")" /> <!-- override some odd mathjax css defaults -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      // http://docs.mathjax.org/en/latest/options/preprocessors/tex2jax.html#configure-tex2jax
+      tex2jax: {
+        inlineMath: [ ['$$','$$'], ["\\(","\\)"] ],
+        displayMath : [ ['\[','\]'] ],
+        processEscapes: true
+      },
+      // http://docs.mathjax.org/en/latest/mathml.html#content-mathml
+      MathML:  { extensions: ["content-mathml.js"] },
+      // http://docs.mathjax.org/en/latest/options/extensions/Content-MathML.html?highlight=content%20mathml#the-content-mathml-extension
+      "content-mathml": { collapsePlusMinus: true, }
+    });
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript" async></script>
+  @*<link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/mathjax/mathjax-override.css")" /> <!-- override some odd mathjax css defaults -->*@
 
   <!-- Markdown -->
   <script src="@routes.Assets.versioned("javascripts/showdown/showdown-1.7.3.min.js")" type="text/javascript"></script>
