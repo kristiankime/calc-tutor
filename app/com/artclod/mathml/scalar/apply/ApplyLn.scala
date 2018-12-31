@@ -5,7 +5,7 @@ import com.artclod.mathml.scalar.concept._
 
 import scala.util._
 
-case class ApplyLn(value: MathMLElem) extends Logarithm(ExponentialE.v, value, Seq(Ln): _*) {
+case class ApplyLn(value: MathMLElem) extends Logarithm(ExponentialE.v, value, Seq(Ln): _*) with OneMathMLChild {
 
 	override def eval(boundVariables: Map[String, Double]) = Try(math.log(v.eval(boundVariables).get))
 
@@ -24,4 +24,8 @@ case class ApplyLn(value: MathMLElem) extends Logarithm(ExponentialE.v, value, S
 	}
 
 	override def toMathJS: String = "log(" + value.toMathJS + ")"
+
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplyLn(child)
 }

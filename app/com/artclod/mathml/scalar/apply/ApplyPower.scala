@@ -7,7 +7,7 @@ import com.artclod.mathml.scalar.concept.Constant
 import scala.util._
 
 case class ApplyPower(val base: MathMLElem, val exp: MathMLElem)
-	extends MathMLElem(MathML.h.prefix, "apply", MathML.h.attributes, MathML.h.scope, false, (Seq[MathMLElem](Power) ++ base ++ exp): _*) {
+	extends MathMLElem(MathML.h.prefix, "apply", MathML.h.attributes, MathML.h.scope, false, (Seq[MathMLElem](Power) ++ base ++ exp): _*) with TwoMathMLChildren {
 
 	def eval(boundVariables: Map[String, Double]): Try[Double] = {
 		(base.eval(boundVariables), exp.eval(boundVariables)) match {
@@ -60,4 +60,8 @@ case class ApplyPower(val base: MathMLElem, val exp: MathMLElem)
 	}
 
 	override def toMathJS: String = "(" + base.toMathJS + " ^ " + exp.toMathJS + ")"
+
+	def mathMLChildren = (base, exp)
+
+	def copy(first: MathMLElem, second: MathMLElem) = ApplyPower(first, second)
 }

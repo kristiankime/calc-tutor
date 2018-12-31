@@ -5,7 +5,7 @@ import com.artclod.mathml.scalar.concept._
 
 import scala.util._
 
-case class ApplyTan(value: MathMLElem) extends UnaryFunction(value, Tan) {
+case class ApplyTan(value: MathMLElem) extends UnaryFunction(value, Tan) with OneMathMLChild {
 
 	override def eval(b: Map[String, Double]) = Try(Trigonometry.tan(v.eval(b).get))
 
@@ -20,4 +20,7 @@ case class ApplyTan(value: MathMLElem) extends UnaryFunction(value, Tan) {
 
 	override def toMathJS: String = "tan(" + value.toMathJS + ")"
 
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplyTan(child)
 }

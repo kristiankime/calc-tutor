@@ -3,7 +3,7 @@ package com.artclod.mathml.scalar.apply
 import com.artclod.mathml.scalar._
 import com.artclod.mathml.scalar.concept._
 
-case class ApplyLog(base: BigDecimal, value: MathMLElem) extends Logarithm(base, value, Seq(Log, Logbase(base)): _*) {
+case class ApplyLog(base: BigDecimal, value: MathMLElem) extends Logarithm(base, value, Seq(Log, Logbase(base)): _*) with OneMathMLChild {
 
 	def simplifyStep() = ApplyLog(b, v.s)
 
@@ -16,6 +16,10 @@ case class ApplyLog(base: BigDecimal, value: MathMLElem) extends Logarithm(base,
 	}
 
 	override def toMathJS: String = "log(" + value.toMathJS + ", " + base.toString() + ")"
+
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplyLog(child)
 }
 
 object ApplyLog {

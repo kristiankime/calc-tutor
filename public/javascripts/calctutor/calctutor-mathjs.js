@@ -70,6 +70,24 @@ CALC.mathJS.standard.operators = {
 }
 
 
+// ===========
+// Parsers that allow the variable x (with and without user constants)
+CALC.mathJS.functionOfXAndUserConstantInputs = {
+    functions: CALC.mathJS.standard.functions,
+    operators : CALC.mathJS.standard.operators,
+    symbols : {
+        map: {
+            "pi": "<pi/>",
+            "e": "<exponentiale/>",
+            "x": "<ci> x </ci>"
+        },
+        allowAny : false,
+        regex : "\\$[IDS]\\$[0-9]+"
+    }
+};
+
+CALC.mathJS.functionOfXndUserConstantParser = ARTC.mathJS.buildParser(CALC.mathJS.functionOfXAndUserConstantInputs.functions, CALC.mathJS.functionOfXAndUserConstantInputs.operators, CALC.mathJS.functionOfXAndUserConstantInputs.symbols, CALC.mathJS.rejectOddX);
+
 CALC.mathJS.functionOfXInputs = {
     functions: CALC.mathJS.standard.functions,
     operators : CALC.mathJS.standard.operators,
@@ -86,21 +104,8 @@ CALC.mathJS.functionOfXInputs = {
 
 CALC.mathJS.functionOfXParser = ARTC.mathJS.buildParser(CALC.mathJS.functionOfXInputs.functions, CALC.mathJS.functionOfXInputs.operators, CALC.mathJS.functionOfXInputs.symbols, CALC.mathJS.rejectOddX);
 
-CALC.mathJS.constantInputs = {
-    functions: CALC.mathJS.standard.functions,
-    operators : CALC.mathJS.standard.operators,
-    symbols : {
-        map: {
-            "pi": "<pi/>",
-            "e": "<exponentiale/>"
-        },
-        allowAny : false,
-        regex : false
-    }
-};
-
-CALC.mathJS.constantParser = ARTC.mathJS.buildParser(CALC.mathJS.constantInputs.functions, CALC.mathJS.constantInputs.operators, CALC.mathJS.constantInputs.symbols);
-
+// ===========
+// Parsers that don't allows variables (with and without user constants)
 CALC.mathJS.numerericInputs = {
     functions: CALC.mathJS.standard.functions,
     operators : CALC.mathJS.standard.operators,
@@ -116,3 +121,17 @@ CALC.mathJS.numerericInputs = {
 
 CALC.mathJS.numericParser = ARTC.mathJS.buildParser(CALC.mathJS.constantInputs.functions, CALC.mathJS.constantInputs.operators, CALC.mathJS.constantInputs.symbols);
 
+CALC.mathJS.constantInputs = {
+    functions: CALC.mathJS.standard.functions,
+    operators : CALC.mathJS.standard.operators,
+    symbols : {
+        map: {
+            "pi": "<pi/>",
+            "e": "<exponentiale/>"
+        },
+        allowAny : false,
+        regex : "\\$[IDS]\\$[0-9]?"
+    }
+};
+
+CALC.mathJS.constantParser = ARTC.mathJS.buildParser(CALC.mathJS.constantInputs.functions, CALC.mathJS.constantInputs.operators, CALC.mathJS.constantInputs.symbols);

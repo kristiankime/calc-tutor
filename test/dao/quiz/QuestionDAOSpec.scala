@@ -126,7 +126,8 @@ class QuestionDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       // Not here we use the same user since owners can see archived questions
       val questions = TestData.await(questionDAO.questionSearchSet(user.id,"%", Seq(), Seq()))
 
-      questions mustBe(  Seq(  (questionFrame1.question, Set(sA)),   (questionFrame2.question, Set(sB))    )  )
+      questions must contain allOf (  (questionFrame1.question, Set(sA)), (questionFrame2.question, Set(sB))   )
+
     }
 
   }

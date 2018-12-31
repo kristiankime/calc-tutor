@@ -5,7 +5,7 @@ import com.artclod.mathml.scalar.concept._
 
 import scala.util._
 
-case class ApplySin(value: MathMLElem) extends UnaryFunction(value, Sin) {
+case class ApplySin(value: MathMLElem) extends UnaryFunction(value, Sin) with OneMathMLChild {
 
 	override def eval(b: Map[String, Double]) = Try(Trigonometry.sin(v.eval(b).get))
 
@@ -20,4 +20,7 @@ case class ApplySin(value: MathMLElem) extends UnaryFunction(value, Sin) {
 
 	override def toMathJS: String = "sin(" + value.toMathJS + ")"
 
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplySin(child)
 }

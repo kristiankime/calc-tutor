@@ -15,7 +15,7 @@
 @import com.artclod.util.ofthree._
 @import models.quiz.util.SequenceTokenOrMath.separator
 
-@(action: play.api.mvc.Call, user: models.user.User, questionFrameUserConstants: models.quiz.QuestionFrame, answerJson : controllers.quiz.AnswerJson, mathJsParser: String = "CALC.mathJS.functionOfXParser")(implicit request: Request[AnyContent])
+@(action: play.api.mvc.Call, user: models.user.User, questionFrameUserConstants: models.quiz.QuestionFrame, answerJson : controllers.quiz.AnswerJson)(implicit request: Request[AnyContent])
 @defining(questionFrameUserConstants.fixConstants(user)) { questionFrame =>
 
 <section id="answer-editor">
@@ -116,7 +116,7 @@
             // Set up the mathjax updates
             var func = part.@{AnswerCreate.functionRaw};
             func.subscribe(function (newValue) {
-                var mathResult = @{mathJsParser}(newValue);
+                var mathResult = CALC.mathJS.functionOfXParser(newValue);
                 if(mathResult.success) {
                     ARTC.mathJax.updateById(part.id, ARTC.mathJax.tex(mathResult.node.toTex()));
                     part.@{AnswerCreate.functionMath}(mathResult.content);
@@ -137,7 +137,7 @@
             var sequ = part.@{AnswerCreate.sequenceStr};
             sequ.subscribe(function (newValue) {
 
-                var seqResult = ARTC.string2Sequence(newValue , CALC.mathJS.constantParser);
+                var seqResult = ARTC.string2Sequence(newValue , CALC.mathJS.numericParser);
                 if(seqResult.success) {
                     var seqHtml = _.map(seqResult.values, function(v){ return "<span>" + v.render + "</span>" } );
                     ARTC.mathJax.updateById(part.@id, seqHtml.join(" ; ") );

@@ -6,8 +6,7 @@ import com.artclod.mathml.scalar.concept.Constant
 import scala.util._
 import scala.xml._
 
-case class Ci(val identifier: IdentifierText)
-	extends MathMLElem(MathML.h.prefix, "ci", MathML.h.attributes, MathML.h.scope, false, Seq(identifier): _*) {
+case class Ci(val identifier: IdentifierText) extends MathMLElem(MathML.h.prefix, "ci", MathML.h.attributes, MathML.h.scope, false, Seq(identifier): _*) with NoMathMLChildren {
 
 	override val c = None;
 

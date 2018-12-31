@@ -7,7 +7,7 @@ import com.artclod.mathml.scalar.concept.Constant
 import scala.util._
 
 case class ApplyTimes(val values: MathMLElem*)
-	extends MathMLElem(MathML.h.prefix, "apply", MathML.h.attributes, MathML.h.scope, false, (Seq[MathMLElem](Times) ++ values): _*) {
+	extends MathMLElem(MathML.h.prefix, "apply", MathML.h.attributes, MathML.h.scope, false, (Seq[MathMLElem](Times) ++ values): _*) with SomeMathMLChildren {
 
 	def eval(boundVariables: Map[String, Double]): Try[Double] = {
 		val tryVals = values.map(_.eval(boundVariables))
@@ -67,4 +67,8 @@ case class ApplyTimes(val values: MathMLElem*)
 	}
 
 	def toMathJS = values.map(_.toMathJS).mkString("(", " * " ,")")
+
+	def mathMLChildren = values
+
+	def copy(children: MathMLElem*) = ApplyTimes(children:_*)
 }

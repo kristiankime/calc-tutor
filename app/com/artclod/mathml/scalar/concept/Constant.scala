@@ -8,7 +8,7 @@ import scala.xml._
 
 // LATER might be able to make Constant scala.math.Numeric 
 abstract class Constant(name: String, attributes1: MetaData, minimizeEmpty: Boolean, val v: Any, override val child: Node*)
-	extends MathMLElem(MathML.h.prefix, name, attributes1, MathML.h.scope, minimizeEmpty, child: _*) {
+	extends MathMLElem(MathML.h.prefix, name, attributes1, MathML.h.scope, minimizeEmpty, child: _*) with NoMathMLChildren {
 
 	def constant: Option[this.type] = Some(this)
 

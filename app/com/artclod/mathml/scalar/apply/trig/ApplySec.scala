@@ -5,7 +5,7 @@ import com.artclod.mathml.scalar.concept._
 
 import scala.util._
 
-case class ApplySec(value: MathMLElem) extends UnaryFunction(value, Sec) {
+case class ApplySec(value: MathMLElem) extends UnaryFunction(value, Sec) with OneMathMLChild {
 
 	override def eval(b: Map[String, Double]) = Try(Trigonometry.sec(v.eval(b).get))
 
@@ -20,4 +20,7 @@ case class ApplySec(value: MathMLElem) extends UnaryFunction(value, Sec) {
 
 	override def toMathJS: String = "sec(" + value.toMathJS + ")"
 
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplySec(child)
 }

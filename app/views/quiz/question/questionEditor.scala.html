@@ -2,7 +2,7 @@
 @import controllers.quiz.QuestionCreate
 @import models.quiz.util.SequenceTokenOrMath.separator
 
-@(action: play.api.mvc.Call, allSkills: Seq[String], initialDataModel: Option[String] = None, mathJsParser: String = "CALC.mathJS.functionOfXParser")(implicit request: Request[AnyContent])
+@(action: play.api.mvc.Call, allSkills: Seq[String], initialDataModel: Option[String] = None)(implicit request: Request[AnyContent])
 
 
 <section id="question-editor">
@@ -215,7 +215,7 @@
                 part.functionInvalid = ko.observable( true ); // This will be updated manually by subscribe below
                 var func = part.@{QuestionCreate.functionRaw};
                 func.subscribe(function (newValue) {
-                    var mathResult = @{mathJsParser}(newValue);
+                    var mathResult = CALC.mathJS.functionOfXAndUserConstantInputs(newValue);
                     if(mathResult.success) {
                         ARTC.mathJax.updateById(part.@QuestionCreate.id, ARTC.mathJax.tex(mathResult.node.toTex()));
                         part.@{QuestionCreate.functionMath}(mathResult.content);
@@ -508,7 +508,7 @@
 
                 var values = constant.@{QuestionCreate.ucValuesRaw};
                 values.subscribe(function (newValue) {
-                    var valuesResult = ARTC.string2Numbers(newValue , CALC.mathJS.constantParser);
+                    var valuesResult = ARTC.string2Numbers(newValue , CALC.mathJS.numericParser);
                     if(valuesResult.success) {
                         var valuesHtml = _.map(valuesResult.values, function(v){ return "<span>" + v.render + "</span>" } );
                         ARTC.mathJax.updateById(constant.@{QuestionCreate.ucName}(), valuesHtml.join(" ; ") );

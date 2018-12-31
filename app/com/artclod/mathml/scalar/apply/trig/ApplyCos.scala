@@ -5,7 +5,7 @@ import com.artclod.mathml.scalar.concept._
 
 import scala.util._
 
-case class ApplyCos(value: MathMLElem) extends UnaryFunction(value, Cos) {
+case class ApplyCos(value: MathMLElem) extends UnaryFunction(value, Cos) with OneMathMLChild {
 
 	override def eval(b: Map[String, Double]) = Try(Trigonometry.cos(v.eval(b).get))
 
@@ -20,4 +20,7 @@ case class ApplyCos(value: MathMLElem) extends UnaryFunction(value, Cos) {
 
 	override def toMathJS: String = "cos(" + value.toMathJS + ")"
 
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplyCos(child)
 }

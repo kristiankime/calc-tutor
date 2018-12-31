@@ -5,7 +5,7 @@ import com.artclod.mathml.scalar.concept._
 
 import scala.util._
 
-case class ApplyCsc(value: MathMLElem) extends UnaryFunction(value, Csc) {
+case class ApplyCsc(value: MathMLElem) extends UnaryFunction(value, Csc) with OneMathMLChild {
 
 	override def eval(b: Map[String, Double]) = Try(Trigonometry.csc(v.eval(b).get))
 
@@ -19,4 +19,8 @@ case class ApplyCsc(value: MathMLElem) extends UnaryFunction(value, Csc) {
 	def derivative(x: String) = -ApplyCot(v.s) * ApplyCsc(v.s) * v.d(x)
 
 	override def toMathJS: String = "csc(" + value.toMathJS + ")"
+
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplyCsc(child)
 }

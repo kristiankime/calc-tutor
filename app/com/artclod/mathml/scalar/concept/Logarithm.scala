@@ -16,7 +16,6 @@ abstract class Logarithm(val b: BigDecimal, val v: MathMLElem, pre: MathMLElem*)
 	}
 
 	def variables: Set[String] = v.variables
-	
 }
 
 object Logarithm {

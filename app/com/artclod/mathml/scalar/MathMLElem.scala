@@ -15,7 +15,7 @@ abstract class MathMLElem(
 	scope: NamespaceBinding,
 	minimizeEmpty: Boolean,
 	child: Node*)
-	extends Elem(prefix, label, attributes1, scope, minimizeEmpty, child: _*) {
+	extends Elem(prefix, label, attributes1, scope, minimizeEmpty, child: _*) with MathMLChildren {
 
   // LATER it would be nice if this was just called eval but Map[A,B] is Iterable[(A,B)] so the signatures conflict
   def evalT(boundVariables: (String, Double)*) : Try[Double] = eval(Map(boundVariables:_*))
@@ -111,4 +111,31 @@ abstract class MathMLElem(
   def isDefinedAt(boundVariables: (String, Double)*) = MathMLDefined.isDefinedAt(this, boundVariables:_*)
 
 	def toMathJS : String
+
+}
+
+sealed trait MathMLChildren {
+
+}
+
+trait NoMathMLChildren extends MathMLChildren {
+
+}
+
+trait OneMathMLChild extends MathMLChildren {
+	def mathMLChild : MathMLElem
+
+	def copy(child: MathMLElem) : MathMLElem
+}
+
+trait TwoMathMLChildren extends MathMLChildren {
+	def mathMLChildren : (MathMLElem, MathMLElem)
+
+	def copy(first: MathMLElem, second: MathMLElem) : MathMLElem
+}
+
+trait SomeMathMLChildren extends MathMLChildren {
+	def mathMLChildren : Seq[MathMLElem]
+
+	def copy(children: MathMLElem*) : MathMLElem
 }

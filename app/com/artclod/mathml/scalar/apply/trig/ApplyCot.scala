@@ -5,7 +5,7 @@ import com.artclod.mathml.scalar.concept._
 
 import scala.util._
 
-case class ApplyCot(value: MathMLElem) extends UnaryFunction(value, Cot) {
+case class ApplyCot(value: MathMLElem) extends UnaryFunction(value, Cot) with OneMathMLChild {
 
 	override def eval(b: Map[String, Double]) = Try(Trigonometry.cot(v.eval(b).get))
 
@@ -20,4 +20,7 @@ case class ApplyCot(value: MathMLElem) extends UnaryFunction(value, Cot) {
 
 	override def toMathJS: String = "cot(" + value.toMathJS + ")"
 
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplyCot(child)
 }

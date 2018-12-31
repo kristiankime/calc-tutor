@@ -3,7 +3,7 @@ package com.artclod.mathml.scalar.apply
 import com.artclod.mathml.scalar.{Root, _}
 import com.artclod.mathml.scalar.concept._
 
-case class ApplyRoot(degree: BigDecimal, value: MathMLElem) extends NthRoot(degree, value, Seq(Root, Degree(degree)): _*) {
+case class ApplyRoot(degree: BigDecimal, value: MathMLElem) extends NthRoot(degree, value, Seq(Root, Degree(degree)): _*) with OneMathMLChild {
 
 	def simplifyStep() = {if (degree == ApplyRoot.BD_2) { ApplySqrt(v.s) } else { ApplyRoot(degree, v.s) }}
 
@@ -24,6 +24,10 @@ case class ApplyRoot(degree: BigDecimal, value: MathMLElem) extends NthRoot(degr
 	}
 
 	override def toMathJS: String = "nthRoot(" + value.toMathJS + ", " + degree + ")"
+
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplyRoot(degree, child)
 }
 
 object ApplyRoot {

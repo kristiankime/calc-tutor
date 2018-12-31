@@ -164,14 +164,10 @@ object QuestionCreate {
   val sections = "sections"
   val skills = "skills"
 
-  // Prefixes
-  val I_ = "$I$"
-  val D_ = "$D$"
-  val S_ = "$S$"
-//  // Prefixes Escaped
-//  val I_ = """\$I\$"""
-//  val D_ = """\$I\$"""
-//  val S_ = """\$I\$"""
+  // Prefixes - there are here to make finding references easy
+  val I_ = UserConstant.I_
+  val D_ = UserConstant.D_
+  val S_ = UserConstant.S_
 
   // User Constants
   val userConstants = "userConstants"

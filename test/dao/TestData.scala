@@ -4,12 +4,13 @@ import java.util.concurrent.TimeUnit
 
 import com.artclod.markup.Markdowner
 import com.artclod.mathml.MathML
+import com.artclod.mathml.scalar.Cn
 import com.artclod.slick.{JodaUTC, NumericBoolean}
 import com.artclod.util.OneOfThree
 import com.artclod.util.ofthree.{First, Second, Third}
 import models._
 import models.organization.{Course, Organization}
-import models.quiz.util.SequenceTokenOrMath
+import models.quiz.util.{SequenceTokenOrMath, SetOfNumbers}
 import models.quiz.{QuestionFrame, QuestionPartChoice, QuestionPartFunction, _}
 import models.user.User
 import org.joda.time.DateTime
@@ -27,6 +28,8 @@ object TestData {
   def await[A, B, C, D, E](a1: Awaitable[A], a2: Awaitable[B], a3: Awaitable[C], a4: Awaitable[D], a5: Awaitable[E]) = (Await.result(a1, duration), Await.result(a2, duration), Await.result(a3, duration), Await.result(a4, duration), Await.result(a5, duration))
 
   def user(id: Int) = User(id = null, loginId = "loginId" + id , name = "name" + id, email = None, lastAccess = JodaUTC(0))
+
+  def userWithId(id: Int) = User(id = UserId(id), loginId = "loginId" + id , name = "name" + id, email = None, lastAccess = JodaUTC(0))
 
   def organization(id: Int) = Organization(name= "name" + id, creationDate=JodaUTC(0), updateDate=JodaUTC(0))
 
@@ -52,6 +55,11 @@ object TestData {
       userConstants
     )
 
+
+  // --- User Constants ---
+  def userConstantSet(name: String, values: Double*) = QuestionUserConstantSet(null, null, name, values.mkString(SetOfNumbers.separator), SetOfNumbers(values.map(Cn(_))))
+
+  // --- Section Frame ---
 //  def questionSectionFrame(explanation: String, order: Short = -1)(choices: QuestionPartChoice*)(functions: QuestionPartFunction*)(sequences: QuestionPartSequence*) =
 //    QuestionSectionFrame(
 //      QuestionSection(null, null, explanation, Markdowner.html(explanation), order),

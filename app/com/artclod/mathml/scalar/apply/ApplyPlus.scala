@@ -7,7 +7,7 @@ import com.artclod.mathml.scalar.concept.Constant
 import scala.util._
 
 case class ApplyPlus(val values: MathMLElem*)
-	extends MathMLElem(MathML.h.prefix, "apply", MathML.h.attributes, MathML.h.scope, false, (Seq[MathMLElem](Plus) ++ values): _*) {
+	extends MathMLElem(MathML.h.prefix, "apply", MathML.h.attributes, MathML.h.scope, false, (Seq[MathMLElem](Plus) ++ values): _*) with SomeMathMLChildren {
 
 	def eval(boundVariables: Map[String, Double]) = Try(values.map(_.eval(boundVariables).get).reduceLeft(_ + _))
 
@@ -39,4 +39,8 @@ case class ApplyPlus(val values: MathMLElem*)
 	def derivative(x: String) = ApplyPlus(values.map(_.d(x)): _*).s
 
 	def toMathJS = values.map(_.toMathJS).mkString("(", " + " ,")")
+
+	def mathMLChildren = values
+
+	def copy(children: MathMLElem*) = ApplyPlus(children:_*)
 }

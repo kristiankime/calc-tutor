@@ -5,7 +5,7 @@ import com.artclod.mathml.scalar.concept._
 
 import scala.util._
 
-case class ApplySqrt(value: MathMLElem) extends NthRoot(2, value, Seq(Root): _*) {
+case class ApplySqrt(value: MathMLElem) extends NthRoot(2, value, Seq(Root): _*) with OneMathMLChild {
 
 	override def eval(boundVariables: Map[String, Double]) = Try(math.sqrt(v.eval(boundVariables).get))
 
@@ -24,4 +24,8 @@ case class ApplySqrt(value: MathMLElem) extends NthRoot(2, value, Seq(Root): _*)
 	}
 
 	def toMathJS: String = "sqrt(" + value.toMathJS + ")"
+
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = ApplySqrt(child)
 }

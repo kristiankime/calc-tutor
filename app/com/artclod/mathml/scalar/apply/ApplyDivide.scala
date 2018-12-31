@@ -7,7 +7,7 @@ import com.artclod.mathml.scalar.concept.Constant
 import scala.util._
 
 case class ApplyDivide(val numerator: MathMLElem, val denominator: MathMLElem)
-	extends MathMLElem(MathML.h.prefix, "apply", MathML.h.attributes, MathML.h.scope, false, (Seq[MathMLElem](Divide) ++ numerator ++ denominator): _*) {
+	extends MathMLElem(MathML.h.prefix, "apply", MathML.h.attributes, MathML.h.scope, false, (Seq[MathMLElem](Divide) ++ numerator ++ denominator): _*) with TwoMathMLChildren {
 
 	def eval(vars: Map[String, Double]): Try[Double] =
 		(numerator.eval(vars), denominator.eval(vars)) match {
@@ -51,4 +51,8 @@ case class ApplyDivide(val numerator: MathMLElem, val denominator: MathMLElem)
 	}
 
 	override def toMathJS: String = "(" + numerator.toMathJS + " / " + denominator.toMathJS + ")"
+
+	def mathMLChildren = (numerator, denominator)
+
+	def copy(first: MathMLElem, second: MathMLElem) = ApplyDivide(first, second)
 }

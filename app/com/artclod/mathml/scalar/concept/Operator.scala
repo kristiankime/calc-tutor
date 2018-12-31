@@ -6,7 +6,7 @@ import com.artclod.mathml.scalar._
 import scala.util._
 
 abstract class Operator(override val label: String)
-	extends MathMLElem(MathML.h.prefix, label, MathML.h.attributes, MathML.h.scope, true, Seq(): _*) {
+	extends MathMLElem(MathML.h.prefix, label, MathML.h.attributes, MathML.h.scope, true, Seq(): _*) with NoMathMLChildren {
 
 	def eval(boundVariables: Map[String, Double]) = Failure(new UnsupportedOperationException("Operators should not get evaled, use eval on the surrounding apply element."))
 

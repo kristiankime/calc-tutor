@@ -25,7 +25,7 @@ case class QuestionFrame(question: Question, sections: Vector[QuestionSectionFra
   def fixConstants(user: User) =
     copy(
       question = question.fixConstants(user, userConstants),
-//      sections = sections.map(_.fixConstants(user, userConstants)),
+      sections = sections.map(_.fixConstants(user, userConstants)),
       userConstants = QuestionUserConstantsFrame.empty)
 }
 
@@ -117,6 +117,8 @@ case class QuestionUserConstantsFrame(integers: Vector[QuestionUserConstantInteg
 
   def all: Vector[UserConstant] = integers ++ decimals ++ sets
 
+  def constant(name: String) = all.find(_.name == name)
+
 }
 
 object QuestionUserConstantsFrame {
@@ -164,6 +166,15 @@ case class QuestionSectionFrame(section: QuestionSection, parts: OneOfThree[ Vec
       case First(ps)  => First(ps.map(p => p.copy(questionId=questionId)))
       case Second(ps) => Second(ps.map(p => p.copy(questionId=questionId)))
       case Third(ps)  => Third(ps.map(p => p.copy(questionId=questionId)))
+    }
+  )
+
+  def fixConstants(user: User, userConstants: QuestionUserConstantsFrame) = this.copy(
+    section = section.fixConstants(user, userConstants),
+    parts = parts match {
+      case First(ps)  => First( ps.map(p => p.fixConstants(user, userConstants)))
+      case Second(ps) => Second(ps.map(p => p.fixConstants(user, userConstants)))
+      case Third(ps)  => Third( ps.map(p => p.fixConstants(user, userConstants)))
     }
   )
 

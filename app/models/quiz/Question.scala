@@ -1,6 +1,6 @@
 package models.quiz
 
-import com.artclod.html.html.EnhancedHtml
+import models.quiz.UserConstant.EnhancedHtml
 import com.artclod.slick.JodaUTC
 import models.user.User
 import models.{QuestionId, UserId}
