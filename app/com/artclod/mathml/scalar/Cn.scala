@@ -6,9 +6,9 @@ import scala.math.ScalaNumber
 import scala.util._
 import scala.xml._
 
-case class CnInteger(override val v: BigInt) extends ConstantInteger("cn", Cn.integerType, false, v, Seq(IntegerText(v)): _*)
+case class CnInteger(override val v: BigInt) extends ConstantInteger("cn", Cn.integerType, false, v, Seq(IntegerText(v)): _*) with NoMathMLChildren
 
-case class CnReal(override val v: BigDecimal) extends ConstantDecimal("cn", Cn.realType, false, v, Seq(RealText(v)): _*)
+case class CnReal(override val v: BigDecimal) extends ConstantDecimal("cn", Cn.realType, false, v, Seq(RealText(v)): _*) with NoMathMLChildren
 
 object Cn {
 	def apply(str: String): Try[Constant] = {

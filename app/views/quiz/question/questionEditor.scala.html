@@ -215,7 +215,7 @@
                 part.functionInvalid = ko.observable( true ); // This will be updated manually by subscribe below
                 var func = part.@{QuestionCreate.functionRaw};
                 func.subscribe(function (newValue) {
-                    var mathResult = CALC.mathJS.functionOfXAndUserConstantInputs(newValue);
+                    var mathResult = CALC.mathJS.functionOfXndUserConstantParser(newValue);
                     if(mathResult.success) {
                         ARTC.mathJax.updateById(part.@QuestionCreate.id, ARTC.mathJax.tex(mathResult.node.toTex()));
                         part.@{QuestionCreate.functionMath}(mathResult.content);

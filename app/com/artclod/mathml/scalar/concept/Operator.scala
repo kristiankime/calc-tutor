@@ -18,5 +18,5 @@ abstract class Operator(override val label: String)
 
 	def derivative(wrt: String): MathMLElem = throw new UnsupportedOperationException("Operators should not get derived, use derive on the surrounding apply element.")
 
-	def toMathJS = throw new UnsupportedOperationException("Operators should not toTexted, use toText on the surrounding apply element.")
+	def toMathJS = throw new UnsupportedOperationException("Operators should not be toTexted, use toText on the surrounding apply element.")
 }

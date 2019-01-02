@@ -1,6 +1,6 @@
 package com.artclod.mathml
 
-import com.artclod.mathml.scalar.MathMLElem
+import com.artclod.mathml.scalar.{MathMLElem, OneMathMLChild}
 import com.artclod.mathml.scalar.concept.Constant
 
 import scala.xml._
@@ -11,7 +11,7 @@ case class Math(
 	override val scope: NamespaceBinding,
 	override val minimizeEmpty: Boolean,
 	val value: MathMLElem)
-	extends MathMLElem(prefix, "math", attributes1, scope, minimizeEmpty, Seq(value): _*) {
+	extends MathMLElem(prefix, "math", attributes1, scope, minimizeEmpty, Seq(value): _*) with OneMathMLChild {
 
 	def this(value: MathMLElem) = this(MathML.h.prefix, MathML.h.attributes, MathML.h.scope, false, value)
 
@@ -26,6 +26,10 @@ case class Math(
 	def derivative(wrt: String) = Math(prefix, attributes, scope, minimizeEmpty, value.d(wrt).s)
 
 	override def toMathJS: String = value.toMathJS
+
+	def mathMLChild = value
+
+	def copy(child: MathMLElem) = Math(child)
 }
 
 object Math {

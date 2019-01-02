@@ -18,8 +18,12 @@ case class QuestionUserConstantInteger(id: QuestionUserConstantId, questionId: Q
 
   def replaceValue(user: User) = {
     val ran = random(user)
-    val value = ran.nextInt(upper - lower) + lower
-    value
+    val spread = upper - lower
+    if(spread == 0) {
+      lower
+    } else {
+      ran.nextInt(upper - lower) + lower
+    }
   }
 
   override def replaceStr(user: User) = {

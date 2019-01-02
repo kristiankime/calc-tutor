@@ -69,6 +69,10 @@ CALC.mathJS.standard.operators = {
     "^" : "<power/>"
 }
 
+CALC.mathJS.userConstants = {
+    regex : "\\$[IDS]\\$[0-9]+"
+}
+
 
 // ===========
 // Parsers that allow the variable x (with and without user constants)
@@ -82,7 +86,7 @@ CALC.mathJS.functionOfXAndUserConstantInputs = {
             "x": "<ci> x </ci>"
         },
         allowAny : false,
-        regex : "\\$[IDS]\\$[0-9]+"
+        regex : CALC.mathJS.userConstants.regex
     }
 };
 
@@ -119,8 +123,9 @@ CALC.mathJS.numerericInputs = {
     }
 };
 
-CALC.mathJS.numericParser = ARTC.mathJS.buildParser(CALC.mathJS.constantInputs.functions, CALC.mathJS.constantInputs.operators, CALC.mathJS.constantInputs.symbols);
+CALC.mathJS.numericParser = ARTC.mathJS.buildParser(CALC.mathJS.numerericInputs.functions, CALC.mathJS.numerericInputs.operators, CALC.mathJS.numerericInputs.symbols);
 
+// Parsers that don't allow variables but allows user constants
 CALC.mathJS.constantInputs = {
     functions: CALC.mathJS.standard.functions,
     operators : CALC.mathJS.standard.operators,
@@ -130,7 +135,7 @@ CALC.mathJS.constantInputs = {
             "e": "<exponentiale/>"
         },
         allowAny : false,
-        regex : "\\$[IDS]\\$[0-9]?"
+        regex : CALC.mathJS.userConstants.regex
     }
 };
 

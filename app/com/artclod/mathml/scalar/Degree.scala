@@ -7,7 +7,7 @@ import scala.util.{Success, _}
 import scala.xml._
 
 case class Degree(val value: Constant)
-	extends MathMLElem(MathML.h.prefix, "degree", MathML.h.attributes, MathML.h.scope, false, Seq(value): _*) with NoMathMLChildren{
+	extends MathMLElem(MathML.h.prefix, "degree", MathML.h.attributes, MathML.h.scope, false, Seq(value): _*) with NoMathMLChildren {
 
 	def eval(boundVariables: Map[String, Double]) = Failure(new UnsupportedOperationException("Degree should not get evaled, use eval on the surrounding element."))
 
