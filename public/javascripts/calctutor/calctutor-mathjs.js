@@ -71,6 +71,7 @@ CALC.mathJS.standard.operators = {
 
 CALC.mathJS.userConstants = {
     regex : "\\$[IDS]\\$[0-9]+"
+    // regex : "[IDS]_[0-9]+"
 }
 
 
@@ -90,7 +91,7 @@ CALC.mathJS.functionOfXAndUserConstantInputs = {
     }
 };
 
-CALC.mathJS.functionOfXndUserConstantParser = ARTC.mathJS.buildParser(CALC.mathJS.functionOfXAndUserConstantInputs.functions, CALC.mathJS.functionOfXAndUserConstantInputs.operators, CALC.mathJS.functionOfXAndUserConstantInputs.symbols, CALC.mathJS.rejectOddX);
+CALC.mathJS.functionOfXAndUserConstantParser = ARTC.mathJS.buildParser(CALC.mathJS.functionOfXAndUserConstantInputs.functions, CALC.mathJS.functionOfXAndUserConstantInputs.operators, CALC.mathJS.functionOfXAndUserConstantInputs.symbols, CALC.mathJS.rejectOddX);
 
 CALC.mathJS.functionOfXInputs = {
     functions: CALC.mathJS.standard.functions,

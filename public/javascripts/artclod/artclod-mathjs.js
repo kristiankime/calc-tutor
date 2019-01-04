@@ -254,7 +254,7 @@ ARTC.mathJS.buildParser = (function(){
             } else if(symbols.allowAny) { // See if we are allowing anything to be a symbol
                 // console.log("allowAny");
                 return "<ci> " + node.name + " </ci>";
-            } else if(symRegex && symRegex.test(node.name)) { // See if we have pass the symbol regex (if one is specified)
+            } else if(symRegex && symRegex.test(node.name)) { // Check to see if we are allowing symbols that pass a regex
                 // console.log(symRegex);
                 // console.log("symRegex node.name=[" + node.name +"] test=" + symRegex.test(node.name));
                 return "<ci> " + node.name + " </ci>";
@@ -271,13 +271,19 @@ ARTC.mathJS.buildParser = (function(){
             }
         }
 
+        // ============== Paren Handling ===========
+        var parenthesisNodeFunction = function(node){
+            return "<mfenced> " + parseNode(node.content) + " </mfenced>"
+        }
+
         // ============== Full Parsing ===========
         var parseNode = function(node) {
             switch (node.type) {
-                case 'OperatorNode': return operatorNodeFunction(node);
-                case 'ConstantNode': return constantNodeFunction(node);
-                case 'SymbolNode':   return symbolNodeFunction(node);
-                case 'FunctionNode': return functionNodeFunction(node);
+                case 'OperatorNode'    : return operatorNodeFunction(node);
+                case 'ConstantNode'    : return constantNodeFunction(node);
+                case 'SymbolNode'      : return symbolNodeFunction(node);
+                case 'FunctionNode'    : return functionNodeFunction(node);
+                case 'ParenthesisNode' : return parenthesisNodeFunction(node);
                 default:             throw { message: "Error, unknown node type " + node };
             }
         }

@@ -23,6 +23,7 @@ object MathML {
 			case "pi" => Success(com.artclod.mathml.scalar.Pi)
 			case "logbase" => Cn(xml.childElem(0)).map(Logbase(_)) // LATER need to handle special Constants, xml.childElem(0) could fail
 			case "degree" => Cn(xml.childElem(0)).map(Degree(_)) // LATER need to handle special Constants, xml.childElem(0) could fail
+			case "mfenced" => MathML(xml.childElem(0)).map(Mfenced(_))
 			case _ => Failure(new IllegalArgumentException(xml + " was not recognized as a MathML element"))
 		}
 	}

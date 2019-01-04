@@ -92,15 +92,24 @@ object UserConstant {
   val I_ = "$" + I + "$"
   val D_ = "$" + D + "$"
   val S_ = "$" + S + "$"
+//  val I_ = I + "_"
+//  val D_ = D + "_"
+//  val S_ = S + "_"
 
   val matchAll = "\\$[" + I + D + S + "]\\$[0-9]+"; // Note this is duplicated in calctutor-mathjs.js
+//  val matchAll = "[" + I + D + S + "]_[0-9]+"; // Note this is duplicated in calctutor-mathjs.js
   val matchAllReg = matchAll.r
 
   val matchI = I_.replace("$", "\\$") + "[0-9]+"
+//  val matchI = I_ + "[0-9]+"
   val matchIReg = matchI.r
+
   val matchD = D_.replace("$", "\\$") + "[0-9]+"
+//  val matchD = D_ + "[0-9]+"
   val matchDReg = matchD.r
+
   val matchS = S_.replace("$", "\\$") + "[0-9]+"
+//  val matchS = S_ + "[0-9]+"
   val matchSReg = matchS.r
 
   def defaultUCInteger(name: String) = QuestionUserConstantInteger(null, null, name, 2, 6)

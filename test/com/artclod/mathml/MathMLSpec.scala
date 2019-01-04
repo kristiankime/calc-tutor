@@ -168,6 +168,9 @@ class MathMLSpec extends PlaySpec {
 			MathML(<apply> <root/> <ci>x</ci> </apply>).get mustBe(ApplySqrt(x))
 		}
 
+		"be able to parse mfenced" in {
+			MathML(<mfenced> <apply> <tan/> <pi/> </apply> </mfenced>).get mustBe(Mfenced(ApplyTan(π)))
+		}
 	}
 
 }
