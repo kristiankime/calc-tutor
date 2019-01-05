@@ -9,6 +9,7 @@ import models._
 import models.quiz.util.SequenceTokenOrMath
 import models.support.HasOrder
 import org.joda.time.DateTime
+import models.user.User
 
 case class AnswerFrame(answer: Answer, sections: Vector[AnswerSectionFrame], correctUnknown: Boolean) {
   if(sections.isEmpty) {throw new IllegalArgumentException("Answer sections was empty")}
@@ -50,12 +51,14 @@ case class AnswerSectionFrame(answerSection: AnswerSection, functionParts: Vecto
 
 object AnswerFrame {
 
-  def apply(questionFrame: QuestionFrame, answerJson: AnswerJson, userId: UserId, creationDate: DateTime = JodaUTC.now): AnswerFrame = {
-    if(questionFrame.sections.size != answerJson.sections.size){throw new IllegalArgumentException("sections were not the same size")}
+  def apply(questionFrameIn: QuestionFrame, answerJson: AnswerJson, user: User, creationDate: DateTime = JodaUTC.now): AnswerFrame = {
+    if(questionFrameIn.sections.size != answerJson.sections.size){throw new IllegalArgumentException("sections were not the same size")}
+
+    val questionFrame = questionFrameIn.fixConstants(user) // We need to fix the user constants before we can determine if the user answered correctly
 
     val sections = questionFrame.sections.zip(answerJson.sections).zipWithIndex.map(s => sectionFrame(s._1._1, s._1._2, s._2.toShort))
     val correct : Short = sections.map(s => s.answerSection.correctNum).reduce(math.min(_, _).toShort)
-    val answer = Answer(id=null, ownerId=userId, questionId=questionFrame.question.id, correctNum=correct, creationDate=JodaUTC.now)
+    val answer = Answer(id=null, ownerId=user.id, questionId=questionFrame.question.id, correctNum=correct, creationDate=JodaUTC.now)
     val correctUnknown = correct <= NumericBoolean.Unknown
     AnswerFrame(answer, sections, correctUnknown)
   }

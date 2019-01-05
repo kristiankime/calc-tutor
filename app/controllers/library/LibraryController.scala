@@ -99,7 +99,7 @@ class LibraryController @Inject()(/*val config: Config, val playSessionStore: Pl
             AnswerCreate.answerFormat.reads(Json.parse(form)) match {
               case JsError(errors) => Future.successful(BadRequest(views.html.errors.jsonErrorPage(errors)))
               case JsSuccess(value, path) => {
-                val protoAnswerFrame = AnswerFrame(question, value, user.id)
+                val protoAnswerFrame = AnswerFrame(question, value, user)
 
                 if(protoAnswerFrame.correctUnknown) { // Here we are unable to determine if the question was answered correctly so we go back to the page
                   Future.successful( Ok(views.html.library.viewQuestion(access, question, AnswerJson(protoAnswerFrame), attempts)) )
