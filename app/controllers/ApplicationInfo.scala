@@ -3,7 +3,7 @@ package controllers
 import java.util.concurrent.TimeUnit
 
 object ApplicationInfo {
-  val version = Version(0, 0, 2)
+  val version = Version(0, 0, 3)
 
   val appTimeoutNum = 300 // TODO change for production
   val appTimeoutUnit = TimeUnit.SECONDS
