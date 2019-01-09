@@ -519,7 +519,7 @@
                     constant.valuesInvalid(!valuesResult.success);
                 });
 
-                // Force an update for part.valuesuenceInvalid
+                // Force an update for part.valuesInvalid
                 values.valueHasMutated();
 
                 return constant;
@@ -559,6 +559,16 @@
                 for (var i = 0; i < userConstants.@{QuestionCreate.ucIntegers}().length; i++) {
                     enhanceConstantInteger(userConstants, userConstants.@{QuestionCreate.ucIntegers}()[i], i);
                 };
+
+                // Enhance any existing Decimal Constants
+                for (var i = 0; i < userConstants.@{QuestionCreate.ucDecimals}().length; i++) {
+                    enhanceConstantDecimal(userConstants, userConstants.@{QuestionCreate.ucDecimals}()[i], i);
+                };
+
+                // Enhance any existing Integer Constants
+                for (var i = 0; i < userConstants.@{QuestionCreate.ucSets}().length; i++) {
+                    enhanceConstantSet(userConstants, userConstants.@{QuestionCreate.ucSets}()[i], i);
+                };
                 return userConstants;
             }
 
@@ -588,6 +598,8 @@
                 // Each sections needs a unique id
                 main.idGenerator = main.@{QuestionCreate.sections}.length;
 
+                var ignores = [];
+
                 // Enhance any existing Sections
                 for (var i = 0; i < main.@{QuestionCreate.sections}().length; i++) {
                     enhanceSection(main, main.@{QuestionCreate.sections}()[i], i);
@@ -596,26 +608,32 @@
                 setupDetails(main, "main", "@QuestionCreate.descriptionRaw", "@QuestionCreate.descriptionHtml");
 
                 enhanceUserConstants(main.@{QuestionCreate.userConstants});
+                ignores.push("valuesInvalid");
 
                 main.descriptionInvalid = ko.computed(function () {
                     return main.@{QuestionCreate.descriptionRaw}() == "";
                 });
+                ignores.push("descriptionInvalid");
 
                 main.titleInvalid = ko.computed(function () {
                     return main.@{QuestionCreate.title}() == "";
                 });
+                ignores.push("titleInvalid");
 
                 main.skillsInvalid = ko.computed(function () {
                     return main.@{QuestionCreate.skills}().length == 0;
                 });
+                ignores.push("skillsInvalid");
 
                 main.sectionsInvalid = ko.computed(function () {
                     return main.@{QuestionCreate.sections}().length == 0;
                 });
+                ignores.push("sectionsInvalid");
 
                 main.invalid = ko.computed(function () {
                     return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid() || main.skillsInvalid() || main.sectionsInvalid()) );
                 });
+                ignores.push("invalid");
             }
 
             // === Initialize View Model
@@ -648,9 +666,9 @@
                 // Create the basic form
                 var model = ko.mapping.fromJS(data);
                 // Bootstrap by adding all functions etc
-                enhanceMain(model);
+                var ignores = enhanceMain(model);
                 // Overlay new model ignoring computed observables
-                var mapping = { 'ignore': ["invalid", "descriptionInvalid", "titleInvalid"] };
+                var mapping = { 'ignore': ignores };
 
                 ko.mapping.fromJS(model, mapping, QE.viewModel);
             }
