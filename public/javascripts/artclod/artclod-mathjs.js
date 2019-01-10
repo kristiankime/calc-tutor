@@ -17,7 +17,7 @@ ARTC.parenMatch = function(text, startParenIndex) {
         if(parenCount === 0) { return i+1; }
     }
     return -1;
-}
+};
 
 if(!ARTC.mathJS){
     ARTC.mathJS = {};
@@ -49,7 +49,7 @@ ARTC.mathJS.text2FunctionOfX = function(mathText) {
         for (var i = 0; i < len; i++) {
             var piece = mathTextPieces[i];
 
-            if(i != (len-1)) {
+            if(i !== (len-1)) {
                 var matches = pieceSplit.exec(piece);
                 var func = matches[1];
                 var comparator = matches[2];
@@ -129,7 +129,7 @@ ARTC.mathJS.prepFuncPow = function(text, funcs) {
             }
         }
         return { updated : false, text : text };
-    }
+    };
 
     var prepFuncPowLoop = function(text, func) {
         if(typeof text !== "string") { throw "text was not a string [" + text + "]"; }
@@ -140,7 +140,7 @@ ARTC.mathJS.prepFuncPow = function(text, funcs) {
             ret = prepFuncPowOnce(ret.text, func);
         }
         return ret;
-    }
+    };
 
     if(typeof text !== "string") { throw "text was not a string [" + text + "]"; }
     if(!Array.isArray(funcs)) { throw "funcs was not an array [" + funcs + "]"; }
@@ -150,7 +150,7 @@ ARTC.mathJS.prepFuncPow = function(text, funcs) {
         ret = prepFuncPowLoop(ret, funcs[i]).text;
     }
     return ret;
-}
+};
 
 /*
  * ARTC.buildMathJSParser is a builder for parsers.
@@ -186,7 +186,7 @@ ARTC.mathJS.buildParser = (function(){
             }
             return map[key];
         };
-    }
+    };
 
     // Put <apply> tag around elements
     var applyWrap = function(operator, elements, parseNode) {
@@ -198,7 +198,7 @@ ARTC.mathJS.buildParser = (function(){
         }
         ret += "</apply>";
         return ret;
-    }
+    };
 
     // The main function
     return function(functions, operators, symbols, rejectFunc){
@@ -222,7 +222,7 @@ ARTC.mathJS.buildParser = (function(){
             var fnc = fncMap(node.name, node.args.length)
             if(!fnc) { throw { message: "Error finding function for FunctionNode with name " + node.name + " and # args = " + node.args.length } }
             return fnc(node, parseNode);
-        }
+        };
 
         // ==============  Operator Handling ==============
         var opMap = argMapCreate(operatorsSafe);
@@ -231,7 +231,7 @@ ARTC.mathJS.buildParser = (function(){
             var op = opMap(node.op);
             if(!op) { throw { message: "Error finding operator for OperatorNode with op " + node.op } };
             return applyWrap(op, node.args, parseNode);
-        }
+        };
 
         // ============== Symbol Handling ===========
         var symMap = argMapCreate(symbolsSafe.map);
@@ -239,7 +239,7 @@ ARTC.mathJS.buildParser = (function(){
         if(symbolsSafe.regex) {
             // console.log("symRegex=" + symbolsSafe.regex);
             var symRegex = new RegExp(symbolsSafe.regex);
-        }
+        };
 
         var symbolNodeFunction = function(node){
 
@@ -261,20 +261,20 @@ ARTC.mathJS.buildParser = (function(){
             }
 
             throw { message: "Error in SymbolNode, any not allowed, failed regex (or no regex specified) and nothing specified for " + node.name }
-        }
+        };
 
         // ============== Constant Handling ===========
         var constantNodeFunction = function(node){
-            switch(node.valueType){
-                case 'undefined' : throw { message: "Error, received an undefined node " + node };
-                default          : return "<cn> " + node.value + " </cn>"; // TODO parse down to cn type here
+            if(node.value === undefined) {
+                throw { message: "Error, received an undefined node " + node };
             }
-        }
+            return "<cn> " + node.value + " </cn>"; // TODO parse down to cn type here
+        };
 
         // ============== Paren Handling ===========
         var parenthesisNodeFunction = function(node){
             return "<mfenced> " + parseNode(node.content) + " </mfenced>"
-        }
+        };
 
         // ============== Full Parsing ===========
         var parseNode = function(node) {
@@ -286,7 +286,7 @@ ARTC.mathJS.buildParser = (function(){
                 case 'ParenthesisNode' : return parenthesisNodeFunction(node);
                 default:             throw { message: "Error, unknown node type " + node };
             }
-        }
+        };
 
         var ret = function(string) {
             try {
@@ -325,7 +325,7 @@ ARTC.mathJS.buildParser = (function(){
                     error: e
                 }
             }
-        }
+        };
         ret.functions = functionsSafe;
         ret.operators = operatorsSafe;
         ret.symbols = symbolsSafe;

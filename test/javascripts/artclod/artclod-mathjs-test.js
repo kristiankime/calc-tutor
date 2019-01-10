@@ -84,3 +84,11 @@ test("ARTC.mathJS.buildParser: with using regex fails if a regex doesnt match", 
 test("ARTC.mathJS.buildParser: regex works with non atomic element", function() {
     equal(ARTC.mathJS.buildParser(pd.functions, pd.operators, { map: {}, allowAny : false, regex : "^c[0-9]$"})("3 + c5").content, "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"> <apply> <plus/> <cn> 3 </cn> <ci> c5 </ci> </apply> </math>");
 });
+
+test("ARTC.mathJS.buildParser: with defaults, blank is a failure", function() {
+    equal(ARTC.mathJS.buildParser()("").success, false);
+});
+
+test("ARTC.mathJS.buildParser: with defaults, whitespace is a failure", function() {
+    equal(ARTC.mathJS.buildParser()(" ").success, false);
+});
