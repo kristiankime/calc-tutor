@@ -614,6 +614,7 @@
 
                 enhanceUserConstants(main.@{QuestionCreate.userConstants});
                 ignores.push("valuesInvalid");
+                ignores.push("@{QuestionCreate.userConstants}.invalid");
 
                 main.descriptionInvalid = ko.computed(function () {
                     return main.@{QuestionCreate.descriptionRaw}() == "";
