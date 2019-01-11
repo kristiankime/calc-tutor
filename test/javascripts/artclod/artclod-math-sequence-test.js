@@ -12,7 +12,15 @@ test("ARTC.string2Numbers: empty fails", function() {
     equal(ARTC.string2Sequence("", CALC.mathJS.constantParser).success, false);
 });
 
-test("ARTC.string2Numbers: 1 succeeds", function() {
+test("ARTC.string2Numbers: 1; fails", function() {
+    equal(ARTC.string2Sequence("1;", CALC.mathJS.constantParser).success, false);
+});
+
+test("ARTC.string2Numbers: whitespace at end fails fails", function() {
+    equal(ARTC.string2Sequence("1; ", CALC.mathJS.constantParser).success, false);
+});
+
+test("ARTC.string2Numbers: blank space at end fails", function() {
     deepEqual(mathMLValues(ARTC.string2Sequence("1", CALC.mathJS.constantParser).values), ["<cn> 1 </cn>"]);
 });
 

@@ -9,6 +9,14 @@ test("ARTC.string2Numbers: empty fails", function() {
     equal(ARTC.string2Numbers("", CALC.mathJS.constantParser).success, false);
 });
 
+test("ARTC.string2Numbers: 1; fails", function() {
+    equal(ARTC.string2Numbers("1;", CALC.mathJS.constantParser).success, false);
+});
+
+test("ARTC.string2Numbers: whitespace at end fails fails", function() {
+    equal(ARTC.string2Numbers("1; ", CALC.mathJS.constantParser).success, false);
+});
+
 test("ARTC.string2Numbers: 1 succeeds", function() {
     deepEqual(mathMLValues(ARTC.string2Numbers("1", CALC.mathJS.constantParser).values), ["<cn> 1 </cn>"]);
 });

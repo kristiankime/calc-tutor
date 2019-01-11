@@ -25,7 +25,9 @@ ARTC.string2Sequence = function(string, parser) {
     }
 
     var split = string.split(";");
+    var parsedAll = true;
     var values = _.map(split, function(s){
+        // Math parsing works
         var mathResult = parser(s);
         if(mathResult.success) {
             return {
@@ -34,12 +36,28 @@ ARTC.string2Sequence = function(string, parser) {
                 full   : mathResult
             };
         }
+        // All we have is whitespace (invalid)
+        var trimS = s.trim();
+        if(trimS === "") {
+            parsedAll = false;
+            return {
+                type: "failure",
+                render: "",
+                full: ""
+            };
+        }
+        // Anything else is interpreted as a valid name
         return {
             type   : "string",
             render : s.trim(),
             full   : s
         };
     });
+
+    if(!parsedAll) {
+        return { success : false, values : [], error : "was unable to parse all elements, there was probably a whitespace element, [" + string + "]"}
+    }
+
     return { success : true, values : values };
 }
 
