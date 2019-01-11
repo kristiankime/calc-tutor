@@ -111,8 +111,8 @@
             <div class="span-section question-sequence">
                 <div class="item summary-input"> Summary @tag.isValid("summaryInvalid"): <br> <textarea type="text" data-bind="textInput: @QuestionCreate.summaryRaw"></textarea> </div>
                 <div class="item summary-output"> <span data-bind="mathjax: @QuestionCreate.summaryHtml"> </span> </div>
-                <div class="item sequence-input"> Sequence @tag.isValid("sequenceInvalid") : <input data-bind="textInput: @QuestionCreate.sequenceStr" /> </div>
 
+                <div class="item sequence-input"> Sequence @tag.isValid("sequenceInvalid") : <input data-bind="textInput: @QuestionCreate.sequenceStr" /> </div>
                 <div class="item sequence-output"><span data-bind="attr: { 'id' : @QuestionCreate.id }"> </span> </div>
                 @*<div class="item sequence-output"><span data-bind="html: @{QuestionCreate.sequenceStr}Display"> </span> </div>*@
 
@@ -569,6 +569,11 @@
                 for (var i = 0; i < userConstants.@{QuestionCreate.ucSets}().length; i++) {
                     enhanceConstantSet(userConstants, userConstants.@{QuestionCreate.ucSets}()[i], i);
                 };
+
+                userConstants.invalid = ko.computed(function () {
+                    return _.map(userConstants.@{QuestionCreate.ucSets}(), function(a){return a.valuesInvalid();}).reduce(function(a,b){return a || b;}, true);
+                });
+
                 return userConstants;
             }
 
@@ -631,9 +636,16 @@
                 ignores.push("sectionsInvalid");
 
                 main.invalid = ko.computed(function () {
-                    return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;}, (main.descriptionInvalid() || main.titleInvalid() || main.skillsInvalid() || main.sectionsInvalid()) );
+                    return _.map(main.@{QuestionCreate.sections}(), function(a){return a.invalid();}).reduce(function(a,b){return a || b;},
+                            (main.descriptionInvalid() ||
+                             main.titleInvalid()       ||
+                             main.skillsInvalid()      ||
+                             main.sectionsInvalid())   ||
+                             main.@{QuestionCreate.userConstants}.invalid());
                 });
                 ignores.push("invalid");
+
+                return ignores;
             }
 
             // === Initialize View Model
