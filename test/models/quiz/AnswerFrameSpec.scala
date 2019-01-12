@@ -7,12 +7,16 @@ import dao.TestData
 import dao.TestData.{questionPartChoice, questionPartFunction, questionPartSequence, questionSectionFrameCh, questionSectionFrameFn, questionSectionFrameSe}
 import models.UserId
 import models.quiz.util.SequenceTokenOrMath
+import models.user.User
 import org.joda.time.DateTime
 import org.scalatestplus.play._
 import play.twirl.api.Html
 
 class AnswerFrameSpec extends PlaySpec {
 
+
+  val someUser = TestData.userWithId(0)
+  val someUId = someUser.id
   val correctNA = Int.MinValue
   val blankChoices : Seq[QuestionPartChoice] = Vector()
   val blankFunctions : Seq[QuestionPartFunction] = Vector()
@@ -44,7 +48,7 @@ class AnswerFrameSpec extends PlaySpec {
         Seq(questionSectionFrameCh("ex")(questionPartChoice("sum 1", NumericBoolean.F), questionPartChoice("sum 2", NumericBoolean.T))) )
 
       val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, 1) ) // Here we are guessing 1 which is correct
-      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
+      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, someUser, JodaUTC.zero)
       val correctedAnswerJson = AnswerJson(AnswerJson.correctYes, AnswerSectionJson(AnswerJson.correctYes, 1) )
 
       AnswerJson(computedAnswerFrame) mustEqual(correctedAnswerJson)
@@ -55,7 +59,7 @@ class AnswerFrameSpec extends PlaySpec {
         Seq( questionSectionFrameCh("ex")(questionPartChoice("sum 1", NumericBoolean.F), questionPartChoice("sum 2", NumericBoolean.T))) )
 
       val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, 0) ) // Here we are guessing 0 which is incorrect
-      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
+      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, someUser, JodaUTC.zero)
       val correctedAnswerJson = AnswerJson(AnswerJson.correctNo, AnswerSectionJson(AnswerJson.correctNo, 0) )
 
       AnswerJson(computedAnswerFrame) mustEqual(correctedAnswerJson)
@@ -66,7 +70,7 @@ class AnswerFrameSpec extends PlaySpec {
        Seq(questionSectionFrameFn("ex")(questionPartFunction("sum 1","<cn>1</cn>"), questionPartFunction("sum 2", "<cn>2</cn>"))))
 
       val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, -1, Vector(AnswerPartFunctionJson("<cn>1</cn>", correctNA), AnswerPartFunctionJson("<cn>2</cn>", correctNA)), Vector()) )
-      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
+      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, someUser, JodaUTC.zero)
       val correctedAnswerJson = AnswerJson(AnswerJson.correctYes, AnswerSectionJson(AnswerJson.correctYes, -1, Vector(AnswerPartFunctionJson("<cn>1</cn>", AnswerJson.correctYes), AnswerPartFunctionJson("<cn>2</cn>", AnswerJson.correctYes)), Vector()) )
 
       AnswerJson(computedAnswerFrame) mustEqual(correctedAnswerJson)
@@ -76,7 +80,7 @@ class AnswerFrameSpec extends PlaySpec {
       val questionFrame = TestData.questionFrame("title", "description", UserId(0), JodaUTC.zero, Seq(TestData.skill("a")),
         Seq(questionSectionFrameFn("ex")(questionPartFunction("sum 1","<cn>1</cn>"), questionPartFunction("sum 2", "<cn>3</cn>")))) // Here 3 is wrong
       val guessAnswerJson = AnswerJson(correctNA, AnswerSectionJson(correctNA, -1, Vector(AnswerPartFunctionJson("<cn>1</cn>", correctNA), AnswerPartFunctionJson("<cn>2</cn>", correctNA)), Vector()) )
-      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
+      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, someUser, JodaUTC.zero)
       val correctedAnswerJson = AnswerJson(AnswerJson.correctNo, AnswerSectionJson(AnswerJson.correctNo, -1, Vector(AnswerPartFunctionJson("<cn>1</cn>", AnswerJson.correctYes), AnswerPartFunctionJson("<cn>2</cn>", AnswerJson.correctNo)), Vector()) )
 
       AnswerJson(computedAnswerFrame) mustEqual(correctedAnswerJson)
@@ -103,7 +107,7 @@ class AnswerFrameSpec extends PlaySpec {
           AnswerSectionJson(correctNA, AnswerJson.noChoiceSelected, Vector(), Vector(AnswerPartSequenceJson("1;2", """<cn type="integer">1</cn>""" + SequenceTokenOrMath.separator + """<cn type="integer">2</cn>""", correctNA)))
         )
 
-      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, UserId(0), JodaUTC.zero)
+      val computedAnswerFrame = AnswerFrame(questionFrame, guessAnswerJson, someUser, JodaUTC.zero)
 
       val correctedAnswerJson =
         AnswerJson(AnswerJson.correctYes,

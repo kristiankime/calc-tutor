@@ -10,7 +10,7 @@ import models.quiz.UserConstant.EnhancedHtml
 
 case class QuestionPartSequence(id: QuestionPartId, sectionId: QuestionSectionId, questionId: QuestionId, summaryRaw: String, summaryHtml: Html, sequenceStr: String, sequenceMath: SequenceTokenOrMath, order: Short) extends HasOrder[QuestionPartSequence] {
   def fixConstants(user: User, userConstants: QuestionUserConstantsFrame) = this.copy(
-    summaryHtml = summaryHtml.fixConstants(user, userConstants),
-    sequenceMath = sequenceMath.fixConstants(user, userConstants)
+    summaryHtml = summaryHtml.fixConstants(user, questionId, userConstants),
+    sequenceMath = sequenceMath.fixConstants(user, questionId, userConstants)
   )
 }

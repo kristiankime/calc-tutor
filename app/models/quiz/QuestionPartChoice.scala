@@ -10,5 +10,5 @@ import models.quiz.UserConstant.EnhancedHtml
 case class QuestionPartChoice(id: QuestionPartId, sectionId: QuestionSectionId, questionId: QuestionId, summaryRaw: String, summaryHtml: Html, correctChoice: Short, order: Short) extends HasOrder[QuestionPartChoice] {
   def correct = NumericBoolean(correctChoice)
 
-  def fixConstants(user: User, userConstants: QuestionUserConstantsFrame) = this.copy(summaryHtml = summaryHtml.fixConstants(user, userConstants))
+  def fixConstants(user: User, userConstants: QuestionUserConstantsFrame) = this.copy(summaryHtml = summaryHtml.fixConstants(user, questionId, userConstants))
 }

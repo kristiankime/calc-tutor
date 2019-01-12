@@ -16,8 +16,8 @@ import scala.util.matching.Regex.Match
 case class QuestionUserConstantInteger(id: QuestionUserConstantId, questionId: QuestionId, name: String, lower: Int, upper: Int) extends UserConstant {
   if(lower > upper) throw new IllegalArgumentException("lower > upper (" + lower + "/" + upper + ")")
 
-  def replaceValue(user: User) = {
-    val ran = random(user)
+  def replaceValue(user: User, questionId: QuestionId) = {
+    val ran = random(user, questionId)
     val spread = upper - lower
     if(spread == 0) {
       lower
@@ -26,12 +26,12 @@ case class QuestionUserConstantInteger(id: QuestionUserConstantId, questionId: Q
     }
   }
 
-  override def replaceStr(user: User) = {
-    "\\$\\$" + replaceValue(user) + "\\$\\$"
+  override def replaceStr(user: User, questionId: QuestionId) = {
+    "\\$\\$" + replaceValue(user, questionId) + "\\$\\$"
   }
 
-  override def replaceMathML(user: User) = {
-    Cn(replaceValue(user))
+  override def replaceMathML(user: User, questionId: QuestionId) = {
+    Cn(replaceValue(user, questionId))
   }
 }
 
@@ -39,37 +39,37 @@ case class QuestionUserConstantDecimal(id: QuestionUserConstantId, questionId: Q
   if(lower > upper) throw new IllegalArgumentException("lower > upper (" + lower + "/" + upper + ")")
   if(precision < 0) throw new IllegalArgumentException("precision must be non negative")
 
-  private def replaceValue(user: User) = {
-    val ran = random(user)
+  private def replaceValue(user: User, questionId: QuestionId) = {
+    val ran = random(user, questionId)
     val value = (ran.nextDouble * (upper - lower)) + lower
     com.artclod.math.limitDecimalPlaces(value, precision)
   }
 
-  override def replaceStr(user: User) = {
-    val value: Double = replaceValue(user)
+  override def replaceStr(user: User, questionId: QuestionId) = {
+    val value: Double = replaceValue(user, questionId)
     "\\$\\$" + value.toString + "\\$\\$"
   }
 
-  override def replaceMathML(user: User) = {
-    Cn(replaceValue(user))
+  override def replaceMathML(user: User, questionId: QuestionId) = {
+    Cn(replaceValue(user, questionId))
   }
 }
 
 case class QuestionUserConstantSet(id: QuestionUserConstantId, questionId: QuestionId, name: String, valuesRaw: String, valuesMath: SetOfNumbers) extends UserConstant {
-  private def replaceValue(user: User) = {
-    val ran = random(user)
+  private def replaceValue(user: User, questionId: QuestionId) = {
+    val ran = random(user, questionId)
     val index = ran.nextInt(valuesMath.elements.size)
     val elem = valuesMath.elements(index)
     elem
   }
 
-  override def replaceStr(user: User) = {
-    val elem: MathMLElem = replaceValue(user)
+  override def replaceStr(user: User, questionId: QuestionId) = {
+    val elem: MathMLElem = replaceValue(user, questionId)
     "<math>" + elem.toString + "</math>"
   }
 
-  override def replaceMathML(user: User) = {
-    replaceValue(user)
+  override def replaceMathML(user: User, questionId: QuestionId) = {
+    replaceValue(user, questionId)
   }
 }
 
@@ -78,10 +78,10 @@ trait UserConstant {
   val name : String
   def regexName = name.replace("$", "\\$")
   def matchStr : String =  regexName
-  def replaceStr(user: User) : String
-  def replaceMathML(user: User) : MathMLElem
-  protected def seed(user: User) : Int = user.id.v.toInt * name.hashCode
-  protected def random(user: User) : Random = new Random(seed(user))
+  def replaceStr(user: User, questionId: QuestionId) : String
+  def replaceMathML(user: User, questionId: QuestionId) : MathMLElem
+  protected def seed(user: User, questionId: QuestionId) : Int = user.id.v.toInt * name.hashCode * questionId.v.toInt
+  protected def random(user: User, questionId: QuestionId) : Random = new Random(seed(user, questionId))
 }
 
 object UserConstant {
@@ -118,8 +118,8 @@ object UserConstant {
   def defaultUCSet(name: String) = QuestionUserConstantSet(null, null, name, defaultSetValues.mkString(SetOfNumbers.separator), SetOfNumbers(defaultSetValues.map(Cn(_))))
 
   implicit class EnhancedHtml(html: Html) {
-    def fixConstants(user: User, userConstants: QuestionUserConstantsFrame) = {
-      val cache = new UserConstantCache(user, userConstants, (uc: UserConstant, u: User) => uc.replaceStr(u))
+    def fixConstants(user: User, questionId: QuestionId, userConstants: QuestionUserConstantsFrame) = {
+      val cache = new UserConstantCache(user, questionId, userConstants, (uc: UserConstant, u: User, q: QuestionId) => uc.replaceStr(u, q))
       val htmlStr = html.toString()
       val retStr = UserConstant.matchAllReg.replaceAllIn(htmlStr, (m : Match) => {
         val matchStr = m.source.subSequence(m.start, m.end).toString
@@ -130,9 +130,9 @@ object UserConstant {
   }
 
   implicit class EnhancedMathMLElem(mathMLElem: MathMLElem) {
-    def fixConstants(user: User, userConstants: QuestionUserConstantsFrame) : MathMLElem = {
+    def fixConstants(user: User, questionId: QuestionId, userConstants: QuestionUserConstantsFrame) : MathMLElem = {
       // Find all <ci> "user constant" </ci> and replace with the right <cn> value </cn>
-      updateConstants(new UserConstantCache(user, userConstants, (uc: UserConstant, u: User) => uc.replaceMathML(u)), mathMLElem)
+      updateConstants(new UserConstantCache(user, questionId, userConstants, (uc: UserConstant, u: User, q: QuestionId) => uc.replaceMathML(u, q)), mathMLElem)
     }
 
     private def updateConstants(cache: UserConstantCache[MathMLElem], node : MathMLElem) : MathMLElem = node match {
@@ -146,7 +146,7 @@ object UserConstant {
 
 }
 
-class UserConstantCache[V](user: User, userConstants: QuestionUserConstantsFrame, toValue: (UserConstant, User) => V) extends (String => V) {
+class UserConstantCache[V](user: User, questionId: QuestionId, userConstants: QuestionUserConstantsFrame, toValue: (UserConstant, User, QuestionId) => V) extends (String => V) {
   val cache = _root_.scala.collection.mutable.Map[String, V]();
 
   override def apply(ucName: String): V = {
@@ -164,7 +164,7 @@ class UserConstantCache[V](user: User, userConstants: QuestionUserConstantsFrame
   // If the value isn't cached compute one using defaults
   def math(ucName: String): V =
     userConstants.constant(ucName) match {
-      case Some(const) => toValue(const, user)
+      case Some(const) => toValue(const, user, questionId)
       case None => {
         val uc = ucName match {
           case UserConstant.matchIReg() => UserConstant.defaultUCInteger(ucName)
@@ -172,7 +172,7 @@ class UserConstantCache[V](user: User, userConstants: QuestionUserConstantsFrame
           case UserConstant.matchSReg() => UserConstant.defaultUCSet(ucName)
           case _ => throw new IllegalArgumentException("Could not parse [" + ucName + "] as a user constant name")
         }
-        val ret = toValue(uc, user)
+        val ret = toValue(uc, user, questionId)
         cache.put(ucName, ret)
         ret
       }

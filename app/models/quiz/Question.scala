@@ -12,5 +12,5 @@ case class Question(id: QuestionId, ownerId: UserId, title: String, descriptionR
 
   def titleArchived = if(isArchived){title + views.html.tag.archivedIcon.apply()}else{title}
 
-  def fixConstants(user: User, userConstants: QuestionUserConstantsFrame) = this.copy(descriptionHtml = descriptionHtml.fixConstants(user, userConstants))
+  def fixConstants(user: User, userConstants: QuestionUserConstantsFrame) = this.copy(descriptionHtml = descriptionHtml.fixConstants(user, id, userConstants))
 }

@@ -3,9 +3,11 @@ package models.quiz.util
 import com.artclod.mathml.{MathML, MathMLEq}
 import com.artclod.mathml.scalar.MathMLElem
 import com.artclod.mathml.{Inconclusive, No, Yes}
+import models.QuestionId
 import models.quiz.QuestionUserConstantsFrame
 import models.user.User
 import models.quiz.UserConstant.EnhancedMathMLElem
+
 import scala.util.{Failure, Success}
 
 case class SequenceTokenOrMath(elements: Seq[Either[String, MathMLElem]]) {
@@ -39,11 +41,11 @@ case class SequenceTokenOrMath(elements: Seq[Either[String, MathMLElem]]) {
     }).mkString(SequenceTokenOrMath.separator)
 
 
-  def fixConstants(user: User, userConstants: QuestionUserConstantsFrame) =
+  def fixConstants(user: User, questionId: QuestionId, userConstants: QuestionUserConstantsFrame) =
     SequenceTokenOrMath(
       elements.map(_ match {
         case v @ Left(str) => v
-        case Right(math) => Right(math.fixConstants(user, userConstants))
+        case Right(math) => Right(math.fixConstants(user, questionId, userConstants))
       })
     )
 }
