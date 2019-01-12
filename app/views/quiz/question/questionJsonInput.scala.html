@@ -18,7 +18,6 @@
     @for(model <- setOnModel){
     <script>
         var updateModelFromJson = function() {
-            console.log("updateModelFromJson");
             var text = document.getElementById('questionInputJsonTextArea').value;
             var json = JSON.parse(text);
             QE.updateViewModel(json);

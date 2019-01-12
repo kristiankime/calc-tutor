@@ -571,7 +571,7 @@
                 };
 
                 userConstants.invalid = ko.computed(function () {
-                    return _.map(userConstants.@{QuestionCreate.ucSets}(), function(a){return a.valuesInvalid();}).reduce(function(a,b){return a || b;}, true);
+                    return _.map(userConstants.@{QuestionCreate.ucSets}(), function(a){return a.valuesInvalid();}).reduce(function(a,b){return a || b;}, false);
                 });
 
                 return userConstants;
