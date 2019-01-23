@@ -77,7 +77,7 @@ class QuestionController @Inject()(/*val config: Config, val playSessionStore: P
     * @param questionId id of the question
     * @return HTTP OK with question JSON as the body
     */
-  def questionJson(questionId: QuestionId) = Action.async { implicit request => /* TODO figure out access to questions */
+  def questionJson(questionId: QuestionId) = RequireAccess(Edit, to=questionId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { user => Action.async { implicit request =>
 
     ( questionDAO.frameByIdEither(questionId) ).map{ _ match {
       case Left(notFoundResult) => notFoundResult
@@ -85,9 +85,9 @@ class QuestionController @Inject()(/*val config: Config, val playSessionStore: P
         Ok(QuestionCreate.questionFormat.writes(QuestionJson(question)))
     } }
 
-  }
+  } } } }
 
-  def questionJsonCourse(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=quizId /* TODO figure out access to questions */ ) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { user => Action.async { implicit request =>
+  def questionJsonCourse(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, questionId: QuestionId) = RequireAccess(Edit, to=questionId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { user => Action.async { implicit request =>
 
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO.frameByIdEither(questionId)).map{ _ match {
       case Left(notFoundResult) => notFoundResult

@@ -64,3 +64,19 @@ ARTC.markdown = function (idPrefix, text) {
 
     return ret;
 }
+
+ARTC.setupDetails = function(model, idPrefix, raw, html) {
+    // don't allow questionable characters in raw
+    var toEnhance = model[raw];
+    model[raw] = toEnhance.extend({ substitute : {} });
+
+    // Create the computed Description Html from the raw
+    model[html] = ko.pureComputed({
+        read: function () {
+            return ARTC.markdown(idPrefix, model[raw]());
+        },
+        write: function(value) {
+            // NOTE: this is a hack so that the call to ko.mapping.fromJS will not overwrite this observable with a string
+        },
+        owner: model});
+}

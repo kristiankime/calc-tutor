@@ -1,7 +1,6 @@
 package dao.quiz.table
 
 import javax.inject.{Inject, Singleton}
-
 import com.artclod.slick.JodaUTC
 import dao.ColumnTypeMappings
 import dao.organization.CourseDAO
@@ -16,6 +15,7 @@ import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc.Result
 import play.api.mvc.Results._
+import play.twirl.api.Html
 import slick.lifted
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,12 +43,14 @@ class QuizTables @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     def id = column[QuizId]("id", O.PrimaryKey, O.AutoInc)
     def ownerId = column[UserId]("owner_id")
     def name = column[String]("name")
+    def descriptionRaw = column[String]("description_raw")
+    def descriptionHtml = column[Html]("description_html")
     def creationDate = column[DateTime]("creation_date")
     def updateDate = column[DateTime]("update_date")
 
     def ownerIdFK = foreignKey("quiz_fk__owner_id", ownerId, userTables.Users)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
 
-    def * = (id, ownerId, name, creationDate, updateDate) <> (Quiz.tupled, Quiz.unapply)
+    def * = (id, ownerId, name, descriptionRaw, descriptionHtml, creationDate, updateDate) <> (Quiz.tupled, Quiz.unapply)
   }
 
   class User2QuizTable(tag: Tag) extends Table[User2Quiz](tag, "app_user_2_quiz") {

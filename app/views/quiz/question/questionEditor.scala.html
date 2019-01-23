@@ -153,21 +153,22 @@
                 return (func in obj) ? obj[func]() : true;
             }
 
-            var setupDetails = function(model, idPrefix, raw, html) {
-                // don't allow questionable characters in raw
-                var toEnhance = model[raw];
-                model[raw] = toEnhance.extend({ substitute : {} });
-
-                // Create the computed Description Html from the raw
-                model[html] = ko.pureComputed({
-                    read: function () {
-                        return ARTC.markdown(idPrefix, model[raw]());
-                    },
-                    write: function(value) {
-                        // NOTE: this is a hack so that the call to ko.mapping.fromJS will not overwrite this observable with a string
-                    },
-                    owner: model});
-            }
+            // Moved to artclod-markdown.js
+            // var setupDetails = function(model, idPrefix, raw, html) {
+            //     // don't allow questionable characters in raw
+            //     var toEnhance = model[raw];
+            //     model[raw] = toEnhance.extend({ substitute : {} });
+            //
+            //     // Create the computed Description Html from the raw
+            //     model[html] = ko.pureComputed({
+            //         read: function () {
+            //             return ARTC.markdown(idPrefix, model[raw]());
+            //         },
+            //         write: function(value) {
+            //             // NOTE: this is a hack so that the call to ko.mapping.fromJS will not overwrite this observable with a string
+            //         },
+            //         owner: model});
+            // }
 
             // =================================================
             // ============ Choice Part Enhancement ============
@@ -179,7 +180,7 @@
             var enhanceChoicePart = function (section, part, num) {
                 part.@QuestionCreate.id = choicePartId(section, num); // Note here we overwrite the id
 
-                setupDetails(part, part.@QuestionCreate.id, "@QuestionCreate.summaryRaw", "@QuestionCreate.summaryHtml");
+                ARTC.setupDetails(part, part.@QuestionCreate.id, "@QuestionCreate.summaryRaw", "@QuestionCreate.summaryHtml");
 
                 // Do we have a summary?
                 part.invalid = ko.computed(function () {
@@ -204,7 +205,7 @@
             var enhanceFunctionPart = function (section, part, num) {
                 part.@QuestionCreate.id = functionPartId(section, num); // Note here we overwrite the id
 
-                setupDetails(part, part.@QuestionCreate.id, "@QuestionCreate.summaryRaw", "@QuestionCreate.summaryHtml");
+                ARTC.setupDetails(part, part.@QuestionCreate.id, "@QuestionCreate.summaryRaw", "@QuestionCreate.summaryHtml");
 
                 // Do we have a summary?
                 part.summaryInvalid = ko.computed(function () {
@@ -249,7 +250,7 @@
             var enhanceSequencePart = function (section, part, num) {
                 part.@QuestionCreate.id = sequencePartId(section, num); // Note here we overwrite the id
 
-                setupDetails(part, part.@QuestionCreate.id, "@QuestionCreate.summaryRaw", "@QuestionCreate.summaryHtml");
+                ARTC.setupDetails(part, part.@QuestionCreate.id, "@QuestionCreate.summaryRaw", "@QuestionCreate.summaryHtml");
 
                 // Do we have a summary?
                 part.summaryInvalid = ko.computed(function () {
@@ -329,7 +330,7 @@
                 }
 
                 // --- End Update Parts ---
-                setupDetails(section, section.@QuestionCreate.id, "@QuestionCreate.explanationRaw", "@QuestionCreate.explanationHtml");
+                ARTC.setupDetails(section, section.@QuestionCreate.id, "@QuestionCreate.explanationRaw", "@QuestionCreate.explanationHtml");
 
                 section.explanationInvalid = ko.computed(function () {
                     return section.@{QuestionCreate.explanationRaw}() == "";
@@ -610,7 +611,7 @@
                     enhanceSection(main, main.@{QuestionCreate.sections}()[i], i);
                 };
 
-                setupDetails(main, "main", "@QuestionCreate.descriptionRaw", "@QuestionCreate.descriptionHtml");
+                ARTC.setupDetails(main, "main", "@QuestionCreate.descriptionRaw", "@QuestionCreate.descriptionHtml");
 
                 enhanceUserConstants(main.@{QuestionCreate.userConstants});
                 ignores.push("valuesInvalid");

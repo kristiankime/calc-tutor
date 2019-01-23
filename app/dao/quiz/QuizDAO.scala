@@ -151,6 +151,10 @@ class QuizDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, 
     (for { z <- Quizzes if z.id === quiz.id } yield z.name ).update(name)
   }
 
+  def update(quiz: Quiz): Future[Int] = db.run {
+    (for { z <- Quizzes if z.id === quiz.id } yield z ).update(quiz)
+  }
+
   def updateViewable(courseId: CourseId, quiz: Quiz, view: Boolean): Future[Int] = db.run {
     (for { c2z <- Courses2Quizzes if c2z.quizId === quiz.id && c2z.courseId === courseId } yield c2z.viewHide ).update(view)
   }

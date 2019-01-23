@@ -1,7 +1,6 @@
 @import models.organization.Course2Quiz
 @import helper._
 @import com.artclod.play._
-@import controllers.quiz.QuizRename
 @import controllers.quiz.QuizAvailability
 @import com.artclod.slick.JodaUTC
 @import org.joda.time.DateTime
@@ -26,17 +25,23 @@
 @mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
 @views.html.quiz.viewQuizForCourseCore(access, course, quiz, course2Quiz, questions, answerOp, answers)
 
-
+    @*
     <h5> Rename </h5>
     @form(controllers.quiz.routes.QuizController.rename(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
         To rename type a new name here <input type="text" name="@QuizRename.name" value="@quiz.name"> and click <input class="pure-button" type="submit" value="rename" >
         @views.html.helper.CSRF.formField
     }
+    *@
 
     <div id="attach-quiz">
-    <h5> Availability </h5>
+    <h5> Update Quiz </h5>
     @form(controllers.quiz.routes.QuizController.updateAvailability(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
-        Update the availability of the quiz below <br>
+        Update the quiz below <br>
+
+        <label for="@QuizAvailability.name">Name: <input type="text" name="@QuizAvailability.name" data-bind="text: @QuizAvailability.name" placeholder="@{quiz.name}"></label> <br>
+
+        <div> <textarea type="text" name="@QuizAvailability.descriptionRaw" class="expanding" data-bind="textInput: @QuizAvailability.descriptionRaw"></textarea> </div> <br>
+        <div> <input type="hidden" name="@QuizAvailability.descriptionHtml" data-bind="value: @{QuizAvailability.descriptionHtml}"/> <span data-bind="mathjax: @{QuizAvailability.descriptionHtml}"> </span> </div> <br>
 
         <label for="@QuizAvailability.viewHide"> Hide:
             <input type="checkbox" name="@QuizAvailability.viewHide" value="true" @if(course2Quiz.viewHide){checked} />
@@ -71,6 +76,11 @@
             @defining(course2Quiz.endDate.getOrElse(JodaUTC.currentDay.plusDays(7))){ end : DateTime=>
 
             var attachQuizModel = {
+                // Name
+                "@{QuizAvailability.name}": ko.observable("@{quiz.name}"),
+                // Description
+                "@{QuizAvailability.descriptionRaw}": ko.observable("@{quiz.descriptionRaw}"),
+                // @QuizAvailability.descriptionHtml is set up below
                 "@{QuizAvailability.viewHide}": ko.observable(@{course2Quiz.viewHide}),
                 // Start Date Values
                 "@{QuizAvailability.useStartDate}": ko.observable(@{course2Quiz.startDate.isDefined}),
@@ -82,6 +92,9 @@
 
             }
             }
+
+            // Build the observable for the html description
+            ARTC.setupDetails(attachQuizModel, "az", "@QuizAvailability.descriptionRaw", "@QuizAvailability.descriptionHtml");
 
             attachQuizModel.@{QuizAvailability.startDate} = ko.computed(function () {
                 if(attachQuizModel.@{QuizAvailability.startDate}View().isValid()) {

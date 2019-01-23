@@ -26,7 +26,7 @@ import play.api.data.Forms._
 import play.api.data.JodaForms._
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import controllers.library.QuestionLibrary.QuestionLibraryResponse
-
+import play.twirl.api.Html
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Right
 
@@ -54,7 +54,7 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
             val now = JodaUTC.now
-            quizDAO.insert(Quiz(null, user.id, form.name, now, now)).flatMap(quiz => // Create the Quiz
+            quizDAO.insert(Quiz(null, user.id, form.name, form.descriptionRaw, Html(form.descriptionHtml), now, now)).flatMap(quiz => // Create the Quiz
               quizDAO.attach(course, quiz, form.viewHide, if(form.useStartDate){Some(form.startDate)}else{None}, if(form.useEndDate){Some(form.endDate)}else{None}).map( _ => // Attach it to the Course
                 Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
           }
@@ -86,22 +86,22 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
 
   } } } }
 
-  def rename(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=quizId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
-
-    (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
-      case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, quiz)) =>
-        QuizRename.form.bindFromRequest.fold(
-          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
-          form => {
-            val updateNameFuture = quizDAO.updateName(quiz, form)
-            updateNameFuture.map(update => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
-          }
-        )
-      }
-    }
-
-  } } } }
+//  def rename(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=quizId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+//
+//    (courseDAO(organizationId, courseId) +& quizDAO(quizId)).flatMap{ _ match {
+//      case Left(notFoundResult) => Future.successful(notFoundResult)
+//      case Right((course, quiz)) =>
+//        QuizRename.form.bindFromRequest.fold(
+//          errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
+//          form => {
+//            val updateNameFuture = quizDAO.updateName(quiz, form)
+//            updateNameFuture.map(update => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
+//          }
+//        )
+//      }
+//    }
+//
+//  } } } }
 
   def updateAvailability(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId) = RequireAccess(Edit, to=courseId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
@@ -112,7 +112,8 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
           errors => Future.successful(BadRequest(views.html.errors.formErrorPage(errors))),
           form => {
             val updateQuiz2CourseFuture = quizDAO.update(course, quiz, form.viewHide, if(form.useStartDate){Some(form.startDate)}else{None}, if(form.useEndDate){Some(form.endDate)}else{None})
-            updateQuiz2CourseFuture.map(_ =>  Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
+            val updateQuizFuture = quizDAO.update( form.toQuiz(quiz) )
+            updateQuiz2CourseFuture.flatMap(_ => updateQuizFuture.map(_ =>  Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None))))
           }
         )
     }
@@ -219,10 +220,12 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
 }
 
 // -----------
-case class QuizCreateForm(name: String, viewHide: Boolean, useStartDate: Boolean, startDate: DateTime, useEndDate: Boolean, endDate: DateTime)
+case class QuizCreateForm(name: String, descriptionRaw: String, descriptionHtml: String, viewHide: Boolean, useStartDate: Boolean, startDate: DateTime, useEndDate: Boolean, endDate: DateTime)
 
 object QuizCreate {
   val name = "name"
+  val descriptionRaw = "descriptionRaw"
+  val descriptionHtml = "descriptionHtml"
   val viewHide = "viewHide"
   val useStartDate = "useStartDate"
   val startDate = "startDate"
@@ -231,27 +234,46 @@ object QuizCreate {
 
   val form : Form[QuizCreateForm] = Form(
     mapping(
-      name ->         nonEmptyText,
-      viewHide ->     boolean,
-      useStartDate -> boolean,
-      startDate ->    jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ"),
-      useEndDate ->   boolean,
-      endDate ->      jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+      name ->            nonEmptyText,
+      descriptionRaw ->  text,
+      descriptionHtml -> text,
+      viewHide ->        boolean,
+      useStartDate ->    boolean,
+      startDate ->       jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ"),
+      useEndDate ->      boolean,
+      endDate ->         jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
     )(QuizCreateForm.apply)(QuizCreateForm.unapply)
   )
 }
 
-// -----------
-object QuizRename {
-  val name = "name"
+//// -----------
+//case class QuizRenameForm(name: String, descriptionRaw: String, descriptionHtml: String)
+//
+//object QuizRename {
+//  val name = "name"
+//  val descriptionRaw = "descriptionRaw"
+//  val descriptionHtml = "descriptionHtml"
+//
+////  val form : Form[String] = Form(name -> nonEmptyText)
+//
+//  val form : Form[QuizRenameForm] = Form(
+//    mapping(
+//      name ->            nonEmptyText,
+//      descriptionRaw ->  text,
+//      descriptionHtml -> text
+//    )(QuizRenameForm.apply)(QuizRenameForm.unapply)
+//  )
+//}
 
-  val form : Form[String] = Form(name -> nonEmptyText)
+// -----------
+case class QuizAvailabilityForm(name: String, descriptionRaw: String, descriptionHtml: String, viewHide: Boolean, useStartDate: Boolean, startDate: DateTime, useEndDate: Boolean, endDate: DateTime) {
+  def toQuiz(quiz: Quiz, now: DateTime = JodaUTC.now) = quiz.copy(name = name, descriptionRaw = descriptionRaw, descriptionHtml = Html(descriptionHtml), updateDate = now)
 }
 
-// -----------
-case class QuizAvailabilityForm(viewHide: Boolean, useStartDate: Boolean, startDate: DateTime, useEndDate: Boolean, endDate: DateTime)
-
 object QuizAvailability {
+  val name = "name"
+  val descriptionRaw = "descriptionRaw"
+  val descriptionHtml = "descriptionHtml"
   val viewHide = "viewHide"
   val useStartDate = "useStartDate"
   val startDate = "startDate"
@@ -260,6 +282,9 @@ object QuizAvailability {
 
   val form : Form[QuizAvailabilityForm] = Form(
     mapping(
+      name ->            nonEmptyText,
+      descriptionRaw ->  text,
+      descriptionHtml -> text,
       viewHide ->     boolean,
       useStartDate -> boolean,
       startDate ->    jodaDate("yyyy-MM-dd'T'HH:mm:ss.SSSZZ"),

@@ -1,7 +1,6 @@
 @import models.organization.Course2Quiz
 @import helper._
 @import com.artclod.play._
-@import controllers.quiz.QuizRename
 @import controllers.quiz.QuizAvailability
 @import com.artclod.slick.JodaUTC
 @import org.joda.time.DateTime
@@ -23,6 +22,12 @@
 
     <h2>Welcome to the page for quiz: @quiz.name </h2>
 
+    @if(quiz.descriptionHtml.toString.nonEmpty){
+    <div>
+        @quiz.descriptionHtml
+    </div>
+    }
+
     @if(course2Quiz.startDate.isDefined || course2Quiz.endDate.isDefined) {
         <div>
             <h5> Timing </h5>
@@ -37,10 +42,9 @@
         Please check again later.
     } else {
 
-    <h4>There @are(questions) @questions.size Question@s(questions) in the quiz @tag.icon("icon-help", 'data_ot -> "Click a question to answer it")</h4>
+    <h4>There @are(questions) @questions.size Question@s(questions) in the quiz, you have answered @{answers.mapValues(v => if(v.map(_.correct).reduce(_ || _)){1}else{0}).values.sum } correctly @tag.icon("icon-help", 'data_ot -> "Click a question to answer it")</h4>
 
     @if(access.write){
-    @*  TODO Handle Answer Op and attempts *@
     <table class="pure-table pure-table-striped" id="quiz-questions">
         <tr>
             <th>Question</th>

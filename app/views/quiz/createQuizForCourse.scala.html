@@ -18,6 +18,10 @@
             <!-- name -->
             <label for="@QuizCreate.name">Name: <input type="text" name="@QuizCreate.name" data-bind="text: @QuizCreate.name" placeholder="quiz name"></label> <br>
 
+            <!-- description --> @*Question Description @tag.isValid("descriptionInvalid") : <br> *@
+            <div> <textarea type="text" name="@QuizCreate.descriptionRaw" class="expanding" data-bind="textInput: @QuizCreate.descriptionRaw"></textarea> </div> <br>
+            <div> <input type="hidden" name="@QuizCreate.descriptionHtml" data-bind="value: @{QuizCreate.descriptionHtml}"/> <span data-bind="mathjax: @{QuizCreate.descriptionHtml}"> </span> </div> <br>
+
             <!-- hide -->
             <label for="@QuizCreate.viewHide">Hide:
                 <input type="checkbox" name="@QuizCreate.viewHide" value="true"  data-bind="checked: @QuizCreate.viewHide" />
@@ -57,6 +61,8 @@
 
             var createQuizModel = {
                 "@{QuizCreate.name}": ko.observable(""),
+                "@{QuizCreate.descriptionRaw}": ko.observable(""),
+                // @QuizCreate.descriptionHtml is set up below
                 "@{QuizCreate.viewHide}": ko.observable(false),
                 // Start Date Values
                 "@{QuizCreate.useStartDate}": ko.observable(false),
@@ -65,6 +71,9 @@
                 "@{QuizCreate.useEndDate}": ko.observable(false),
                 "@{QuizCreate.endDate}View": ko.observable(later)
             };
+
+            // Build the observable for the html description
+            ARTC.setupDetails(createQuizModel, "qz", "@QuizCreate.descriptionRaw", "@QuizCreate.descriptionHtml");
 
             createQuizModel.@{QuizCreate.startDate} = ko.computed(function () {
                 if(createQuizModel.@{QuizCreate.startDate}View().isValid()) {
