@@ -16,7 +16,7 @@
     @form(controllers.quiz.routes.QuizController.createSubmit(course.organizationId, course.id), 'class -> "pure-form") {
         <fieldset>
             <!-- name -->
-            <label for="@QuizCreate.name">Name: <input type="text" name="@QuizCreate.name" data-bind="text: @QuizCreate.name" placeholder="quiz name"></label> <br>
+            <label for="@QuizCreate.name">Name: <input type="text" name="@QuizCreate.name" data-bind="textInput: @QuizCreate.name" placeholder="quiz name"></label> <br>
 
             <!-- description --> @*Question Description @tag.isValid("descriptionInvalid") : <br> *@
             <div> <textarea type="text" name="@QuizCreate.descriptionRaw" class="expanding" data-bind="textInput: @QuizCreate.descriptionRaw"></textarea> </div> <br>

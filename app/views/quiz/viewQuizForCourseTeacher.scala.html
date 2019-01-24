@@ -35,10 +35,10 @@
 
     <div id="attach-quiz">
     <h5> Update Quiz </h5>
-    @form(controllers.quiz.routes.QuizController.updateAvailability(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
+    @form(controllers.quiz.routes.QuizController.update(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
         Update the quiz below <br>
 
-        <label for="@QuizAvailability.name">Name: <input type="text" name="@QuizAvailability.name" data-bind="text: @QuizAvailability.name" placeholder="@{quiz.name}"></label> <br>
+        <label for="@QuizAvailability.name">Name: <input type="text" name="@QuizAvailability.name" data-bind="textInput: @QuizAvailability.name" placeholder="@{quiz.name}"></label> <br>
 
         <div> <textarea type="text" name="@QuizAvailability.descriptionRaw" class="expanding" data-bind="textInput: @QuizAvailability.descriptionRaw"></textarea> </div> <br>
         <div> <input type="hidden" name="@QuizAvailability.descriptionHtml" data-bind="value: @{QuizAvailability.descriptionHtml}"/> <span data-bind="mathjax: @{QuizAvailability.descriptionHtml}"> </span> </div> <br>
@@ -64,7 +64,7 @@
         <input type="hidden" name="@QuizAvailability.endDate" data-bind="value : @QuizAvailability.endDate" />
         <br>
 
-        and click <input class="pure-button" type="submit" value="Update Availability" >
+        and click <input class="pure-button" type="submit" value="Update Quiz" >
         @views.html.helper.CSRF.formField
     }
     </div>
