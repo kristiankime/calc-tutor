@@ -25,14 +25,6 @@
 @mainContent("Quiz " + quiz.name, tag.courseLink(course)) {
 @views.html.quiz.viewQuizForCourseCore(access, course, quiz, course2Quiz, questions, answerOp, answers)
 
-    @*
-    <h5> Rename </h5>
-    @form(controllers.quiz.routes.QuizController.rename(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
-        To rename type a new name here <input type="text" name="@QuizRename.name" value="@quiz.name"> and click <input class="pure-button" type="submit" value="rename" >
-        @views.html.helper.CSRF.formField
-    }
-    *@
-
     <div id="attach-quiz">
     <h5> Update Quiz </h5>
     @form(controllers.quiz.routes.QuizController.update(course.organizationId, course.id, quiz.id), 'class -> "pure-form") {
