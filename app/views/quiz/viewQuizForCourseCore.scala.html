@@ -131,7 +131,7 @@
             <th>Question</th>
             @for(answer <- answerOp){<th>Correct</th>}
             @if(answers.nonEmpty){<th>Attempts</th>}
-            @if(access.write){<th>Remove</th>}
+            @* @if(access.write){<th>Remove</th>} *@
 
         @for(question <- questions){<tr>
             <td>
@@ -147,13 +147,13 @@
                     @for(answer <- answers.getOrElse(question.id, Seq()) ){<a href="@controllers.quiz.routes.QuestionController.view(course.organizationId, course.id, quiz.id, question.id, Some(answer.id))"> @tag.correctIcon(answer.correct) </a>, }
                 </td>
             }
-            @if(access.write){
+            @* @if(access.write){
                 <td>
                 @form(controllers.quiz.routes.QuestionController.remove(course.organizationId, course.id, quiz.id, question.id), 'class -> "pure-form") {
                     <input class="pure-button" type="submit" value="remove" > @views.html.helper.CSRF.formField
                 }
                 </td>
-            }
+            } *@
         </tr>}
     </table>
     }

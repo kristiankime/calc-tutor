@@ -202,15 +202,28 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
   // ======= Results ======
 
   // ---- Table of users to questions ----
-  def results(userIds: Seq[UserId], questionIds: Seq[QuestionId]): Future[Seq[(UserId, QuestionId, Option[Short])]] = db.run(
+  def results(userIds: Seq[UserId], questionIds: Seq[QuestionId]): Future[Seq[(UserId, QuestionId, Option[Short], Int)]] = db.run(
     Answers.filter(a => a.ownerId.inSet(userIds) && a.questionId.inSet(questionIds)).
-      groupBy(a => (a.ownerId, a.questionId)).map{ case(ids, group) => (ids._1, ids._2, group.map(_.correct).max )}.result
+      groupBy(a => (a.ownerId, a.questionId)).map{ case(ids, group) => (ids._1, ids._2, group.map(_.correct).max, group.length )}.result
   )
 
   def resultsTable(users: Seq[User], questions: Seq[Question]): Future[QuizResultTable] = {
     results(users.map(_.id), questions.map(_.id)).map(rs => {
-      val resultsMap: Map[(UserId, QuestionId), Option[Short]] = rs.groupBy(r => (r._1, r._2)).mapValues(_.head._3)
-      val rows: Seq[QuizResultTableRow] = users.map(u => QuizResultTableRow(u, questions.map(q => resultsMap.getOrElse((u.id, q.id), None).map(NumericBoolean(_)))))
+      // Map from user+question to correct+attempts
+      val resultsMap: Map[(UserId, QuestionId), (Option[Short], Int)] = rs.groupBy(r => (r._1, r._2)).mapValues(v => (v.head._3, v.head._4))
+
+      // Convert to rows
+      val rows: Seq[QuizResultTableRow] = users.map(u => QuizResultTableRow(u,
+        questions.map(q => {
+          val v = resultsMap.getOrElse((u.id, q.id), (None, 0))
+          v._1 match {
+            case Some(n) => Some(NumericBoolean(n), v._2)
+            case None => None
+          }
+        })
+      ))
+
+      // And complete the table
       QuizResultTable(questions, rows)
     })
   }
@@ -233,4 +246,4 @@ class AnswerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 case class QuizResultTable(questions: Seq[Question], rows : Seq[QuizResultTableRow]) {
   for(row <- rows) { if(questions.size != row.results.size) { throw new IllegalArgumentException("Rows did not match header size") } }
 }
-case class QuizResultTableRow(user: User, results: Seq[Option[Boolean]])
+case class QuizResultTableRow(user: User, results: Seq[Option[(Boolean, Int)]])

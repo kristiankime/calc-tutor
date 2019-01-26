@@ -135,7 +135,7 @@
             </td>
             @for(e <- r.results.zip(quizResultTable.questions)) {<td>
                 @for(c <- e._1){ <a href="@controllers.quiz.routes.QuestionController.studentSummary(course.organizationId, course.id, quiz.id, e._2.id, r.user.id)">
-                    @if(c){ @tag.icon("icon-checkmark3", 'class -> "indicate-correct", 'data_ot -> "The student answered this correctly") } else { @tag.icon("icon-cross", 'class -> "indicate-incorrect", 'data_ot -> "The student hasn't answered this correctly yet") }
+                    @if(c._1){ @tag.icon("icon-checkmark3", 'class -> "indicate-correct", 'data_ot -> s"The student answered this correctly (${c._2} attempts)")} else { @tag.icon("icon-cross", 'class -> "indicate-incorrect", 'data_ot -> s"The student hasn't answered this correctly yet (${c._2} attempts)")}/@c._2
                 </a>}
             </td>}
         </tr>
