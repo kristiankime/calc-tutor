@@ -115,7 +115,7 @@ class AnswerDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       TestData.await(answerDAO.resultsTable(Seq(user0, user1), Seq(question0.question, question1.question))).mustBe(
         QuizResultTable(Seq(question0.question, question1.question),
           Seq(
-            QuizResultTableRow(user0, Seq(Some(true),  Some(true))),
+            QuizResultTableRow(user0, Seq(Some((true, 1)),  Some((true, 1)))),
             QuizResultTableRow(user1, Seq(None,        None))
           )
         ))
@@ -146,8 +146,8 @@ class AnswerDAOSpec extends PlaySpec with CleanDatabaseAfterEach {
       TestData.await(answerDAO.resultsTable(Seq(user0, user1), Seq(question0.question, question1.question))).mustBe(
         QuizResultTable(Seq(question0.question, question1.question),
           Seq(
-            QuizResultTableRow(user0, Seq(Some(true),  None)),
-            QuizResultTableRow(user1, Seq(Some(false), Some(true)))
+            QuizResultTableRow(user0, Seq(Some((true, 2)),  None)),
+            QuizResultTableRow(user1, Seq(Some((false, 1)), Some((true, 3))))
           )
         ))
     }

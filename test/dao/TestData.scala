@@ -15,6 +15,8 @@ import models.quiz.{QuestionFrame, QuestionPartChoice, QuestionPartFunction, _}
 import models.user.User
 import org.joda.time.DateTime
 
+import play.twirl.api.Html
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable}
 
@@ -35,7 +37,7 @@ object TestData {
 
   def course(id: Int, organization : Organization, owner : User) = Course(name="name"+id, organizationId=organization.id, ownerId=owner.id, editCode = "", viewCode = None, creationDate = JodaUTC(0), updateDate = JodaUTC(0))
 
-  def quiz(id: Int, owner : User) = Quiz(id = null, ownerId = owner.id, name = "name"+id, creationDate = JodaUTC(0), updateDate = JodaUTC(0))
+  def quiz(id: Int, owner : User) = Quiz(id = null, ownerId = owner.id, name = "name"+id, descriptionRaw = "name"+id, descriptionHtml = Html("name"+id), creationDate = JodaUTC(0), updateDate = JodaUTC(0))
 
   def skill(name: String) = Skill(null, name, name.substring(0,1), 1d, 1d, 1d)
 
