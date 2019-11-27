@@ -1,8 +1,10 @@
 @import helper._
 @import controllers.quiz.QuestionCreate
 @import models.quiz.util.SequenceTokenOrMath.separator
+@import controllers.quiz.QuestionJson
+@import controllers.quiz.QuestionCreate
 
-@(action: play.api.mvc.Call, allSkills: Seq[String], initialDataModel: Option[String] = None)(implicit request: Request[AnyContent])
+@(action: play.api.mvc.Call, allSkills: Seq[String], initialDataModel: Option[QuestionJson] = None)(implicit request: Request[AnyContent])
 
 
 <section id="question-editor">
@@ -652,7 +654,7 @@
 
             // === Initialize View Model
             QE.initializeViewModel = function() {
-                var data = @initialDataModel.getOrElse(Html("{ " +
+                var data = @initialDataModel.map(d => Html(QuestionCreate.questionFormat.writes(d).toString)).getOrElse(Html("{ " +
                     QuestionCreate.title + """ : "", """ +
                     QuestionCreate.descriptionRaw + """ : "", """ +
                     QuestionCreate.descriptionHtml + """ : ARTC.markdown("main", ""), """ +

@@ -46,6 +46,13 @@ class LibraryController @Inject()(/*val config: Config, val playSessionStore: Pl
     skillDAO.allSkills.map(skills => Ok(views.html.library.createQuestion(skills)))
   }}}
 
+  def createQuestionCopyView(questionId: QuestionId) = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+    questionDAO.frameByIdEither(questionId).flatMap{ _ match {
+      case Left(notFoundResult) => Future.successful(notFoundResult)
+      case Right(question) => skillDAO.allSkills.map(skills => Ok(views.html.library.createQuestion(skills, Some(QuestionJson(question)))))
+    } }
+  }}}
+
   def createQuestionSubmit() = Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
         QuestionCreate.form.bindFromRequest.fold(
