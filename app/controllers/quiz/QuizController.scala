@@ -56,7 +56,7 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
             val now = JodaUTC.now
             quizDAO.insert(Quiz(null, user.id, form.name, form.descriptionRaw, Html(form.descriptionHtml), now, now)).flatMap(quiz => // Create the Quiz
               quizDAO.attach(course, quiz, form.viewHide, if(form.useStartDate){Some(form.startDate)}else{None}, if(form.useEndDate){Some(form.endDate)}else{None}).map( _ => // Attach it to the Course
-                Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))) // Redirect to the view
+                Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None, None)))) // Redirect to the view
           }
         )
       }
@@ -64,11 +64,11 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
 
   } } } }
 
-  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId]) = RequireAccess(View, to=courseId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
+  def view(organizationId: OrganizationId, courseId: CourseId, quizId: QuizId, answerIdOp: Option[AnswerId], questionIdOp: Option[QuestionId]) = RequireAccess(View, to=courseId) { Secure(ApplicationInfo.defaultSecurityClients, "Access").async { authenticatedRequest => Consented(authenticatedRequest, userDAO) { implicit user => Action.async { implicit request =>
 
-    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp) +^ quizDAO.attempts(quizId, user) ).flatMap{ _ match {
+    (courseDAO(organizationId, courseId) +& quizDAO(courseId, quizId) +^ quizDAO.access(user.id, quizId) +& answerDAO(answerIdOp) +^ quizDAO.attempts(quizId, user) +& questionDAO.frameByOptionIdEither(questionIdOp) ).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
-      case Right((course, (course2Quiz, quiz), access, answerOp, attempts)) =>
+      case Right((course, (course2Quiz, quiz), access, answerOp, attempts, questionFrameOp)) =>
         quizDAO.questionSummariesFor(quiz).flatMap(questions => {
 
           val attemptsMap = attempts.groupBy(_.questionId)
@@ -77,7 +77,8 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
             Future.successful(Ok(views.html.quiz.viewQuizForCourseStudent(access, course, quiz, course2Quiz, questions, answerOp, attemptsMap)))
           } else {
             (skillDAO.allSkills +# questionDAO.questionSearchSet(user.id,"%", Seq(), Seq()) +# answerDAO.resultsTable(course, quiz) ).map(v => {
-              Ok(views.html.quiz.viewQuizForCourseTeacher(access, course, quiz, course2Quiz, questions, answerOp, attemptsMap, v._1, QuestionLibraryResponses(v._2), v._3)) })
+              Ok(views.html.quiz.viewQuizForCourseTeacher(access, course, quiz, course2Quiz, questions, answerOp, attemptsMap, v._1, QuestionLibraryResponses(v._2), v._3, questionFrameOp.map(QuestionJson(_))))
+            })
           }
 
         })
@@ -96,7 +97,7 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
           form => {
             val updateQuiz2CourseFuture = quizDAO.update(course, quiz, form.viewHide, if(form.useStartDate){Some(form.startDate)}else{None}, if(form.useEndDate){Some(form.endDate)}else{None})
             val updateQuizFuture = quizDAO.update( form.toQuiz(quiz) )
-            updateQuiz2CourseFuture.flatMap(_ => updateQuizFuture.map(_ =>  Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None))))
+            updateQuiz2CourseFuture.flatMap(_ => updateQuizFuture.map(_ =>  Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None, None))))
           }
         )
     }
@@ -109,7 +110,7 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
     (courseDAO(organizationId, courseId) +& quizDAO(quizId) +& questionDAO(questionId)).flatMap{ _ match {
       case Left(notFoundResult) => Future.successful(notFoundResult)
       case Right((course, quiz, question)) =>
-        quizDAO.attach(question, quiz, user.id).map(_ => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
+        quizDAO.attach(question, quiz, user.id).map(_ => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None, None)))
       }
     }
 
@@ -189,7 +190,7 @@ class QuizController @Inject()(/*val config: Config, val playSessionStore: PlayS
                 val quizFrameFuture = quizDAO.insert(QuizFrame(user.id, value, skillsMap), user.id)
                 quizFrameFuture.flatMap(quizFrame => {
                   quizDAO.attach(course, quizFrame.quiz, false, None, None).map(_ =>
-                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizFrame.quiz.id, None)))
+                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizFrame.quiz.id, None, None)))
                 })
               }
             }

@@ -55,7 +55,7 @@ class AnswerController @Inject()(/*val config: Config, val playSessionStore: Pla
                     answerDAO.insert(protoAnswerFrame).map(answerFrame => {
 
                     if (answerFrame.answer.correct) { // Here everything was correct so go back to the quiz itself
-                      Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, Some(answerFrame.answer.id)))
+                      Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, Some(answerFrame.answer.id), None))
                     } else { // Here an answer was wrong so give the user another chance to answer
                       Redirect(controllers.quiz.routes.QuestionController.view(organizationId, course.id, quizId, questionId, Some(answerFrame.answer.id)))
                     }

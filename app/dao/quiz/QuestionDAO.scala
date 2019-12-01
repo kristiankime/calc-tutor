@@ -122,6 +122,16 @@ class QuestionDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     case Some(questionFrame) => Right(questionFrame)
   } }
 
+  def frameByOptionIdEither(questionIdOp: Option[QuestionId]): Future[Either[Result, Option[QuestionFrame]]] =
+    questionIdOp match {
+      case Some(questionId) => frameById(questionId).map { _ match {
+        case None => Left(NotFound(views.html.errors.notFoundPage("There was no question for id=["+questionId+"]")))
+        case Some(questionFrame) => Right(Some(questionFrame))
+      } }
+      case None => Future.successful(Right(None))
+    }
+
+
   // ====== Question Search =====
   private def questionSearch(titleQuery: String, userId: UserId) = db.run({
     (for (q <- Questions; q2s <- skillTables.Skills2Questions; s <- skillTables.Skills

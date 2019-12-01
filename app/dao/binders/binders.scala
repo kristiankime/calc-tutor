@@ -189,6 +189,19 @@ package object binders {
 		def unbind(key: String, id: QuestionId): String = longBinder.unbind(key, id.v)
 	}
 
+	implicit def questionIdQueryStringBindable(implicit longBinder: QueryStringBindable[Long]) = new QueryStringBindable[QuestionId] {
+		def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, QuestionId]] = {
+			for { either <- longBinder.bind(key, params) } yield {
+				either match {
+					case Right(long) => Right(QuestionId(long))
+					case _ => Left("Unable to bind a QuestionId for key " + key)
+				}
+			}
+		}
+
+		def unbind(key: String, id: QuestionId): String = longBinder.unbind(key, id.v)
+	}
+
 	// ==========================
 	// AnswerId
 	// ==========================

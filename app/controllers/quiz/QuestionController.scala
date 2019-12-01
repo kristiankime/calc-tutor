@@ -50,7 +50,7 @@ class QuestionController @Inject()(/*val config: Config, val playSessionStore: P
                 val questionFrameFuture = questionDAO.insert(QuestionFrame(value, user.id, skillsMap))
                 questionFrameFuture.flatMap(questionFrame => {
                   quizDAO.attach(questionFrame.question, quiz, user.id).map(_ =>
-                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None)))
+                    Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quizId, None, None)))
                 })
               }
             }
@@ -104,7 +104,7 @@ class QuestionController @Inject()(/*val config: Config, val playSessionStore: P
       case Right((course, quiz, question)) =>
 
         val detachFuture = quizDAO.detach(questionId, quiz)
-        detachFuture.map(update => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None)))
+        detachFuture.map(update => Redirect(controllers.quiz.routes.QuizController.view(organizationId, course.id, quiz.id, None, None)))
     } }
 
   } } } }

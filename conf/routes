@@ -32,7 +32,7 @@ GET         /orgs/:o/courses/:c/user/:u                                         
 # Course Quizzes
 GET         /orgs/:o/courses/:c/quizzes/create                                      controllers.quiz.QuizController.createForm(o: OrganizationId, c: CourseId)
 POST        /orgs/:o/courses/:c/quizzes                                             controllers.quiz.QuizController.createSubmit(o: OrganizationId, c: CourseId)
-GET         /orgs/:o/courses/:c/quizzes/:z                                          controllers.quiz.QuizController.view(o: OrganizationId, c: CourseId, z: QuizId, a: Option[AnswerId])
+GET         /orgs/:o/courses/:c/quizzes/:z                                          controllers.quiz.QuizController.view(o: OrganizationId, c: CourseId, z: QuizId, a: Option[AnswerId], q: Option[QuestionId])
 POST        /orgs/:o/courses/:c/quizzes/:z/update                                   controllers.quiz.QuizController.update(o: OrganizationId, c: CourseId, z: QuizId)
 POST        /orgs/:o/courses/:c/quizzes/:z/attach/:q                                controllers.quiz.QuizController.attachAjax(o: OrganizationId, c: CourseId, z: QuizId, q: QuestionId)
 POST        /orgs/:o/courses/:c/quizzes/:z/remove                                   controllers.quiz.QuizController.remove(o: OrganizationId, c: CourseId, z: QuizId)
