@@ -40,6 +40,7 @@ class ApplicationController @Inject()(/*override val config: Config, override va
     Ok(
       JavaScriptReverseRouter("jsRoutes")(
         _root_.controllers.library.routes.javascript.LibraryController.viewQuestion,
+        _root_.controllers.library.routes.javascript.LibraryController.createQuestionCopyView,
         _root_.controllers.library.routes.javascript.LibraryController.questionListAjax,
         _root_.controllers.quiz.routes.javascript.QuizController.attachAjax,
         _root_.controllers.quiz.routes.javascript.QuestionController.view,

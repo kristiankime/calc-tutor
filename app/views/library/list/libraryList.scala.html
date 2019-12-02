@@ -1,16 +1,18 @@
-@(skills: Seq[models.quiz.Skill])
-
 @import controllers.library.QuestionLibrary.id
 @import controllers.library.QuestionLibrary.title
+
+@(skills: Seq[models.quiz.Skill])
 
     <table class="pure-table pure-table-striped">
       <tr>
         <th> <a href="#" data-bind="orderable: {collection: 'searchResults', field: '@{title}'}">Name</a> </th>
+        <th> Cp </th>
         @for(skill <- skills){<th> <a href="#" data-bind="orderable: {collection: 'searchResults', field: '@{title}'}" data-ot="@skill.name"> @skill.short_name </a> </th>}
       </tr>
       <!-- ko foreach: searchResults -->
       <tr>
         <td> <a data-bind="html : @{title}(), attr: { href: jsRoutes.controllers.library.LibraryController.viewQuestion(@{id}()).url, title : @{title}() }"> </a> </td>
+        <td> <a data-bind="attr: { href: jsRoutes.controllers.library.LibraryController.createQuestionCopyView(@{id}()).url }" title="Copy This Question"> Cp </a> </td>
         @for(skill <- skills){<td data-bind="html : QL.si(skills(),'@skill.name')"> </td>}
       </tr>
       <!-- /ko -->

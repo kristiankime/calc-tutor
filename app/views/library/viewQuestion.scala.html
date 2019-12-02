@@ -19,13 +19,18 @@
         questionFrame,
         answer)
 
+    <h5> Copy </h5>
+    <section>
+        <a href="@controllers.library.routes.LibraryController.createQuestionCopyView(questionFrame.question.id)" class="pure-button">Copy</a>
+    </section>
+
     @if(access >= Own) {
     <h5> Archive </h5>
     @form(controllers.library.routes.LibraryController.archive(questionFrame.question.id, None), 'class -> "pure-form") {
         @if(questionFrame.question.archivedNum == 0){
-            <input type="hidden" name="@QuestionArchive.questionArchive" value="1"> <input class="pure-button" type="submit" value="archive">
+            <input type="hidden" name="@QuestionArchive.questionArchive" value="1"> <input class="pure-button" type="submit" value="Archive">
         } else {
-            <input type="hidden" name="@QuestionArchive.questionArchive" value="0"> <input class="pure-button" type="submit" value="activate">
+            <input type="hidden" name="@QuestionArchive.questionArchive" value="0"> <input class="pure-button" type="submit" value="Activate">
         }
         @views.html.helper.CSRF.formField
     }
