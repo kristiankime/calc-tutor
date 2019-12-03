@@ -20,6 +20,12 @@
         answer)
 
     @if(access >= models.Edit) {
+        <h5> Copy </h5>
+        <section>
+            <a href="@controllers.quiz.routes.QuizController.view(course.organizationId, course.id, quiz.id, None, Some(questionFrame.question.id))" class="pure-button">Copy</a>
+        </section>
+
+        <h5> Skills </h5>
         <ul class="pure-list">
         @for(skill <- questionFrame.skills){
             <li>@skill.name</li>
